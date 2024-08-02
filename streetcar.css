@@ -1,0 +1,255 @@
+/**
+ *------
+ * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
+ * Streetcar implementation : © <Your name here> <Your email address here>
+ *
+ * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
+ * See http://en.boardgamearena.com/#!doc/Studio for more information.
+ * -----
+ *
+ * streetcar.css
+ *
+ * Streetcar stylesheet
+ *
+ */
+
+/*
+    This is the CSS stylesheet of your game User Interface.
+    
+    Styles defined on this file will be applied to the HTML elements you define in your
+    HTML template (streetcar_streetcar.tpl), and to HTML elements you create dynamically
+    (in streetcar.js).
+    
+    Usually, you are using CSS to:
+    
+    1°) define the overall layout of your game
+        (ex: place the board on the top left, place player's hand beside, place the deck on the right, ...).
+
+    2°) create your CSS-sprites:
+        All images of your games should be gathered into a small number of image files. Then, using
+        background-image and background-position CSS properties, you create HTML blocks that can 
+        display these images correctly (see example below).
+    
+    3°) ... anything else:
+        It is really easy to add and remove CSS classes dynamically from your Javascript with
+        dojo.addClass and dojo.removeClass. It is also easy to check if an element has a class
+        (dojo.hasClass) or to get all elements with a specific class (dojo.query). This is why,
+        very often, using CSS classes for the logic of your user interface allow you to do complex
+        thing easily.
+        
+        
+     Note: on the production platform, this file will be compressed and comments will be removed.
+           Consequently, don't hesitate to put as many comments as necessary.
+*/
+
+/* Note: you must not use any @import directive */
+
+/********* You can start writing your CSS below this line: **********/
+
+#wrapper {
+  margin: auto;
+}
+#board {
+  /* border: 5px solid red; */
+  width: 1491px;
+  height: 1491px;
+  background-image: url("img/game board.jpg");
+
+  overflow: hidden;
+  position: relative;
+}
+
+.square {
+  width: 100px;
+  height: 100px;
+  background-color: rgba(255, 0, 0, 0);
+  position: absolute;
+}
+.stops {
+  width: 100px;
+  height: 100px;
+  background-color: rgba(0, 255, 0, 0);
+  position: absolute;
+  z-index: 9 !important;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  pointer-events: none;
+}
+.noclick {
+  pointer-events: none;
+}
+.route {
+  width: 100px;
+  height: 100px;
+  background-color: rgba(0, 0, 255, 0);
+  position: absolute;
+}
+.direction {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: green;
+}
+.track {
+  width: 100px;
+  height: 100px;
+  background-image: url("img/tracks.png");
+  //  position: relative;
+  //  z-index: 3;
+  //  transform-origin: 50px 50px;
+}
+.trackselected {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  border: 2px white solid;
+}
+.playertrack {
+  /* width: 50px;
+  height: 50px;
+  background-size: 600px 50px; */
+  display: inline-block;
+  transform: rotate(0deg);
+}
+.startposition {
+  width: 51px;
+  height: 51px;
+  background-image: url("img/start.png");
+  margin: 2px;
+}
+.train {
+  width: 100px;
+  height: 100px;
+  background-image: url("img/trains.png");
+  /* margin: 2px; */
+}
+.dice {
+  position: absolute;
+  top: 0px;
+  left: calc(50% - 200px);
+  width: 400px;
+  height: 200px;
+  margin: auto;
+  display: none; //inline-flex;
+}
+.die {
+  width: 80px;
+  height: 80px;
+  background-image: url("img/die.png");
+  border: 4px solid black;
+  border-radius: 10%;
+  margin: 20px;
+  cursor: pointer;
+  /* margin: 2px; */
+}
+.goalsholder {
+  height: 50px;
+  width: 100%;
+  margin: 2px;
+}
+.goallocation {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 4px solid #398904;
+  background-color: #fcdf00;
+  outline: 2px solid #fcdf00;
+
+  color: #398904;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bolder;
+  margin-right: 1rem;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  display: inline-block;
+}
+.goalstart {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+}
+.goalreached {
+  border: 4px solid #ff0000 !important;
+}
+.goalname {
+  position: absolute;
+  left: 0px;
+  bottom: 0px;
+  width: 105px;
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.8rem;
+  text-align: center;
+}
+.goalcheck {
+  width: 150px;
+  height: 30px;
+  border-radius: 10%;
+  border: 4px solid #398904;
+  background-color: #fcdf00;
+  color: #398904;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: bolder;
+  margin-right: 1rem;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  display: inline-block;
+}
+.stopW {
+  position: absolute;
+  top: 32px;
+}
+.stopS {
+  position: absolute;
+  left: 32px;
+}
+.stopN {
+  position: absolute;
+  left: 32px;
+  top: 60px;
+}
+.stopE {
+  position: absolute;
+  top: 32px;
+  left: 65px;
+}
+.locationstop {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 4px solid red;
+  background-color: white;
+  color: red;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: bolder;
+  margin-right: 1rem;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+#place_card2 {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  z-index: 12;
+}
+
+.option-border {
+  border: 5px #ffffff solid;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  animation: blink 1;
+  animation-iteration-count: 5;
+}
+
+@keyframes blink {
+  50% {
+    border-color: #0000ff;
+  }
+}
