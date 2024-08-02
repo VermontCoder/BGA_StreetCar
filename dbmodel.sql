@@ -36,7 +36,7 @@
 CREATE TABLE IF NOT EXISTS `board` (
   `board_x` smallint(5) unsigned NOT NULL,
   `board_y` smallint(5) unsigned NOT NULL,
-  `orientation` varchar(64)  DEFAULT NULL,
+  `directions_free` varchar(64)  DEFAULT NULL,
   `stop` varchar(5)  DEFAULT NULL,
   `card` smallint(16) unsigned NOT NULL,
   `rotation` smallint(5) unsigned NOT NULL,

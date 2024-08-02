@@ -137,7 +137,7 @@ class Streetcar extends Table
         $sql .= implode(',', $values);
         self::DbQuery($sql);
 
-        $sql = "INSERT INTO board (board_x,board_y,orientation) VALUES ";
+        $sql = "INSERT INTO board (board_x,board_y,directions_free) VALUES ";
         $sql_values = array();
 
         for ($x = 1; $x <= 12; $x++) {
@@ -148,7 +148,7 @@ class Streetcar extends Table
         $sql .= implode(',', $sql_values);
         self::DbQuery($sql);
         // add border
-        $sql = "INSERT INTO board (board_x,board_y,orientation,card,rotation) VALUES ";
+        $sql = "INSERT INTO board (board_x,board_y,directions_free,card,rotation) VALUES ";
         $sql_values = array();
 
         $sql_values[] = "(2,0,'ES',1,270)";
@@ -262,7 +262,7 @@ class Streetcar extends Table
     }
     function getBoard()
     {
-        return self::getDoubleKeyCollectionFromDB("SELECT board_x x, board_y y, orientation orientation
+        return self::getDoubleKeyCollectionFromDB("SELECT board_x x, board_y y, directions_free orientation
                                                                FROM board", true);
     }
     function getStop($s)
@@ -383,10 +383,10 @@ class Streetcar extends Table
         // self::trace(">>LOCATIONSLSLS>>>>" . array_values($found)[0]["code"]);
         //
         $sql_values = array();
-        $sql = "INSERT INTO board (board_x,board_y,rotation, card, orientation, stop) VALUES ";
+        $sql = "INSERT INTO board (board_x,board_y,rotation, card, directions_free, stop) VALUES ";
         $sql_values[] = "($x,$y ,$r ,$c ,'$o','$stopToAdd')";
         $sql .= implode(',', $sql_values);
-        $sql .= " ON DUPLICATE KEY UPDATE rotation= VALUES(rotation), card = VALUES(card), orientation = VALUES(orientation), stop = VALUES(stop)";
+        $sql .= " ON DUPLICATE KEY UPDATE rotation= VALUES(rotation), card = VALUES(card), directions_free = VALUES(directions_free), stop = VALUES(stop)";
         self::DbQuery($sql);
         // update tracksplaced
         $tracksplaced = intval(self::getGameStateValue('tracksplaced'));
