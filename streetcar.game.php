@@ -262,7 +262,7 @@ class Streetcar extends Table
     }
     function getBoard()
     {
-        return self::getDoubleKeyCollectionFromDB("SELECT board_x x, board_y y, directions_free orientation
+        return self::getDoubleKeyCollectionFromDB("SELECT board_x x, board_y y, directions_free directions_free
                                                                FROM board", true);
     }
     function getStop($s)
@@ -275,7 +275,7 @@ class Streetcar extends Table
         return self::getDoubleKeyCollectionFromDB("SELECT board_x x, board_y y, card
                                                                FROM board", true);
     }
-    function getOrientation()
+    function getRotation()
     {
         return self::getDoubleKeyCollectionFromDB("SELECT board_x x, board_y y, rotation
                                                                FROM board", true);
@@ -302,7 +302,7 @@ class Streetcar extends Table
             // 'cards_played' => self::getCardsPlayed(),
             // 'cards' => $this->cards,
             'tracks' => self::getTracks(),
-            'orientation' => self::getOrientation(),
+            'rotations' => self::getRotation(),
             'stops' => self::getStops(),
             'stack' => self::getStack(),
             // 'defaultscoring' => intval(self::getGameStateValue('defaultscoring'))
@@ -403,7 +403,7 @@ class Streetcar extends Table
             // 'cards_played' => self::getCardsPlayed(),
             // 'cards' => $this->cards,
             'tracks' => self::getTracks(),
-            'orientation' => self::getOrientation(),
+            'rotations' => self::getRotation(),
             'stops' => self::getStops(),
         ));
         if ($tracksplaced == 2) {

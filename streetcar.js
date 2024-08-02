@@ -261,9 +261,9 @@ function (dojo, declare) {
             var x = parseInt(coords[1])
             var y = parseInt(coords[2]);
             let tracks = this.gamedatas.gamestate.args.tracks;
-            let orientation = this.gamedatas.gamestate.args.orientation;
+            let rotations = this.gamedatas.gamestate.args.rotations;
             let board = this.gamedatas.gamestate.args.board;
-            let directions = this.gamedatas.tracks[tracks[x][y]][[0,90,180,270].indexOf(parseInt(orientation[x][y]))]
+            let directions = this.gamedatas.tracks[tracks[x][y]][[0,90,180,270].indexOf(parseInt(rotations[x][y]))]
             //find direction
             let traveled = 'N'
             if(this.routestartX == x){
@@ -315,7 +315,7 @@ function (dojo, declare) {
                             let newx = parseInt(parseInt(x))
                             let newy = parseInt(parseInt(y)-1)
                             console.log(">>ADD N>>",'route_'+newx+'_'+newy,directions.N)
-                            let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(orientation[newx][newy]))]
+                            let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
                             if(neighbour.S!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
 
                                 dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
@@ -327,7 +327,7 @@ function (dojo, declare) {
                             let newx = parseInt(parseInt(x)+1)
                             let newy = parseInt(parseInt(y))
                             console.log(">>ADD E>>",'route_'+newx+'_'+newy,directions.E);
-                            let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(orientation[newx][newy]))]
+                            let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
                             if(neighbour.W!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
                                 dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
                                 optionsactive++
@@ -337,7 +337,7 @@ function (dojo, declare) {
                             let newx = parseInt(parseInt(x))
                             let newy = parseInt(parseInt(y)+1)
                             console.log(">>ADD S>>",'route_'+newx+'_'+newy,directions.S)
-                            let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(orientation[newx][newy]))]
+                            let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
                             if(neighbour.N!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
 
                                 dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
@@ -348,7 +348,7 @@ function (dojo, declare) {
                             let newx = parseInt(parseInt(x)-1)
                             let newy = parseInt(parseInt(y))
                             console.log(">>ADD W>>",'route_'+newx+'_'+newy,directions.W)
-                            let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(orientation[newx][newy]))]
+                            let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
                             if(neighbour.E!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
                                 dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
                                 optionsactive++
@@ -369,7 +369,7 @@ function (dojo, declare) {
                         let newx = parseInt(parseInt(x))
                         let newy = parseInt(parseInt(y)-1)
                         console.log(">>ADD N>>",'route_'+newx+'_'+newy,directions.N)
-                        let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(orientation[newx][newy]))]
+                        let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
                         if(neighbour.S!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
 
                             dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
@@ -381,7 +381,7 @@ function (dojo, declare) {
                         let newx = parseInt(parseInt(x)+1)
                         let newy = parseInt(parseInt(y))
                         console.log(">>ADD E>>",'route_'+newx+'_'+newy,directions.E);
-                        let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(orientation[newx][newy]))]
+                        let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
                         if(neighbour.W!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
                             dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
                             optionsactive++
@@ -391,7 +391,7 @@ function (dojo, declare) {
                         let newx = parseInt(parseInt(x))
                         let newy = parseInt(parseInt(y)+1)
                         console.log(">>ADD S>>",'route_'+newx+'_'+newy,directions.S)
-                        let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(orientation[newx][newy]))]
+                        let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
                         if(neighbour.N!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
 
                             dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
@@ -402,7 +402,7 @@ function (dojo, declare) {
                         let newx = parseInt(parseInt(x)-1)
                         let newy = parseInt(parseInt(y))
                         console.log(">>ADD W>>",'route_'+newx+'_'+newy,directions.W)
-                        let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(orientation[newx][newy]))]
+                        let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
                         if(neighbour.E!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
                             dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
                             optionsactive++
@@ -518,15 +518,15 @@ function (dojo, declare) {
         },
         enableNeighbours(x,y){
             let tracks = this.gamedatas.gamestate.args.tracks;
-            let orientation = this.gamedatas.gamestate.args.orientation;
+            let rotations = this.gamedatas.gamestate.args.rotations;
             let board = this.gamedatas.gamestate.args.board;
-            let directions = this.gamedatas.tracks[tracks[x][y]][[0,90,180,270].indexOf(parseInt(orientation[x][y]))]
+            let directions = this.gamedatas.tracks[tracks[x][y]][[0,90,180,270].indexOf(parseInt(rotations[x][y]))]
             var optionsactive = 0
             if(directions.N!='' ){
                 let newx = parseInt(parseInt(x))
                 let newy = parseInt(parseInt(y)-1)
                 console.log(">>ADD N>>",'route_'+newx+'_'+newy,directions.N)
-                let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(orientation[newx][newy]))]
+                let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
                 if(neighbour.S!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
 
                     dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
@@ -538,7 +538,7 @@ function (dojo, declare) {
                 let newx = parseInt(parseInt(x)+1)
                 let newy = parseInt(parseInt(y))
                 console.log(">>ADD E>>",'route_'+newx+'_'+newy,directions.E);
-                let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(orientation[newx][newy]))]
+                let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
                 if(neighbour.W!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
                     dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
                     optionsactive++
@@ -548,7 +548,7 @@ function (dojo, declare) {
                 let newx = parseInt(parseInt(x))
                 let newy = parseInt(parseInt(y)+1)
                 console.log(">>ADD S>>",'route_'+newx+'_'+newy,directions.S)
-                let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(orientation[newx][newy]))]
+                let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
                 if(neighbour.N!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
 
                     dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
@@ -559,7 +559,7 @@ function (dojo, declare) {
                 let newx = parseInt(parseInt(x)-1)
                 let newy = parseInt(parseInt(y))
                 console.log(">>ADD W>>",'route_'+newx+'_'+newy,directions.W)
-                let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(orientation[newx][newy]))]
+                let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
                 if(neighbour.E!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
                     dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
                     optionsactive++
@@ -691,7 +691,7 @@ function (dojo, declare) {
             let trackOK = true
             let trackcardcheck =  this.gamedatas.tracks[this.selectedTrack][[0,90,180,270].indexOf(parseInt(this.rotation))]
 
-            let currentcard = this.gamedatas.tracks[this.gamedatas.gamestate.args.tracks[this.posx][this.posy]][[0,90,180,270].indexOf(parseInt(this.gamedatas.gamestate.args.orientation[this.posx][this.posy]))]
+            let currentcard = this.gamedatas.tracks[this.gamedatas.gamestate.args.tracks[this.posx][this.posy]][[0,90,180,270].indexOf(parseInt(this.gamedatas.gamestate.args.rotations[this.posx][this.posy]))]
             let orientation = this.gamedatas.gamestate.args.board[this.posx][this.posy]
             console.log(currentcard, trackcardcheck, orientation)
             if(orientation!='[]'){
@@ -937,14 +937,14 @@ function (dojo, declare) {
         updateTracks() {
             let board = this.gamedatas.gamestate.args.board;
             let tracks = this.gamedatas.gamestate.args.tracks;
-            let orientation = this.gamedatas.gamestate.args.orientation;
+            let rotations = this.gamedatas.gamestate.args.rotations;
             for(var x = 1; x<=12; x++){
                 for(var y = 1; y<=12; y++){
                     if(board[x][y]!='[]'){
                         dojo.place( this.format_block( 'jstpl_track', {
                             id: "board_"+tracks[x][y],
                             offsetx:-parseInt(tracks[x][y])*100,
-                            rotate:orientation[x][y]
+                            rotate:rotations[x][y]
                         } ) , 'square_'+x+"_"+y);   
                         
                     }
@@ -954,11 +954,11 @@ function (dojo, declare) {
                 for(var x = 0; x<=13; x++){
                     for(var y = 0; y<=13; y++){
                         if(board[x][y]!='[]' && board[x][y]!=undefined &&(x==0||x==13||y==0||y==13)){
-                            console.log(tracks[x][y],orientation[x][y])
+                            console.log(tracks[x][y],rotations[x][y])
                             dojo.place( this.format_block( 'jstpl_track', {
                                 id: "board_"+tracks[x][y],
                                 offsetx:-parseInt(tracks[x][y])*100,
-                                rotate:orientation[x][y]
+                                rotate:rotations[x][y]
                             } ) , 'route_'+x+"_"+y);   
                             
                         }
@@ -996,12 +996,12 @@ function (dojo, declare) {
         showDirection(){
             let board = this.gamedatas.gamestate.args.board;
             let tracks = this.gamedatas.gamestate.args.tracks;
-            let orientation = this.gamedatas.gamestate.args.orientation;
+            let rotations = this.gamedatas.gamestate.args.rotations;
             for(var x = 1; x<=12; x++){
                 for(var y = 1; y<=12; y++){
                     if(board[x][y]!='[]'){
                         let track = tracks[x][y];
-                        let trackcard =  this.gamedatas.tracks[track][["0","90","180","270"].indexOf(orientation[x][y])]                
+                        let trackcard =  this.gamedatas.tracks[track][["0","90","180","270"].indexOf(rotations[x][y])]                
                          if(trackcard.N!=''){
                             dojo.place( this.format_block( 'jstpl_direction', {
                                 d: "N",
@@ -1287,7 +1287,7 @@ function (dojo, declare) {
             //     this.scoreCtrl[ player_id ].toValue( newScore );
             // }
             this.gamedatas.gamestate.args.stops=notif.args.stops;
-            this.gamedatas.gamestate.args.orientation=notif.args.orientation;
+            this.gamedatas.gamestate.args.rotations=notif.args.rotations;
             this.gamedatas.gamestate.args.board=notif.args.board;
             this.gamedatas.gamestate.args.tracks=notif.args.tracks;
             this.updateStops();
