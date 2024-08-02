@@ -585,7 +585,7 @@ function (dojo, declare) {
             this.rotateTo('track_'+this.selectedTrack, this.rotation)
             this.placeCardButtons()
             let trackcard = this.gamedatas.tracks[this.selectedTrack][0]
-            console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",this.getOrientation(trackcard) )
+            //console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",this.getDirections_free(trackcard) )
         },             
         placeCardButtons(){
             dojo.destroy('place_card')
@@ -597,10 +597,10 @@ function (dojo, declare) {
             dojo.destroy('place_card')
 
             let trackcard = this.gamedatas.tracks[this.selectedTrack][0]
-            let orientations = this.getOrientation(trackcard)                               
-            console.log("place it", trackcard, this.rotation, this.posx,this.posy,orientations,this.gamedatas.gamestate.args.board)
-            this.gamedatas.gamestate.args.board[this.posx][this.posy]= orientations
-            this.ajaxcall( "/streetcar/streetcar/placeTrack.html",{r:this.rotation, x:this.posx, y:this.posy,c: this.selectedTrack,o:orientations}, this, function( result ) {} );
+            let directions_free = this.getDirections_free(trackcard)                               
+            console.log("place it", trackcard, this.rotation, this.posx,this.posy,directions_free,this.gamedatas.gamestate.args.board)
+            this.gamedatas.gamestate.args.board[this.posx][this.posy]= directions_free
+            this.ajaxcall( "/streetcar/streetcar/placeTrack.html",{r:this.rotation, x:this.posx, y:this.posy,c: this.selectedTrack,o:directions_free}, this, function( result ) {} );
             //remove temp track and replace
             dojo.destroy('track_'+this.selectedTrack)
             dojo.place( this.format_block( 'jstpl_track', {
@@ -623,41 +623,41 @@ function (dojo, declare) {
             }
             this.updatePlayers(this.gamedatas.gamestate.args.players)
         },
-        getOrientation(trackcard){
-            let orientations = ""
+        getDirections_free(trackcard){
+            let directions_free = ""
             if(trackcard.N!=''){
                 switch(this.rotation){
-                    case 0 : orientations+='N'; break;
-                    case 90 : orientations+='E'; break;
-                    case 180 : orientations+='S'; break;
-                    case 270 : orientations+='W'; break;
+                    case 0 : directions_free+='N'; break;
+                    case 90 : directions_free+='E'; break;
+                    case 180 : directions_free+='S'; break;
+                    case 270 : directions_free+='W'; break;
                 }
             }
             if(trackcard.E!=''){
                 switch(this.rotation){
-                    case 0 : orientations+='E'; break;
-                    case 90 : orientations+='S'; break;
-                    case 180 : orientations+='W'; break;
-                    case 270 : orientations+='N'; break;
+                    case 0 : directions_free+='E'; break;
+                    case 90 : directions_free+='S'; break;
+                    case 180 : directions_free+='W'; break;
+                    case 270 : directions_free+='N'; break;
                 }
             }
             if(trackcard.S!=''){
                 switch(this.rotation){
-                    case 0 : orientations+='S'; break;
-                    case 90 : orientations+='W'; break;
-                    case 180 : orientations+='N'; break;
-                    case 270 : orientations+='E'; break;
+                    case 0 : directions_free+='S'; break;
+                    case 90 : directions_free+='W'; break;
+                    case 180 : directions_free+='N'; break;
+                    case 270 : directions_free+='E'; break;
                 }
             }
             if(trackcard.W!=''){
                 switch(this.rotation){
-                    case 0 : orientations+='W'; break;
-                    case 90 : orientations+='N'; break;
-                    case 180 : orientations+='E'; break;
-                    case 270 : orientations+='S'; break;
+                    case 0 : directions_free+='W'; break;
+                    case 90 : directions_free+='N'; break;
+                    case 180 : directions_free+='E'; break;
+                    case 270 : directions_free+='S'; break;
                 }
             }     
-        return orientations                
+        return directions_free                
 
         },
         checktrackmatch(currenttrack, newtrack){
@@ -687,14 +687,14 @@ function (dojo, declare) {
         checklocation(){
             let locationOK = true
             let trackcard =  this.gamedatas.tracks[this.selectedTrack][0]
-            let orientations = this.getOrientation(trackcard)   
+            let directions_free = this.getDirections_free(trackcard)   
             let trackOK = true
             let trackcardcheck =  this.gamedatas.tracks[this.selectedTrack][[0,90,180,270].indexOf(parseInt(this.rotation))]
 
             let currentcard = this.gamedatas.tracks[this.gamedatas.gamestate.args.tracks[this.posx][this.posy]][[0,90,180,270].indexOf(parseInt(this.gamedatas.gamestate.args.rotations[this.posx][this.posy]))]
-            let orientation = this.gamedatas.gamestate.args.board[this.posx][this.posy]
-            console.log(currentcard, trackcardcheck, orientation)
-            if(orientation!='[]'){
+            let currentcard_directions_free = this.gamedatas.gamestate.args.board[this.posx][this.posy]
+            //console.log(currentcard, trackcardcheck, currentcard_directions_free)
+            if(currentcard_directions_free!='[]'){
                 if(!this.checktrackmatch(currentcard, trackcardcheck)){
                     this.showMessage( _("Existing trails need to remain the same."), 'info');	
 
@@ -707,7 +707,7 @@ function (dojo, declare) {
                 let xcheck = parseInt(this.posx)
                 let ycheck = parseInt(this.posy)-1
                 let isLocation = false
-                if(orientations.indexOf("N")!=-1){
+                if(directions_free.indexOf("N")!=-1){
                     isLocation= this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
                 }
                 let trackcheck = '[]'
@@ -723,7 +723,7 @@ function (dojo, declare) {
                     if(trackcheck=='[]'){
                         trackOK = true
                     } else {
-                        if((trackcheck.indexOf("S")!=-1 && orientations.indexOf('N')!=-1)||trackcheck.indexOf("S")==-1 && orientations.indexOf('N')==-1){
+                        if((trackcheck.indexOf("S")!=-1 && directions_free.indexOf('N')!=-1)||trackcheck.indexOf("S")==-1 && directions_free.indexOf('N')==-1){
                             trackOK = true
                         } else {
                             trackOK = false
@@ -733,19 +733,19 @@ function (dojo, declare) {
                         locationOK = false
                     }
                     if(this.debug){
-                        console.log('check north', trackcheck,orientations)
+                        console.log('check north', trackcheck,directions_free)
                         console.log('check north neighbour has south', trackcheck.indexOf("S")!=-1)
-                        console.log('check north tile has north', orientations.indexOf('N')!=-1) 
+                        console.log('check north tile has north', directions_free.indexOf('N')!=-1) 
                         console.log('check north',trackOK, isLocation)
                         console.log('checked north', locationOK)
                     }
 
             // }
-            // if(orientations.indexOf("E")!=-1){
+            // if(directions_free.indexOf("E")!=-1){
                  xcheck = parseInt(this.posx)+1
                  ycheck = parseInt(this.posy)
 
-                 if(orientations.indexOf("E")!=-1){
+                 if(directions_free.indexOf("E")!=-1){
                     isLocation = this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
                  }
                  trackcheck = '[]'
@@ -761,7 +761,7 @@ function (dojo, declare) {
                 if(trackcheck=='[]'){
                     trackOK = true
                 } else {
-                    if((trackcheck.indexOf("W")!=-1 && orientations.indexOf('E')!=-1)||trackcheck.indexOf("W")==-1 && orientations.indexOf('E')==-1){
+                    if((trackcheck.indexOf("W")!=-1 && directions_free.indexOf('E')!=-1)||trackcheck.indexOf("W")==-1 && directions_free.indexOf('E')==-1){
                         trackOK = true
                     } else {
                         trackOK = false
@@ -772,18 +772,18 @@ function (dojo, declare) {
                     locationOK = false
                 }
                 if(this.debug){
-                    console.log('check east', trackcheck,orientations)
+                    console.log('check east', trackcheck,directions_free)
                     console.log('check east neighbour has west', trackcheck.indexOf("W")!=-1)
-                    console.log('check east tile has east', orientations.indexOf('E')!=-1)
+                    console.log('check east tile has east', directions_free.indexOf('E')!=-1)
                     console.log('check east',trackOK, isLocation)
                     console.log('checked east', locationOK)
                 }   
             // }   
-            // if(orientations.indexOf("S")!=-1){
+            // if(directions_free.indexOf("S")!=-1){
                  xcheck = parseInt(this.posx)
                  ycheck = parseInt(this.posy)+1
 
-                 if(orientations.indexOf("S")!=-1){
+                 if(directions_free.indexOf("S")!=-1){
                     isLocation = this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
                  }
                  trackcheck = '[]'
@@ -800,7 +800,7 @@ function (dojo, declare) {
                 if(trackcheck=='[]'){
                     trackOK = true
                 } else {
-                    if((trackcheck.indexOf("N")!=-1 && orientations.indexOf('S')!=-1||trackcheck.indexOf("N")==-1 && orientations.indexOf('S')==-1)){
+                    if((trackcheck.indexOf("N")!=-1 && directions_free.indexOf('S')!=-1||trackcheck.indexOf("N")==-1 && directions_free.indexOf('S')==-1)){
                         trackOK = true
                     } else {
                         trackOK = false
@@ -811,19 +811,19 @@ function (dojo, declare) {
                     locationOK = false
                 }
                 if(this.debug){
-                    console.log('check south', trackcheck,orientations)
+                    console.log('check south', trackcheck,directions_free)
                     console.log('check south neighbour has north', trackcheck.indexOf("N")!=-1)
-                    console.log('check south tile has south', orientations.indexOf('S')!=-1)   
+                    console.log('check south tile has south', directions_free.indexOf('S')!=-1)   
                     console.log('check south',trackOK, isLocation)
                     
                     console.log('checked south', locationOK)
                 }
 
             // }
-            // if(orientations.indexOf("W")!=-1){
+            // if(directions_free.indexOf("W")!=-1){
                  xcheck = parseInt(this.posx)-1
                  ycheck = parseInt(this.posy)
-                 if(orientations.indexOf("W")!=-1){
+                 if(directions_free.indexOf("W")!=-1){
                     isLocation = this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
                  }
                  trackcheck = '[]'
@@ -840,7 +840,7 @@ function (dojo, declare) {
                 if(trackcheck=='[]'){
                     trackOK = true
                 } else {
-                    if((trackcheck.indexOf("E")!=-1 && orientations.indexOf('W')!=-1)||trackcheck.indexOf("E")==-1 && orientations.indexOf('W')==-1){
+                    if((trackcheck.indexOf("E")!=-1 && directions_free.indexOf('W')!=-1)||trackcheck.indexOf("E")==-1 && directions_free.indexOf('W')==-1){
                         trackOK = true
                     } else {
                         trackOK = false
@@ -851,16 +851,16 @@ function (dojo, declare) {
                     locationOK = false
                 }
                 if(this.debug){
-                    console.log('check west', trackcheck, orientations)
+                    console.log('check west', trackcheck, directions_free)
                     console.log('check west neighbour has east', trackcheck.indexOf("E")!=-1)
-                    console.log('check west tile has west', orientations.indexOf('W')!=-1)
+                    console.log('check west tile has west', directions_free.indexOf('W')!=-1)
                     console.log('check west',trackOK, isLocation)
 
                     console.log('checked west', locationOK)
                 }
 
             // }                                                
-            // console.log(orientations, this.posx,this.posy)
+            // console.log(directions_free, this.posx,this.posy)
             return locationOK
         },
         locationTracks(xcheck, ycheck){
