@@ -28,6 +28,7 @@ function (dojo, declare) {
             // Here, you can init the global variables of your user interface
             // Example:
             // this.myGlobalValue = 0;
+            this.nswe = ["N","S","E","W"];
 
         },
         
@@ -660,28 +661,18 @@ function (dojo, declare) {
         return directions_free                
 
         },
+
+        /* Returns true if the new track supports movement in as many ways or more than the current track. */
         checktrackmatch(currenttrack, newtrack){
             let match = true
-            for (var i = 0; i < currenttrack.N.length; i++) {
-                if(match){
-                    match = newtrack.N.indexOf(currenttrack.N.charAt(i))!=-1
+
+            this.nswe.forEach( direction =>{
+                for (var i = 0; i < currenttrack[direction].length; i++) {
+                    if(match){
+                        match = newtrack[direction].indexOf(currenttrack[direction].charAt(i))!=-1;
+                    }
                 }
-            }
-            for (var i = 0; i < currenttrack.E.length; i++) {
-                if(match){
-                    match = newtrack.E.indexOf(currenttrack.E.charAt(i))!=-1
-                }
-            }  
-            for (var i = 0; i < currenttrack.S.length; i++) {
-                if(match){
-                    match = newtrack.S.indexOf(currenttrack.S.charAt(i))!=-1
-                }
-            }     
-            for (var i = 0; i < currenttrack.W.length; i++) {
-                if(match){
-                    match = newtrack.W.indexOf(currenttrack.W.charAt(i))!=-1
-                }
-            }                                    
+            });                         
             return match
         },
         checklocation(){

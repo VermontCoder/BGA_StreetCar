@@ -342,7 +342,7 @@ class Streetcar extends Table
         Each time a player is doing some game action, one of the methods below is called.
         (note: each method below must match an input method in streetcar.action.php)
     */
-    function placeTrack($r, $x, $y, $c, $o)
+    function placeTrack($r, $x, $y, $c, $directions_free)
     {
         $player_id = self::getActivePlayerId();
         $players = self::getPlayers();
@@ -384,7 +384,7 @@ class Streetcar extends Table
         //
         $sql_values = array();
         $sql = "INSERT INTO board (board_x,board_y,rotation, card, directions_free, stop) VALUES ";
-        $sql_values[] = "($x,$y ,$r ,$c ,'$o','$stopToAdd')";
+        $sql_values[] = "($x,$y ,$r ,$c ,'$directions_free','$stopToAdd')";
         $sql .= implode(',', $sql_values);
         $sql .= " ON DUPLICATE KEY UPDATE rotation= VALUES(rotation), card = VALUES(card), directions_free = VALUES(directions_free), stop = VALUES(stop)";
         self::DbQuery($sql);
