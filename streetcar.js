@@ -28,7 +28,7 @@ function (dojo, declare) {
             // Here, you can init the global variables of your user interface
             // Example:
             // this.myGlobalValue = 0;
-            this.nswe = ["N","S","E","W"];
+            this.nswe = ["N","E","S","W"];
 
         },
         
@@ -624,40 +624,20 @@ function (dojo, declare) {
             }
             this.updatePlayers(this.gamedatas.gamestate.args.players)
         },
+
+        //Based on current card rotation, establish the directions free now
         getDirections_free(trackcard){
             let directions_free = ""
-            if(trackcard.N!=''){
-                switch(this.rotation){
-                    case 0 : directions_free+='N'; break;
-                    case 90 : directions_free+='E'; break;
-                    case 180 : directions_free+='S'; break;
-                    case 270 : directions_free+='W'; break;
+
+            //process each direction on the track card and add to the directions free based on the rotation.
+            this.nswe.forEach(direction =>{
+                if (trackcard[direction] != '')
+                {
+                    offset = this.nswe.indexOf(direction)*90; //this changes the index in the nwse array. This *90 is the amount of additional rotation we need.
+                    directions_free += this.nswe[(((this.rotation+offset)%360)/90)];
                 }
-            }
-            if(trackcard.E!=''){
-                switch(this.rotation){
-                    case 0 : directions_free+='E'; break;
-                    case 90 : directions_free+='S'; break;
-                    case 180 : directions_free+='W'; break;
-                    case 270 : directions_free+='N'; break;
-                }
-            }
-            if(trackcard.S!=''){
-                switch(this.rotation){
-                    case 0 : directions_free+='S'; break;
-                    case 90 : directions_free+='W'; break;
-                    case 180 : directions_free+='N'; break;
-                    case 270 : directions_free+='E'; break;
-                }
-            }
-            if(trackcard.W!=''){
-                switch(this.rotation){
-                    case 0 : directions_free+='W'; break;
-                    case 90 : directions_free+='N'; break;
-                    case 180 : directions_free+='E'; break;
-                    case 270 : directions_free+='S'; break;
-                }
-            }     
+            });
+            
         return directions_free                
 
         },
@@ -685,7 +665,9 @@ function (dojo, declare) {
             let currentcard = this.gamedatas.tracks[this.gamedatas.gamestate.args.tracks[this.posx][this.posy]][[0,90,180,270].indexOf(parseInt(this.gamedatas.gamestate.args.rotations[this.posx][this.posy]))]
             let currentcard_directions_free = this.gamedatas.gamestate.args.board[this.posx][this.posy]
             //console.log(currentcard, trackcardcheck, currentcard_directions_free)
+
             if(currentcard_directions_free!='[]'){
+                //This card has been placed on another card. Check it for compatibility.
                 if(!this.checktrackmatch(currentcard, trackcardcheck)){
                     this.showMessage( _("Existing trails need to remain the same."), 'info');	
 
@@ -1044,7 +1026,7 @@ function (dojo, declare) {
                 this.locationsToReach = this.gamedatas.goals[parseInt(itsme.goals)-1][parseInt(itsme.startposition)-1]
                 this.fillStack = Array()
                 this.genCheckMatrix()
-                await this.canReachEnd(start[0][0],start[0][1])
+                //await this.canReachEnd(start[0][0],start[0][1])
                 // console.log(">>>>>>>>>>>>>>", this.gamedatas.tracks)
             }
         },
