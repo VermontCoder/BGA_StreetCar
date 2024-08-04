@@ -226,7 +226,7 @@ function (dojo, declare) {
                 var x = coords[1];
                 var y = coords[2];
                 // console.log(x,y, this.gamedatas.locations)
-                let isLocation = this.gamedatas.locations.filter(l => l.row==y && l.col==x).length>0
+                let isStop = this.gamedatas.locations.filter(l => l.row==y && l.col==x).length>0
                 this.placeCard = true
                 this.posx = x
                 this.posy = y
@@ -236,15 +236,18 @@ function (dojo, declare) {
 
                 } else {
                     dojo.destroy('track_'+this.selectedTrack)
-                    if(!isLocation) {
+                    if(!isStop) 
+                    {
                         dojo.place( this.format_block( 'jstpl_track', {
                             id: this.selectedTrack,
                             offsetx:-100* this.selectedTrack,
                             rotate:this.rotation
-                        } ) , "square_"+x+"_"+y);    
+                        } ) , "square_"+x+"_"+y);
+                    
+                        this.placeCardButtons()
+                        this.addRotationOnClick()
                     }   
-                    this.placeCardButtons()
-                    this.addControls()
+                    
                 }
             }
             if(this.selectedTrack==-1){
@@ -568,25 +571,16 @@ function (dojo, declare) {
 
             }            
         },
-        addControls(){
-            // dojo.query('.cardmoveup').connect( 'onclick', this, 'onCardMoveUp' );
-            // dojo.query('.cardmovedown').connect( 'onclick', this, 'onCardMoveDown' );
-            // dojo.query('.cardmoveright').connect( 'onclick', this, 'onCardMoveRight' );
-            // dojo.query('.cardmoveleft').connect( 'onclick', this, 'onCardMoveLeft' );
+        addRotationOnClick(){
+           
             dojo.connect($('track_'+this.selectedTrack), 'onclick', this, 'onRotateCard' );
-            // dojo.query('.flipcard').connect( 'onclick', this, 'onFlipCard' );
-            // dojo.query('.flipcard').connect('mouseenter', this, 'onShowCondition' );
-            // dojo.query('.flipcard' ).connect( 'onmouseleave', this, 'onHideCondition' );
         },
         onRotateCard(evt){
-            this.rotation+=90;
-            if(this.rotation>270){
-                this.rotation =0;
-            }
+            this.rotation = (this.rotation + 90) % 360;
+            
             this.rotateTo('track_'+this.selectedTrack, this.rotation)
             this.placeCardButtons()
             let trackcard = this.gamedatas.tracks[this.selectedTrack][0]
-            //console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",this.getDirections_free(trackcard) )
         },             
         placeCardButtons(){
             dojo.destroy('place_card')
