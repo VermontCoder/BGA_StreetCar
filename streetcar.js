@@ -28,7 +28,7 @@ function (dojo, declare) {
             // Here, you can init the global variables of your user interface
             // Example:
             // this.myGlobalValue = 0;
-            this.nswe = ["N","E","S","W"];
+            this.nesw = ["N","E","S","W"];
 
         },
         
@@ -223,26 +223,26 @@ function (dojo, declare) {
             if( this.checkAction( 'playTrack' ) && this.selectedTrack!=-1 ){
                 console.log("placecard")
                 var coords = evt.currentTarget.id.split('_');
-                var x = coords[1];
-                var y = coords[2];
-                // console.log(x,y, this.gamedatas.locations)
-                let isStop = this.gamedatas.locations.filter(l => l.row==y && l.col==x).length>0
+                
                 this.placeCard = true
-                this.posx = x
-                this.posy = y
-                if(parseInt(this.gamedatas.gamestate.args.tracks[x][y])>=6){
+                this.posx =coords[1];
+                this.posy =coords[2];
+                if(parseInt(this.gamedatas.gamestate.args.tracks[this.posx][this.posy])>=6){
                     this.showMessage( _("This track can not be replaced."), 'info');	
                     dojo.destroy('place_card')
 
-                } else {
-                    dojo.destroy('track_'+this.selectedTrack)
-                    if(!isStop) 
+                } else 
+                {
+                    dojo.destroy('track_'+this.selectedTrack);
+
+                    let isStation = this.gamedatas.locations.filter(l => l.row==this.posy && l.col==this.posx).length>0
+                    if(!isStation) 
                     {
                         dojo.place( this.format_block( 'jstpl_track', {
                             id: this.selectedTrack,
                             offsetx:-100* this.selectedTrack,
                             rotate:this.rotation
-                        } ) , "square_"+x+"_"+y);
+                        } ) , "square_"+this.posx+"_"+this.posy);
                     
                         this.placeCardButtons()
                         this.addRotationOnClick()
@@ -624,11 +624,11 @@ function (dojo, declare) {
             let directions_free = ""
 
             //process each direction on the track card and add to the directions free based on the rotation.
-            this.nswe.forEach(direction =>{
+            this.nesw.forEach(direction =>{
                 if (trackcard[direction] != '')
                 {
-                    offset = this.nswe.indexOf(direction)*90; //this changes the index in the nwse array. This *90 is the amount of additional rotation we need.
-                    directions_free += this.nswe[(((this.rotation+offset)%360)/90)];
+                    offset = this.nesw.indexOf(direction)*90; //this changes the index in the nwse array. This *90 is the amount of additional rotation we need.
+                    directions_free += this.nesw[(((this.rotation+offset)%360)/90)];
                 }
             });
             
@@ -640,7 +640,7 @@ function (dojo, declare) {
         checktrackmatch(currenttrack, newtrack){
             let match = true
 
-            this.nswe.forEach( direction =>{
+            this.nesw.forEach( direction =>{
                 for (var i = 0; i < currenttrack[direction].length; i++) {
                     if(match){
                         match = newtrack[direction].indexOf(currenttrack[direction].charAt(i))!=-1;
@@ -650,185 +650,222 @@ function (dojo, declare) {
             return match
         },
         checklocation(){
-            let locationOK = true
-            let trackcard =  this.gamedatas.tracks[this.selectedTrack][0]
-            let directions_free = this.getDirections_free(trackcard)   
-            let trackOK = true
-            let trackcardcheck =  this.gamedatas.tracks[this.selectedTrack][[0,90,180,270].indexOf(parseInt(this.rotation))]
-
-            let currentcard = this.gamedatas.tracks[this.gamedatas.gamestate.args.tracks[this.posx][this.posy]][[0,90,180,270].indexOf(parseInt(this.gamedatas.gamestate.args.rotations[this.posx][this.posy]))]
-            let currentcard_directions_free = this.gamedatas.gamestate.args.board[this.posx][this.posy]
-            //console.log(currentcard, trackcardcheck, currentcard_directions_free)
-
-            if(currentcard_directions_free!='[]'){
+            trackcard =  this.gamedatas.tracks[this.selectedTrack][0];
+            directions_free = this.getDirections_free(trackcard);
+            badDirections = [];
+           
+            if(this.gamedatas.gamestate.args.board[this.posx][this.posy] !='[]') 
+            {
                 //This card has been placed on another card. Check it for compatibility.
+                //This line is an abomination but it works.
+                let currentcard = this.gamedatas.tracks[this.gamedatas.gamestate.args.tracks[this.posx][this.posy]][[0,90,180,270].indexOf(parseInt(this.gamedatas.gamestate.args.rotations[this.posx][this.posy]))];
+                let trackcardcheck =  this.gamedatas.tracks[this.selectedTrack][[0,90,180,270].indexOf(parseInt(this.rotation))];
                 if(!this.checktrackmatch(currentcard, trackcardcheck)){
                     this.showMessage( _("Existing trails need to remain the same."), 'info');	
 
-                    return false
+                    return this.nesw; //all borders are bad.
 
                 }
             }
 
-  
-                let xcheck = parseInt(this.posx)
-                let ycheck = parseInt(this.posy)-1
-                let isLocation = false
-                if(directions_free.indexOf("N")!=-1){
-                    isLocation= this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
+            this.nesw.forEach(direction =>{
+                switch(direction)
+                {
+                    case "N":
+                        var xcheck = parseInt(this.posx);
+                        var ycheck = parseInt(this.posy)-1;
+                        break;
+                    case "E":
+                        var xcheck = parseInt(this.posx)+1;
+                        var ycheck = parseInt(this.posy);
+                        break;
+                    case "S":
+                        var xcheck = parseInt(this.posx);
+                        var ycheck = parseInt(this.posy)+1;
+                        break;
+                    case "W":
+                        var xcheck = parseInt(this.posx)-1;
+                        var ycheck = parseInt(this.posy);
+                        break
                 }
-                let trackcheck = '[]'
-                if(xcheck>=1 && xcheck<=12 && ycheck>=1 && ycheck<=12){
-                    trackcheck = this.gamedatas.gamestate.args.board[xcheck ][ycheck]
-                } else {
-                    // location tracks 
-                    trackcheck = this.locationTracks(xcheck, ycheck)
-                }
-                    // dojo.style( 'square_'+xcheck+'_'+ycheck, 'background-color', '#ff0000' );
-                    
-
-                    if(trackcheck=='[]'){
-                        trackOK = true
-                    } else {
-                        if((trackcheck.indexOf("S")!=-1 && directions_free.indexOf('N')!=-1)||trackcheck.indexOf("S")==-1 && directions_free.indexOf('N')==-1){
-                            trackOK = true
-                        } else {
-                            trackOK = false
-                        }
-                    }
-                    if(!trackOK || isLocation){
-                        locationOK = false
-                    }
-                    if(this.debug){
-                        console.log('check north', trackcheck,directions_free)
-                        console.log('check north neighbour has south', trackcheck.indexOf("S")!=-1)
-                        console.log('check north tile has north', directions_free.indexOf('N')!=-1) 
-                        console.log('check north',trackOK, isLocation)
-                        console.log('checked north', locationOK)
-                    }
-
-            // }
-            // if(directions_free.indexOf("E")!=-1){
-                 xcheck = parseInt(this.posx)+1
-                 ycheck = parseInt(this.posy)
-
-                 if(directions_free.indexOf("E")!=-1){
-                    isLocation = this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
-                 }
-                 trackcheck = '[]'
-                if(xcheck>=1 && xcheck<=12 && ycheck>=1 && ycheck<=12){
-                    trackcheck = this.gamedatas.gamestate.args.board[xcheck ][ycheck]
-                } else {
-                    // location tracks 
-                    trackcheck = this.locationTracks(xcheck, ycheck)
-                }
-
-                    // dojo.style( 'square_'+xcheck+'_'+ycheck, 'background-color', '#00ff00' );
-
-                if(trackcheck=='[]'){
-                    trackOK = true
-                } else {
-                    if((trackcheck.indexOf("W")!=-1 && directions_free.indexOf('E')!=-1)||trackcheck.indexOf("W")==-1 && directions_free.indexOf('E')==-1){
-                        trackOK = true
-                    } else {
-                        trackOK = false
-                    }
-                }
-
-                if(!trackOK || isLocation){
-                    locationOK = false
-                }
-                if(this.debug){
-                    console.log('check east', trackcheck,directions_free)
-                    console.log('check east neighbour has west', trackcheck.indexOf("W")!=-1)
-                    console.log('check east tile has east', directions_free.indexOf('E')!=-1)
-                    console.log('check east',trackOK, isLocation)
-                    console.log('checked east', locationOK)
-                }   
-            // }   
-            // if(directions_free.indexOf("S")!=-1){
-                 xcheck = parseInt(this.posx)
-                 ycheck = parseInt(this.posy)+1
-
-                 if(directions_free.indexOf("S")!=-1){
-                    isLocation = this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
-                 }
-                 trackcheck = '[]'
-                if(xcheck>=1 && xcheck<=12 && ycheck>=1 && ycheck<=12){
-                    trackcheck = this.gamedatas.gamestate.args.board[xcheck ][ycheck]
-                } else {
-                    // location tracks 
-                    trackcheck = this.locationTracks(xcheck, ycheck)
-                }
-
-                    // dojo.style( 'square_'+xcheck+'_'+ycheck, 'background-color', '#0000ff' );
-
-             
-                if(trackcheck=='[]'){
-                    trackOK = true
-                } else {
-                    if((trackcheck.indexOf("N")!=-1 && directions_free.indexOf('S')!=-1||trackcheck.indexOf("N")==-1 && directions_free.indexOf('S')==-1)){
-                        trackOK = true
-                    } else {
-                        trackOK = false
-                    }
-                }
-
-                if(!trackOK || isLocation){
-                    locationOK = false
-                }
-                if(this.debug){
-                    console.log('check south', trackcheck,directions_free)
-                    console.log('check south neighbour has north', trackcheck.indexOf("N")!=-1)
-                    console.log('check south tile has south', directions_free.indexOf('S')!=-1)   
-                    console.log('check south',trackOK, isLocation)
-                    
-                    console.log('checked south', locationOK)
-                }
-
-            // }
-            // if(directions_free.indexOf("W")!=-1){
-                 xcheck = parseInt(this.posx)-1
-                 ycheck = parseInt(this.posy)
-                 if(directions_free.indexOf("W")!=-1){
-                    isLocation = this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
-                 }
-                 trackcheck = '[]'
-                if(xcheck>=1 && xcheck<=12 && ycheck>=1 && ycheck<=12){
-                    trackcheck = this.gamedatas.gamestate.args.board[xcheck ][ycheck]
-                } else {
-                    // location tracks 
-                    trackcheck = this.locationTracks(xcheck, ycheck)
-                }
-
-                    // dojo.style( 'square_'+xcheck+'_'+ycheck, 'background-color', '#ff00ff' );
 
                 
-                if(trackcheck=='[]'){
-                    trackOK = true
-                } else {
-                    if((trackcheck.indexOf("E")!=-1 && directions_free.indexOf('W')!=-1)||trackcheck.indexOf("E")==-1 && directions_free.indexOf('W')==-1){
-                        trackOK = true
-                    } else {
-                        trackOK = false
+                if(directions_free.indexOf(direction)!=-1)
+                {
+                    //check for a station
+                    if (this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0)
+                    {
+                        badDirections.push(direction);
+                        return; //acts like a "continue"
                     }
+
+                    
                 }
 
-                if(!trackOK || isLocation){
-                    locationOK = false
+                trackcheck = '[]'
+                if(xcheck>=1 && xcheck<=12 && ycheck>=1 && ycheck<=12){
+                    //check for empty square in this direction
+                    trackcheck = this.gamedatas.gamestate.args.board[xcheck ][ycheck];
+                    if (trackcheck == '[]')
+                        //direction is good, empty square
+                        return; //acts like a "continue"
+                } else {
+                    // location tracks 
+                    trackcheck = this.locationTracks(xcheck, ycheck)
                 }
-                if(this.debug){
-                    console.log('check west', trackcheck, directions_free)
-                    console.log('check west neighbour has east', trackcheck.indexOf("E")!=-1)
-                    console.log('check west tile has west', directions_free.indexOf('W')!=-1)
-                    console.log('check west',trackOK, isLocation)
+                directionFromTrackcheck = this.nesw[(this.nesw.indexOf(direction)+2)%4];
 
-                    console.log('checked west', locationOK)
-                }
+                //if both true or both false, we don't want to record this direction as bad. Otherwise we do. XOR.
+                isTrackFreeAtSelectedTrack = trackcheck.indexOf(directionFromTrackcheck) != -1;
+                isSelectedTrackFreeTowardThisTrack = directions_free.indexOf(direction)!=-1
+                if(isTrackFreeAtSelectedTrack ? !isSelectedTrackFreeTowardThisTrack :isSelectedTrackFreeTowardThisTrack){
+                        badDirections.push(direction);
+                }  
+            });
+            // let xcheck = parseInt(this.posx)
+            // let ycheck = parseInt(this.posy)-1
+            // let isLocation = false
+            // if(directions_free.indexOf("N")!=-1){
+            //     isLocation= this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
+            // }
+            // let trackcheck = '[]'
+            // if(xcheck>=1 && xcheck<=12 && ycheck>=1 && ycheck<=12){
+            //     trackcheck = this.gamedatas.gamestate.args.board[xcheck ][ycheck]
+            // } else {
+            //     // location tracks 
+            //     trackcheck = this.locationTracks(xcheck, ycheck)
+            // }
+                
 
-            // }                                                
-            // console.log(directions_free, this.posx,this.posy)
-            return locationOK
+            // if(trackcheck=='[]'){
+            //     trackOK = true
+            // } else {
+            //     if((trackcheck.indexOf("S")!=-1 && directions_free.indexOf('N')!=-1)||trackcheck.indexOf("S")==-1 && directions_free.indexOf('N')==-1){
+            //         trackOK = true
+            //     } else {
+            //         trackOK = false
+            //     }
+            // }
+            // if(!trackOK || isLocation){
+            //     locationOK = false
+            // }
+            // if(this.debug){
+            //     console.log('check north', trackcheck,directions_free)
+            //     console.log('check north neighbour has south', trackcheck.indexOf("S")!=-1)
+            //     console.log('check north tile has north', directions_free.indexOf('N')!=-1) 
+            //     console.log('check north',trackOK, isLocation)
+            //     console.log('checked north', locationOK)
+            // }
+
+           
+
+            // if(directions_free.indexOf("E")!=-1){
+            // isLocation = this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
+            // }
+            // trackcheck = '[]'
+            // if(xcheck>=1 && xcheck<=12 && ycheck>=1 && ycheck<=12){
+            //     trackcheck = this.gamedatas.gamestate.args.board[xcheck ][ycheck]
+            // } else {
+            //     // location tracks 
+            //     trackcheck = this.locationTracks(xcheck, ycheck)
+            // }
+
+            //     // dojo.style( 'square_'+xcheck+'_'+ycheck, 'background-color', '#00ff00' );
+
+            // if(trackcheck=='[]'){
+            //     trackOK = true
+            // } else {
+            //     if((trackcheck.indexOf("W")!=-1 && directions_free.indexOf('E')!=-1)||trackcheck.indexOf("W")==-1 && directions_free.indexOf('E')==-1){
+            //         trackOK = true
+            //     } else {
+            //         trackOK = false
+            //     }
+            // }
+
+            // if(!trackOK || isLocation){
+            //     locationOK = false
+            // }
+            // if(this.debug){
+            //     console.log('check east', trackcheck,directions_free)
+            //     console.log('check east neighbour has west', trackcheck.indexOf("W")!=-1)
+            //     console.log('check east tile has east', directions_free.indexOf('E')!=-1)
+            //     console.log('check east',trackOK, isLocation)
+            //     console.log('checked east', locationOK)
+            // }   
+
+            // xcheck = parseInt(this.posx)
+            // ycheck = parseInt(this.posy)+1
+
+            // if(directions_free.indexOf("S")!=-1){
+            // isLocation = this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
+            // }
+
+            // trackcheck = '[]'
+            // if(xcheck>=1 && xcheck<=12 && ycheck>=1 && ycheck<=12){
+            //     trackcheck = this.gamedatas.gamestate.args.board[xcheck ][ycheck]
+            // } else {
+            //     // location tracks 
+            //     trackcheck = this.locationTracks(xcheck, ycheck)
+            // }
+            
+            // if(trackcheck=='[]'){
+            //     trackOK = true
+            // } else {
+            //     if((trackcheck.indexOf("N")!=-1 && directions_free.indexOf('S')!=-1||trackcheck.indexOf("N")==-1 && directions_free.indexOf('S')==-1)){
+            //         trackOK = true
+            //     } else {
+            //         trackOK = false
+            //     }
+            // }
+
+            // if(!trackOK || isLocation){
+            //     locationOK = false
+            // }
+            // if(this.debug){
+            //     console.log('check south', trackcheck,directions_free)
+            //     console.log('check south neighbour has north', trackcheck.indexOf("N")!=-1)
+            //     console.log('check south tile has south', directions_free.indexOf('S')!=-1)   
+            //     console.log('check south',trackOK, isLocation)
+                
+            //     console.log('checked south', locationOK)
+            // }
+
+            // xcheck = parseInt(this.posx)-1
+            // ycheck = parseInt(this.posy)
+            // if(directions_free.indexOf("W")!=-1){
+            // isLocation = this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
+            // }
+            // trackcheck = '[]'
+            // if(xcheck>=1 && xcheck<=12 && ycheck>=1 && ycheck<=12){
+            //     trackcheck = this.gamedatas.gamestate.args.board[xcheck ][ycheck]
+            // } else {
+            //     // location tracks 
+            //     trackcheck = this.locationTracks(xcheck, ycheck)
+            // }
+
+            // if(trackcheck=='[]'){
+            //     trackOK = true
+            // } else {
+            //     if((trackcheck.indexOf("E")!=-1 && directions_free.indexOf('W')!=-1)||trackcheck.indexOf("E")==-1 && directions_free.indexOf('W')==-1){
+            //         trackOK = true
+            //     } else {
+            //         trackOK = false
+            //     }
+            // }
+
+            // if(!trackOK || isLocation){
+            //     locationOK = false
+            // }
+            // if(this.debug){
+            //     console.log('check west', trackcheck, directions_free)
+            //     console.log('check west neighbour has east', trackcheck.indexOf("E")!=-1)
+            //     console.log('check west tile has west', directions_free.indexOf('W')!=-1)
+            //     console.log('check west',trackOK, isLocation)
+
+            //     console.log('checked west', locationOK)
+            // }
+
+            return badDirections.length == 0;
         },
         locationTracks(xcheck, ycheck){
             if(ycheck==0){
@@ -870,7 +907,7 @@ function (dojo, declare) {
         */
 
         updatePlayers: function(players, defaultscoring){
-            //count number of available tents
+            //update player boards
             players.forEach(player => {
                 dojo.empty('track_'+player.id)
                 if(player.id==this.player_id){
