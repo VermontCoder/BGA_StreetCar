@@ -338,7 +338,7 @@ $this->tracks = array(
     ),
   )
 );
-$this->locations = array(
+$this->stops = array(
   array(
     "row" => 1,
     "col" => 8,

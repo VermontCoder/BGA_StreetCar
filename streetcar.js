@@ -71,10 +71,10 @@ function (dojo, declare) {
             this.rotation = 0;
             this.selectedTrack = 0;
             this.traceTrack = false;
-            // show locations stops
+            // show stops
            
-                let i = 0;
-            gamedatas.locations.forEach(l=>{
+            let i = 0;
+            gamedatas.stops.forEach(l=>{
                 // dojo.destroy('stoplocation_'+stops[x][y])
                 html = "<div class='goallocation goalstart' id='stoplocation_"+l.code+"'>"+l.code+"</div><div class='goalname' id='goalname_"+l.code+"'>"+l.name+"</div>"
                 $('stops_'+l.col+"_"+l.row).innerHTML=html
@@ -224,7 +224,7 @@ function (dojo, declare) {
                 console.log("placecard")
                 var coords = evt.currentTarget.id.split('_');
                 
-                this.placeCard = true
+                //this.placeCard = true
                 this.posx =coords[1];
                 this.posy =coords[2];
                 if(parseInt(this.gamedatas.gamestate.args.tracks[this.posx][this.posy])>=6){
@@ -233,8 +233,8 @@ function (dojo, declare) {
 
                 } else 
                 {
-                    let isStation = this.gamedatas.locations.filter(l => l.row==this.posy && l.col==this.posx).length>0
-                    if(!isStation) 
+                    let isStop = this.gamedatas.stops.filter(l => l.row==this.posy && l.col==this.posx).length>0
+                    if(!isStop) 
                     {
                         dojo.destroy('track_'+this.selectedTrack);
                         dojo.place( this.format_block( 'jstpl_track', {
@@ -722,8 +722,8 @@ function (dojo, declare) {
                 
                 if(directions_free.indexOf(direction)!=-1)
                 {
-                    //check for a station
-                    if (this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0)
+                    //check for a stop
+                    if (this.gamedatas.stops.filter(l => l.row==ycheck && l.col==xcheck).length>0)
                     {
                         badDirections.push(direction);
                         return; //acts like a "continue"
@@ -756,7 +756,7 @@ function (dojo, declare) {
             // let ycheck = parseInt(this.posy)-1
             // let isLocation = false
             // if(directions_free.indexOf("N")!=-1){
-            //     isLocation= this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
+            //     isLocation= this.gamedatas.stops.filter(l => l.row==ycheck && l.col==xcheck).length>0
             // }
             // let trackcheck = '[]'
             // if(xcheck>=1 && xcheck<=12 && ycheck>=1 && ycheck<=12){
@@ -790,7 +790,7 @@ function (dojo, declare) {
            
 
             // if(directions_free.indexOf("E")!=-1){
-            // isLocation = this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
+            // isLocation = this.gamedatas.stops.filter(l => l.row==ycheck && l.col==xcheck).length>0
             // }
             // trackcheck = '[]'
             // if(xcheck>=1 && xcheck<=12 && ycheck>=1 && ycheck<=12){
@@ -827,7 +827,7 @@ function (dojo, declare) {
             // ycheck = parseInt(this.posy)+1
 
             // if(directions_free.indexOf("S")!=-1){
-            // isLocation = this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
+            // isLocation = this.gamedatas.stops.filter(l => l.row==ycheck && l.col==xcheck).length>0
             // }
 
             // trackcheck = '[]'
@@ -863,7 +863,7 @@ function (dojo, declare) {
             // xcheck = parseInt(this.posx)-1
             // ycheck = parseInt(this.posy)
             // if(directions_free.indexOf("W")!=-1){
-            // isLocation = this.gamedatas.locations.filter(l => l.row==ycheck && l.col==xcheck).length>0
+            // isLocation = this.gamedatas.stops.filter(l => l.row==ycheck && l.col==xcheck).length>0
             // }
             // trackcheck = '[]'
             // if(xcheck>=1 && xcheck<=12 && ycheck>=1 && ycheck<=12){
@@ -946,7 +946,7 @@ function (dojo, declare) {
                     let html = ""
                     this.gamedatas.goals[parseInt(player.goals)-1][parseInt(player.startposition)-1].forEach(goal => {
                         html += "<div class='goallocation' id='goallocation_"+goal+"'>"+goal+"</div>"
-                        let location = this.gamedatas.locations.filter(l => l.code== goal)[0]
+                        let location = this.gamedatas.stops.filter(l => l.code== goal)[0]
                         dojo.style( 'stops_'+location.col+"_"+location.row, 'border', 'solid 4px #FCDF00' );
 
                     })
@@ -1010,16 +1010,16 @@ function (dojo, declare) {
                     if(stops[x][y]!='' && stops[x][y]!=null){
                         dojo.destroy('stoplocation_'+stops[x][y])
                         var html=""
-                        if(this.validCoordinates(x,y+1) && this.gamedatas.locations.filter(l => l.row==y+1 && l.col==x).length>0){
+                        if(this.validCoordinates(x,y+1) && this.gamedatas.stops.filter(l => l.row==y+1 && l.col==x).length>0){
                             html = "<div class='goallocation stopN' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>"
                         }
-                        if(this.validCoordinates(x,y-1) && this.gamedatas.locations.filter(l => l.row==y-1 && l.col==x).length>0){
+                        if(this.validCoordinates(x,y-1) && this.gamedatas.stops.filter(l => l.row==y-1 && l.col==x).length>0){
                             html = "<div class='goallocation stopS' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>"
                         }
-                        if(this.validCoordinates(x+1,y) && this.gamedatas.locations.filter(l => l.row==y && l.col==x+1).length>0){
+                        if(this.validCoordinates(x+1,y) && this.gamedatas.stops.filter(l => l.row==y && l.col==x+1).length>0){
                             html = "<div class='goallocation stopE' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>"
                         }
-                        if(this.validCoordinates(x-1,y) && this.gamedatas.locations.filter(l => l.row==y && l.col==x-1).length>0){
+                        if(this.validCoordinates(x-1,y) && this.gamedatas.stops.filter(l => l.row==y && l.col==x-1).length>0){
                             html = "<div class='goallocation stopW' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>"
                         }
                         $('stops_'+x+"_"+y).innerHTML=html
@@ -1228,13 +1228,13 @@ function (dojo, declare) {
         //// Player's action
         onShowLocation(evt){
             var coords =evt.currentTarget.id.split('_');
-            let location = this.gamedatas.locations.filter(l => l.code== coords[1])[0]
+            let location = this.gamedatas.stops.filter(l => l.code== coords[1])[0]
             dojo.style( 'stops_'+location.col+"_"+location.row, 'border', 'solid 2px white' );
 
         },
         onHideLocation(evt){
             var coords =evt.currentTarget.id.split('_');
-            let location = this.gamedatas.locations.filter(l => l.code== coords[1])[0]
+            let location = this.gamedatas.stops.filter(l => l.code== coords[1])[0]
             dojo.style( 'stops_'+location.col+"_"+location.row, 'border', '' );
         },
         /*

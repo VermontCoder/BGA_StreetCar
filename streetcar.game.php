@@ -224,7 +224,7 @@ class Streetcar extends Table
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
         $sql = "SELECT player_id id, player_score score FROM player ";
         $result['players'] = self::getCollectionFromDb($sql);
-        $result['locations'] = $this->locations;
+        $result['stops'] = $this->stops;
         $result['tracks'] = $this->tracks;
         $result['goals'] = $this->goals;
         $result['routepoints'] = $this->routepoints;
@@ -359,16 +359,16 @@ class Streetcar extends Table
         // find stop if near location
         $needles = [$x, $y];
         $stopToAdd = '';
-        $north = array_filter($this->locations, function ($var) use ($needles) {
+        $north = array_filter($this->stops, function ($var) use ($needles) {
             return ($var['col'] == $needles[0] && $var['row'] == $needles[1] - 1);
         });
-        $east = array_filter($this->locations, function ($var) use ($needles) {
+        $east = array_filter($this->stops, function ($var) use ($needles) {
             return ($var['col'] == $needles[0] + 1 && $var['row'] == $needles[1]);
         });
-        $south = array_filter($this->locations, function ($var) use ($needles) {
+        $south = array_filter($this->stops, function ($var) use ($needles) {
             return ($var['col'] == $needles[0] && $var['row'] == $needles[1] + 1);
         });
-        $west = array_filter($this->locations, function ($var) use ($needles) {
+        $west = array_filter($this->stops, function ($var) use ($needles) {
             return ($var['col'] == $needles[0] - 1 && $var['row'] == $needles[1]);
         });
         $found = $north + $east + $south + $west;
