@@ -248,6 +248,14 @@
   animation-iteration-count: 5;
 }
 
+.track_placement
+{
+  border-width: 4px;
+  border-style: solid;
+  margin-top: -4px;
+  margin-left: -4px;
+  z-index: 100;
+}
 @keyframes blink {
   50% {
     border-color: #0000ff;
