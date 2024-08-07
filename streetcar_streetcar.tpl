@@ -49,7 +49,7 @@
 <script type="text/javascript">
 
 // Javascript HTML templates
-var jstpl_track='<div class="track" id="track_${id}" style="position: absolute; transform:rotate(${rotate}deg); background-position: ${offsetx}px 0px;"></div>';
+var jstpl_track='<div class="track" id="${id}" style="position: absolute; transform:rotate(${rotate}deg); background-position: ${offsetx}px 0px;"></div>';
 var jstpl_track_player='<div class="track playertrack" id="track_${id}" style="background-position: ${offsetx}px 0px;"> </div>';
 
 var jstpl_train='<div class="train" id="train_${id}" style="position: absolute; transform:rotate(${rotate}deg); background-position: ${offsetx}px 0px;"></div>';

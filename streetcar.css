@@ -256,6 +256,15 @@
   margin-left: -4px;
   z-index: 100;
 }
+
+.track_placement2
+{
+  border-width: 4px;
+  border-style: solid;
+  margin-top: -4px;
+  margin-left: -4px;
+  z-index: 101;
+}
 @keyframes blink {
   50% {
     border-color: #0000ff;
