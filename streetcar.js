@@ -233,8 +233,8 @@ function (dojo, declare) {
                     return;
                 }
                 
-                this.posx =coords[1];
-                this.posy =coords[2];
+                this.posx =parseInt(coords[1]);
+                this.posy =parseInt(coords[2]);
 
                 if(parseInt(this.gamedatas.gamestate.args.tracks[this.posx][this.posy])>=6)
                 {
@@ -348,7 +348,7 @@ function (dojo, declare) {
                         showPlaceActionButton = (this.posx == this.firstPlacementData.posx) && (this.posy == this.firstPlacementData.posy+1);
                         break;
                     case "W":
-                        showPlaceActionButton = (this.posx  == this.firstPlacementData.posx) && (this.posy == this.firstPlacementData.posy- 1);
+                        showPlaceActionButton = (this.posx  == this.firstPlacementData.posx- 1) && (this.posy == this.firstPlacementData.posy);
                 }
 
                 if (showPlaceActionButton)
@@ -369,7 +369,9 @@ function (dojo, declare) {
         sendMovesToServer()
         {
             //list of available cards cannot be sent as [0,2,3...], but as a comma delimited string of nums.
+            //So we need to strip the brackets
             available_cards = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.player_id)[0]['available_cards'];
+            available_cards = available_cards.slice(1,available_cards.length-1);
 
             paramList =
             {   
@@ -733,8 +735,7 @@ function (dojo, declare) {
             // destroy previous selected track
             dojo.destroy(this.getPlacedTrackId(this.isFirstSelection));
             if(coords[2]==this.player_id){
-                this.selectedTrack = coords[1]
-                this.selectedTrackFullID= evt.currentTarget.id
+                this.selectedTrack = parseInt(coords[1]);
                 dojo.addClass( evt.currentTarget.id, 'trackselected' );
             }
         },

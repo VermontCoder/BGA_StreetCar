@@ -43,15 +43,15 @@ class action_streetcar extends APP_GameAction
     $x1 = self::getArg("x1", AT_posint, true);
     $y1 = self::getArg("y1", AT_posint, true);
     $c1 = self::getArg("c1", AT_posint, true);
-    $o1 = self::getArg("directions_free1", AT_alphanum, true);
+    $directions_free1 = self::getArg("directions_free1", AT_alphanum, true);
     $r2 = self::getArg("r2", AT_posint, true);
     $x2 = self::getArg("x2", AT_posint, true);
     $y2 = self::getArg("y2", AT_posint, true);
     $c2 = self::getArg("c2", AT_posint, true);
-    $o2 = self::getArg("directions_free2", AT_alphanum, true);
+    $directions_free2 = self::getArg("directions_free2", AT_alphanum, true);
     $available_cards = self::getArg("available_cards", AT_numberlist, true);
-
-    $result = $this->game->placeTracks($r1, $x1, $y1, $c1, $o1,$r2, $x2, $y2, $c2, $o2, $available_cards);
+    
+    $result = $this->game->placeTracks($r1, $x1, $y1, $c1, $directions_free1,$r2, $x2, $y2, $c2, $directions_free2, $available_cards);
     self::ajaxResponse();
   }
   public function trackDone()

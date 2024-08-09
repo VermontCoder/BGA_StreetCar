@@ -35,7 +35,6 @@ class Streetcar extends Table
 
         self::initGameStateLabels(array(
             "stackindex" => 10,
-            "tracksplaced" => 11,
 
             //    "my_first_global_variable" => 10,
             //    "my_second_global_variable" => 11,
@@ -67,7 +66,6 @@ class Streetcar extends Table
         $gameinfos = self::getGameinfos();
         $default_colors = $gameinfos['player_colors'];
         self::setGameStateInitialValue('stackindex', 0);
-        self::setGameStateInitialValue('tracksplaced', 0);
 
         $allcards = array();
         for ($i = 0; $i < 21; $i++) {
@@ -337,9 +335,11 @@ class Streetcar extends Table
     */
     function placeTracks($r1, $x1, $y1, $c1, $directions_free1,$r2, $x2, $y2, $c2, $directions_free2, $available_cards)
     {
-        $this->updateAndRefillAvailableCards(json_decode($available_cards));
-        self::trace(var_dump($available_cards));
-
+        //available cards comes in as a comma delimited string of numbers. Convert to array
+        self::trace("cards: ".$available_cards);
+        $available_cards = array_map('intval',explode(',',$available_cards));
+        //self::trace("cards2: ".$available_cards);
+        
         $this->updateAndRefillAvailableCards($available_cards);
 
         $stopToAdd = $this->addStop($x1,$y1);
@@ -362,8 +362,6 @@ class Streetcar extends Table
             'rotations' => self::getRotation(),
             'stops' => self::getStops(),
         ));
-        
-        $this->refillHand($available_cards);
 
         //goto next player
         $this->gamestate->nextState('nextPlayer');
@@ -377,10 +375,10 @@ class Streetcar extends Table
         
         foreach ($players as $player_id3 => $player) {
             if ($player["id"] == $player_id) {
-                $available_cards = json_decode($player["available_cards"]);
-                $available_Cards = $this->refillHand($available_cards);
-                $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($available_cards)) . "' WHERE player_id = " . $player_id . ";";
-                // self::DbQuery($sql);
+                //$available_cards = json_decode($player["available_cards"]);
+                $newHand = $this->refillHand($available_cards);
+                $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($newHand)) . "' WHERE player_id = " . $player_id . ";";
+                self::DbQuery($sql);
             }
         }
 
@@ -396,17 +394,17 @@ class Streetcar extends Table
         $numNewCards = 5 - count($available_cards);
 
         //check if we need to refill
-        if ($numNewCards ==0) return;
+        if ($numNewCards ==0) return $available_cards;
 
         $stackindex =  intval(self::getGameStateValue('stackindex'));
         $stack = self::getStack();
-
+        $this->dump( "stack:", $stack ); 
         for ($i = 0; $i < $numNewCards; $i++) 
         {
-            $card = array_shift($stack);
+            $card = intval(array_shift($stack)); //Why is this necessary??? But it is.
             $available_cards[] = $card;
         }
-
+        
         $stackindex += $numNewCards;
         $sql = "DELETE FROM `stack` WHERE id <=" . $stackindex;
         self::DbQuery($sql);
