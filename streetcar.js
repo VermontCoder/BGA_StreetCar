@@ -105,6 +105,7 @@ function (dojo, declare) {
             {
                 case "placeTrack":
                     this.selectedTrack = -1;
+                    this.isFirstSelection = true;
 
                     this.updatePlayers(args.args.players);
                     this.updateTracks();
@@ -245,9 +246,9 @@ function (dojo, declare) {
                 let isStop = this.gamedatas.stops.filter(l => l.row==this.posy && l.col==this.posx).length>0
                 if(!isStop) 
                 {
-                    dojo.destroy(this.getPlacedTrackId());
+                    dojo.destroy(this.getPlacedTrackId(this.isFirstSelection));
                     dojo.place( this.format_block( 'jstpl_track', {
-                        id: this.getPlacedTrackId(),
+                        id: this.getPlacedTrackId(this.isFirstSelection),
                         offsetx:-100* this.selectedTrack,
                         rotate:this.rotation
                     } ) , "square_"+this.posx+"_"+this.posy);
@@ -255,11 +256,11 @@ function (dojo, declare) {
                     badDirections = this.fitCardOnBoard();
                     this.showPlaceCardActionButton(badDirections);
                     
-                    this.rotationClickHandler = dojo.connect($(this.getPlacedTrackId()), 'onclick', this, 'onRotateCard' );
+                    this.rotationClickHandler = dojo.connect($(this.getPlacedTrackId(this.isFirstSelection)), 'onclick', this, 'onRotateCard' );
                 }
                 else
                 {
-                    this.showMessage( _("Cannot put track on station."), 'info');
+                    this.showMessage( _("Cannot put track on stop."), 'info');
                     dojo.destroy('place_card_action_button'); //deletes place track button.
                 }   
                     
@@ -273,16 +274,17 @@ function (dojo, declare) {
         {
             this.rotation = (this.rotation + 90) % 360;
             
-            this.rotateTo(this.getPlacedTrackId(), this.rotation);
+            this.rotateTo(this.getPlacedTrackId(this.isFirstSelection), this.rotation);
             badDirections = this.fitCardOnBoard();
             this.showPlaceCardActionButton(badDirections);
         },             
         fitCardOnBoard()
         {
             dojo.destroy('place_card_action_button');
-            badDirections = this.fitTrack(this.gamedatas.tracks[this.selectedTrack][0],this.rotation, parseInt(this.posx), parseInt(this.posy));
+            badDirections = this.fitTrack(this.gamedatas.tracks[this.selectedTrack][0],
+                this.rotation, parseInt(this.posx), parseInt(this.posy));
 
-            dojo.addClass(this.getPlacedTrackId(),this.isFirstSelection ? 'track_placement' : 'track_placement2');
+            dojo.addClass(this.getPlacedTrackId(this.isFirstSelection),this.isFirstSelection ? 'track_placement' : 'track_placement2');
             borderColorString = '';
             if (badDirections.includes('x'))
             {
@@ -308,13 +310,14 @@ function (dojo, declare) {
                 });
             }
             
-            dojo.style(this.getPlacedTrackId(),"border-color",borderColorString.trimEnd());
+            dojo.style(this.getPlacedTrackId(this.isFirstSelection),"border-color",borderColorString.trimEnd());
            
             return badDirections;
         },
 
         showPlaceCardActionButton(badDirections)
         {
+            if (badDirections.includes('x')) return; //case where player tried to place on non-conforming space.
             if (this.isFirstSelection && badDirections.length <= 1)
             {
                 //Allow the placement with one bad direction. The user could fix it next placement.
@@ -363,9 +366,49 @@ function (dojo, declare) {
             }
 
         },
-        sendMoveToServer()
+        sendMovesToServer()
         {
-            alert('To Server');
+            //list of available cards cannot be sent as [0,2,3...], but as a comma delimited string of nums.
+            available_cards = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.player_id)[0]['available_cards'];
+
+            paramList =
+            {   
+                r1 : this.firstPlacementData.rotation,
+                x1 : this.firstPlacementData.posx,
+                y1 : this.firstPlacementData.posy,
+                c1 : this.firstPlacementData.selectedTrack,
+                directions_free1 : this.firstPlacementData.directions_free,
+                r2 : this.rotation,
+                x2 : this.posx,
+                y2 : this.posy,
+                c2 : this.selectedTrack,
+                directions_free2 : this.directions_free,
+                available_cards : available_cards
+            };
+            
+            dojo.destroy('reset');
+            $('pagemaintitletext').innerHTML = 'Sending move to server...';
+
+            dojo.place( this.format_block( 'jstpl_track', {
+                id: "board_"+paramList.c1,
+                offsetx:-parseInt(paramList.c1)*100,
+                rotate:paramList.r1
+            } ) , 'square_'+paramList.x1+"_"+paramList.y1);
+
+            dojo.place( this.format_block( 'jstpl_track', {
+                id: "board_"+paramList.c2,
+                offsetx:-parseInt(paramList.c2)*100,
+                rotate:paramList.r2
+            } ) , 'square_'+paramList.x2+"_"+paramList.y2);
+
+            //remove temp track and replace
+            dojo.destroy(this.getPlacedTrackId(true));
+            dojo.destroy(this.getPlacedTrackId(false));
+
+            this.ajaxcall( "/streetcar/streetcar/placeTracks.html",paramList, this, function( result ) {} );
+            
+
+            
         },
         //user has decided to actually put card down.
         onPlacedCard()
@@ -377,15 +420,24 @@ function (dojo, declare) {
             //console.log("place it", trackcard, this.rotation, this.posx,this.posy,directions_free,this.gamedatas.gamestate.args.board);
 
             // remove from available cards.
-            var itsme = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.player_id)[0]
-            if(itsme){
-                let trackcards = JSON.parse(itsme["available_cards"])
-                var index = trackcards.indexOf(parseInt(this.selectedTrack));
-                if (index !== -1) {
-                    trackcards.splice(index, 1);
-                }
-                itsme["available_cards"] = JSON.stringify(trackcards);
+            var itsme = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.player_id)[0];
+            
+            let availableCards = JSON.parse(itsme["available_cards"])
+            var index = availableCards.indexOf(parseInt(this.selectedTrack));
+            if (index !== -1) {
+                availableCards.splice(index, 1);
+            }    
+
+            //if this track is replacing a track on the board, move it to the player's available cards.
+            trackOnBoardID = this.gamedatas.gamestate.args.tracks[this.posx][this.posy];
+            isReplacing = this.gamedatas.gamestate.args.board[this.posx][this.posy] != '[]';
+            if (isReplacing)
+            {
+                availableCards.push(parseInt(trackOnBoardID));
             }
+
+            itsme["available_cards"] = JSON.stringify(availableCards);
+            
             this.updatePlayers(this.gamedatas.gamestate.args.players);
 
             if (this.isFirstSelection)
@@ -421,21 +473,10 @@ function (dojo, declare) {
             }
             else
             {
+                this.directions_free = directions_free; //pass this along
                 //Since this the 2nd placement, we are good to go.
-                this.sendMoveToServer();
-            }
-            // this.ajaxcall( "/streetcar/streetcar/placeTrack.html",{r:this.rotation, x:this.posx, y:this.posy,c: this.selectedTrack,o:directions_free}, this, function( result ) {} );
-            // //remove temp track and replace
-            // dojo.destroy(this.getPlacedTrackId())
-            // dojo.place( this.format_block( 'jstpl_track', {
-            //     id: "board_"+this.selectedTrack,
-            //     offsetx:-parseInt(this.selectedTrack)*100,
-            //     rotate:this.rotation
-            // } ) , 'square_'+this.posx+"_"+this.posy);   
-
-            
-
-            
+                this.sendMovesToServer();
+            } 
         },
 
         //Based on current card rotation, establish the directions free now
@@ -487,8 +528,7 @@ function (dojo, declare) {
                 let cardOnBoard = this.gamedatas.tracks[cardOnBoardTrackID][rotationOfCardOnBoard/90];
                 let trackcardcheck =  this.gamedatas.tracks[this.selectedTrack][[0,90,180,270].indexOf(parseInt(rotation))];
                 if(!this.checktrackmatch(cardOnBoard, trackcardcheck)){
-                    this.showMessage( _("Existing paths need to remain the same."), 'info');	
-                    
+                    this.showMessage( _("Existing paths need to remain the same."), 'info');	                    
                     return ['x']; //new track is incompatible with track on board
                 }
             }
@@ -581,9 +621,11 @@ function (dojo, declare) {
             return '[]'
 
         },
-        getPlacedTrackId()
+        getPlacedTrackId(isFirstSelection)
         {
-            return 'placed_track_' + (this.isFirstSelection ? "0" : "1");
+            //isFirstSelection is a parameter because sometimes even when we are in 2nd selection, we want to know
+            //the id of the first selection.
+            return 'placed_track_' + (isFirstSelection ? "0" : "1");
         },
         /*
         
@@ -689,7 +731,7 @@ function (dojo, declare) {
             dojo.query( '.playertrack' ).removeClass('trackselected')
             
             // destroy previous selected track
-            dojo.destroy(this.getPlacedTrackId());
+            dojo.destroy(this.getPlacedTrackId(this.isFirstSelection));
             if(coords[2]==this.player_id){
                 this.selectedTrack = coords[1]
                 this.selectedTrackFullID= evt.currentTarget.id

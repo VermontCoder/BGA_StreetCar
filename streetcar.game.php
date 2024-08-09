@@ -254,7 +254,9 @@ class Streetcar extends Table
 
     //////////////////////////////////////////////////////////////////////////////
     //////////// Utility functions
-    ////////////    
+    ////////////
+    
+    //@return array
     function getPlayers()
     {
         return self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, startposition, goals,trainposition,traveldirection, trackdone, dice, diceused
@@ -285,11 +287,7 @@ class Streetcar extends Table
         return self::getDoubleKeyCollectionFromDB("SELECT board_x x, board_y y, stop
                                                                FROM board", true);
     }
-    // function getCardsPlayed()
-    // {
-    //     return self::getObjectListFromDB("SELECT x,y,rotation, card, player_id
-    //                                        FROM placedcards");
-    // }
+
     function getStack()
     {
         return self::getObjectListFromDB("SELECT card FROM stack", true);
@@ -299,15 +297,10 @@ class Streetcar extends Table
         return array(
             'players' => self::getPlayers(),
             'board' => self::getBoard(),
-            // 'cards_played' => self::getCardsPlayed(),
-            // 'cards' => $this->cards,
             'tracks' => self::getTracks(),
             'rotations' => self::getRotation(),
             'stops' => self::getStops(),
             'stack' => self::getStack(),
-            // 'defaultscoring' => intval(self::getGameStateValue('defaultscoring'))
-
-
 
         );
     }
@@ -342,20 +335,91 @@ class Streetcar extends Table
         Each time a player is doing some game action, one of the methods below is called.
         (note: each method below must match an input method in streetcar.action.php)
     */
-    function placeTrack($r, $x, $y, $c, $directions_free)
+    function placeTracks($r1, $x1, $y1, $c1, $directions_free1,$r2, $x2, $y2, $c2, $directions_free2, $available_cards)
+    {
+        $this->updateAndRefillAvailableCards(json_decode($available_cards));
+        self::trace(var_dump($available_cards));
+
+        $this->updateAndRefillAvailableCards($available_cards);
+
+        $stopToAdd = $this->addStop($x1,$y1);
+        $this->insertPiece($x1,$y1,$r1,$c1, $directions_free1,$stopToAdd);
+
+        $stopToAdd = $this->addStop($x2,$y2);
+        $this->insertPiece($x2,$y2,$r2,$c2, $directions_free2,$stopToAdd);
+        
+
+        // self::trace(">>LOCATIONSLSLS>>>>" . array_values($found)[0]["code"]);
+        //
+       
+        $players = self::loadPlayersBasicInfos();
+        $player_id = self::getActivePlayerId();
+        
+        self::notifyAllPlayers('placedTrack', clienttranslate('${player_name} placed tracks.'), array(
+            'player_name' => $players[$player_id]['player_name'],
+            'board' => self::getBoard(),
+            'tracks' => self::getTracks(),
+            'rotations' => self::getRotation(),
+            'stops' => self::getStops(),
+        ));
+        
+        $this->refillHand($available_cards);
+
+        //goto next player
+        $this->gamestate->nextState('nextPlayer');
+        
+    }
+
+    function updateAndRefillAvailableCards($available_cards)
     {
         $player_id = self::getActivePlayerId();
         $players = self::getPlayers();
+        
         foreach ($players as $player_id3 => $player) {
             if ($player["id"] == $player_id) {
                 $available_cards = json_decode($player["available_cards"]);
-                if (($key = array_search($c, $available_cards)) !== false) {
-                    unset($available_cards[$key]);
-                }
+                $available_Cards = $this->refillHand($available_cards);
                 $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($available_cards)) . "' WHERE player_id = " . $player_id . ";";
-                self::DbQuery($sql);
+                // self::DbQuery($sql);
             }
         }
+
+        // if (($key = array_search($card, $available_cards)) !== false) {
+                //     unset($available_cards[$key]);
+                // }
+                // $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($available_cards)) . "' WHERE player_id = " . $player_id . ";";
+                // self::DbQuery($sql);
+    }
+
+    function refillHand($available_cards)
+    {
+        $numNewCards = 5 - count($available_cards);
+
+        //check if we need to refill
+        if ($numNewCards ==0) return;
+
+        $stackindex =  intval(self::getGameStateValue('stackindex'));
+        $stack = self::getStack();
+
+        for ($i = 0; $i < $numNewCards; $i++) 
+        {
+            $card = array_shift($stack);
+            $available_cards[] = $card;
+        }
+
+        $stackindex += $numNewCards;
+        $sql = "DELETE FROM `stack` WHERE id <=" . $stackindex;
+        self::DbQuery($sql);
+        self::setGameStateValue('stackindex', $stackindex);
+        
+        return $available_cards;
+            //switch player
+            // $this->activeNextPlayer();
+        
+    }
+
+    function addStop($x,$y)
+    {
         // find stop if near location
         $needles = [$x, $y];
         $stopToAdd = '';
@@ -379,62 +443,20 @@ class Streetcar extends Table
         if (self::getStop($stopToAdd)) {
             $stopToAdd = '';
         }
+        return $stopToAdd;
+    }
 
-        // self::trace(">>LOCATIONSLSLS>>>>" . array_values($found)[0]["code"]);
-        //
+    function insertPiece($x,$y ,$r ,$c ,$directions_free,$stopToAdd)
+    {
         $sql_values = array();
         $sql = "INSERT INTO board (board_x,board_y,rotation, card, directions_free, stop) VALUES ";
         $sql_values[] = "($x,$y ,$r ,$c ,'$directions_free','$stopToAdd')";
         $sql .= implode(',', $sql_values);
         $sql .= " ON DUPLICATE KEY UPDATE rotation= VALUES(rotation), card = VALUES(card), directions_free = VALUES(directions_free), stop = VALUES(stop)";
         self::DbQuery($sql);
-        // update tracksplaced
-        $tracksplaced = intval(self::getGameStateValue('tracksplaced'));
-        $tracksplaced++;
-        self::setGameStateValue('tracksplaced', $tracksplaced);
-
-        $players = self::loadPlayersBasicInfos();
-        $player_id = self::getActivePlayerId();
-
-        self::notifyAllPlayers('placedTrack', clienttranslate('${player_name} placed track.'), array(
-            // 'i18n' => array( 'symbol' ),
-            'player_name' => $players[$player_id]['player_name'],
-            'board' => self::getBoard(),
-            // 'cards_played' => self::getCardsPlayed(),
-            // 'cards' => $this->cards,
-            'tracks' => self::getTracks(),
-            'rotations' => self::getRotation(),
-            'stops' => self::getStops(),
-        ));
-        if ($tracksplaced == 2) {
-            //goto next player
-            self::setGameStateValue('tracksplaced', 0);
-            //fill current player hand to 5
-            $players = self::getPlayers();
-            foreach ($players as $player_id3 => $player) {
-                if ($player["id"] == $player_id) {
-                    $old = json_decode($player["available_cards"]);
-                    for ($i = 0; $i < 2; $i++) {
-                        $stackindex =  intval(self::getGameStateValue('stackindex'));
-                        $stack = self::getStack();
-                        $card = array_shift($stack);
-                        $sql = "DELETE FROM `stack` WHERE id =" . $stackindex;
-                        self::DbQuery($sql);
-                        $stackindex += 1;
-                        self::setGameStateValue('stackindex', $stackindex);
-                        array_push($old, intval($card));
-                    }
-                    self::trace(">>>>>>>>stackindex>>> [" . $stackindex . "]");
-                    $sql = "UPDATE player SET  available_cards = '" . json_encode($old) . "' WHERE player_id = " . $player["id"] . ";";
-                    self::DbQuery($sql);
-                }
-
-                //switch player
-                // $this->activeNextPlayer();
-            }
-            $this->gamestate->nextState('nextPlayer');
-        }
     }
+
+    
     function trackDone()
     {
         $player_id = self::getActivePlayerId();

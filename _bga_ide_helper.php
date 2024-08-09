@@ -245,6 +245,7 @@ class Table {
      *
      * @param      $sql
      * @param bool $bSingleValue
+     * @return array
      */
     protected function getDoubleKeyCollectionFromDB($sql, $bSingleValue = FALSE)
     {
