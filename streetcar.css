@@ -265,6 +265,11 @@
   margin-left: -4px;
   z-index: 101;
 }
+
+#reset
+{
+  margin-right: 20px;
+}
 @keyframes blink {
   50% {
     border-color: #0000ff;

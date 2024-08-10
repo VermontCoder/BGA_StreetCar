@@ -288,7 +288,8 @@ class Streetcar extends Table
 
     function getStack()
     {
-        return self::getObjectListFromDB("SELECT card FROM stack", true);
+        //convert to integers
+        return array_map('intval', self::getObjectListFromDB("SELECT card FROM stack", true));
     }
     function argPlayerTurn()
     {
@@ -371,22 +372,10 @@ class Streetcar extends Table
     function updateAndRefillAvailableCards($available_cards)
     {
         $player_id = self::getActivePlayerId();
-        $players = self::getPlayers();
         
-        foreach ($players as $player_id3 => $player) {
-            if ($player["id"] == $player_id) {
-                //$available_cards = json_decode($player["available_cards"]);
-                $newHand = $this->refillHand($available_cards);
-                $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($newHand)) . "' WHERE player_id = " . $player_id . ";";
-                self::DbQuery($sql);
-            }
-        }
-
-        // if (($key = array_search($card, $available_cards)) !== false) {
-                //     unset($available_cards[$key]);
-                // }
-                // $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($available_cards)) . "' WHERE player_id = " . $player_id . ";";
-                // self::DbQuery($sql);
+        $newHand = $this->refillHand($available_cards);
+        $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($newHand)) . "' WHERE player_id = " . $player_id . ";";
+        self::DbQuery($sql);      
     }
 
     function refillHand($available_cards)
@@ -401,7 +390,7 @@ class Streetcar extends Table
         $this->dump( "stack:", $stack ); 
         for ($i = 0; $i < $numNewCards; $i++) 
         {
-            $card = intval(array_shift($stack)); //Why is this necessary??? But it is.
+            $card = array_shift($stack); 
             $available_cards[] = $card;
         }
         

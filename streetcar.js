@@ -106,6 +106,7 @@ function (dojo, declare) {
                 case "placeTrack":
                     this.selectedTrack = -1;
                     this.isFirstSelection = true;
+                    this.firstPlacementData = {};
 
                     this.updatePlayers(args.args.players);
                     this.updateTracks();
@@ -222,14 +223,14 @@ function (dojo, declare) {
             if( this.checkAction( 'playTrack' ))
             {
                 if(this.selectedTrack==-1){
-                    this.showMessage( _("Select track part you want to place."), 'info');	
+                    this.showMessage( _("Select track part you want to place."), 'error');	
                     return;
                 }
                 console.log("placecard");
                 var coords = evt.currentTarget.id.split('_');
                 if (coords[1] == this.firstPlacementData.posx && coords[2]== this.firstPlacementData.posy)
                 {
-                    this.showMessage( _("You cannot play on your first placement."), 'info');	
+                    this.showMessage( _("You cannot play on your first placement."), 'error');	
                     return;
                 }
                 
@@ -238,7 +239,7 @@ function (dojo, declare) {
 
                 if(parseInt(this.gamedatas.gamestate.args.tracks[this.posx][this.posy])>=6)
                 {
-                    this.showMessage( _("This track can not be replaced."), 'info');	
+                    this.showMessage( _("This track can not be replaced."), 'error');	
                     dojo.destroy('place_card_action_button'); //eliminates place card button in action buttons.
                     return;
                 }
@@ -260,14 +261,16 @@ function (dojo, declare) {
                 }
                 else
                 {
-                    this.showMessage( _("Cannot put track on stop."), 'info');
+                    this.showMessage( _("Cannot put track on stop."), 'error');
                     dojo.destroy('place_card_action_button'); //deletes place track button.
                 }   
                     
             }
         },   
         onReset()
-        {
+        {   
+            //reload page.
+            dojo.destroy('reset')
             location.reload();
         },
         onRotateCard(evt)
@@ -391,6 +394,8 @@ function (dojo, declare) {
             dojo.destroy('reset');
             $('pagemaintitletext').innerHTML = 'Sending move to server...';
 
+
+            //actually put the tiles on the board.
             dojo.place( this.format_block( 'jstpl_track', {
                 id: "board_"+paramList.c1,
                 offsetx:-parseInt(paramList.c1)*100,
@@ -403,10 +408,12 @@ function (dojo, declare) {
                 rotate:paramList.r2
             } ) , 'square_'+paramList.x2+"_"+paramList.y2);
 
-            //remove temp track and replace
+            //remove temp track
             dojo.destroy(this.getPlacedTrackId(true));
             dojo.destroy(this.getPlacedTrackId(false));
 
+            //clear firstPlacementData
+            this.firstPlacementData = {};
             this.ajaxcall( "/streetcar/streetcar/placeTracks.html",paramList, this, function( result ) {} );
             
 
