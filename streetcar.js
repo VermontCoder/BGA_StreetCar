@@ -201,7 +201,14 @@ function (dojo, declare) {
             {            
                 switch( stateName )
                 {
-/*               
+                    case 'placeTrack':
+                        if (!(this.curRoute[0] == null) && this.curRoute[0].isComplete)
+                        {
+                            this.addActionButton( 'begin_trip', _('Begin Inaugural Trip'), 'onBeginTrip');
+                        }
+                        break;
+/*                      
+                 
                  Example:
  
                  case 'myGameState':
@@ -216,7 +223,7 @@ function (dojo, declare) {
                 }
             }
         },        
-
+        
         ///////////////////////////////////////////////////
         //// Utility methods
         onPlaceCard: function( evt )
@@ -321,7 +328,6 @@ function (dojo, declare) {
            
             return badDirections;
         },
-
         showPlaceCardActionButton(badDirections)
         {
             if (badDirections.includes('x')) return; //case where player tried to place on non-conforming space.
@@ -367,11 +373,11 @@ function (dojo, declare) {
             }
 
             //none of these are valid - do not show place card
-            if($('place_card_action_button'))
-            {
-                dojo.destroy('place_card_action_button');
-            }
-
+            dojo.destroy('place_card_action_button');
+        },
+        onBeginTrip()
+        {
+            alert('helo');
         },
         sendMovesToServer()
         {
@@ -395,7 +401,10 @@ function (dojo, declare) {
                 available_cards : available_cards
             };
             
+            //clear buttons
             dojo.destroy('reset');
+            dojo.destroy('begin_trip');
+            
             $('pagemaintitletext').innerHTML = 'Sending move to server...';
 
             //actually put the tiles on the board.
@@ -423,7 +432,8 @@ function (dojo, declare) {
         //user has decided to actually put card down.
         onPlacedCard()
         {
-            dojo.destroy('place_card_action_button')
+            dojo.destroy('place_card_action_button');
+            dojo.destroy('begin_trip');
 
             let trackcard = this.gamedatas.tracks[this.selectedTrack][0];
             let directions_free = this.getDirections_free(trackcard, this.rotation);
@@ -655,8 +665,7 @@ function (dojo, declare) {
                     });
 
                     dojo.style('checktrack_'+player.id,'display','block');
-
-                    if (!this.curRoute==null && this.curRoute[0].isComplete)
+                    if (!(this.curRoute==null) && this.curRoute[0].isComplete)
                     {
                         dojo.style('completedMsg_'+player.id,'display','inline-block');
                         dojo.addClass('start_'+player.id,'linenum_completed');
