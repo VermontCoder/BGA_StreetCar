@@ -120,6 +120,11 @@
   height: 51px;
   background-image: url("img/start.png");
   margin: 2px;
+  display: inline-block;
+}
+.linenum_completed
+{
+  border: 4px solid #398904;
 }
 .train {
   width: 100px;
@@ -276,6 +281,24 @@
   position: absolute;
 }
 
+.completed_msg
+{
+  display: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #ffffff; /* Text color */
+  background-color: #398904;#28a745; /* Green background for completed task */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  text-align: center;
+  vertical-align: middle;
+}
+
+.container {
+  display: flex;
+  align-items: center; /* Vertically centers the divs */
+}
 #reset
 {
   margin-right: 20px;

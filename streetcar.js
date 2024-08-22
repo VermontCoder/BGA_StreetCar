@@ -655,7 +655,12 @@ function (dojo, declare) {
                     });
 
                     dojo.style('checktrack_'+player.id,'display','block');
-                    //html += "<div class='goalcheck' id='checktrack"+player.id+"'>Test track</div>"
+
+                    if (!this.curRoute==null && this.curRoute[0].isComplete)
+                    {
+                        dojo.style('completedMsg_'+player.id,'display','inline-block');
+                        dojo.addClass('start_'+player.id,'linenum_completed');
+                    }
 
                     
                     $('goal_'+player.id).innerHTML=html
@@ -903,7 +908,7 @@ function (dojo, declare) {
         // TODO: from this point and below, you can write your game notifications handling methods
         notif_placedTrack: function( notif )
         {
-            console.log("notif_placedTracknotif_placedTracknotif_placedTracknotif_placedTracknotif_placedTrack", notif)
+            console.log("notif_placedTrack", notif)
             // for( var player_id in notif.args.scores )
             // {
             //     var newScore = notif.args.scores[ player_id ];
@@ -922,7 +927,8 @@ function (dojo, declare) {
             console.log('notif_updateRoute',notif.args.player_id);
             this.curRoute = notif.args.route;
             this.showRoute();
-        }
+        },
+
 
         // onClickRoute: function( evt )
         // {
