@@ -58,8 +58,9 @@ var jstpl_die='<div class="die" id="die_${id}" style="background-position: ${off
 var jstpl_direction='<div class="direction" id="direction_${px}_${py}_${d}" ></div>';
 
 var jstpl_player_board='<div class="boardblock">\
-            <div id="start_${id}" class="startposition"></div>\
+            <div id="start_${id}" class="linenum"></div>\
             <div id="goal_${id}" class="goalsholder"></div>\
+            <div id="checktrack_${id}" class="goalcheck" >Show Route</div>\
             <div id="track_${id}" class="trackholder"></div>\
             </div>';
 </script>  

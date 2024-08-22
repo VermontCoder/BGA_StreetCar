@@ -54,27 +54,33 @@ class action_streetcar extends APP_GameAction
     $result = $this->game->placeTracks($r1, $x1, $y1, $c1, $directions_free1,$r2, $x2, $y2, $c2, $directions_free2, $available_cards);
     self::ajaxResponse();
   }
-  public function trackDone()
-  {
-    self::setAjaxMode();
-    $result = $this->game->trackDone();
-    self::ajaxResponse();
-  }
-  public function setTrainLocation()
-  {
-    self::setAjaxMode();
-    $x = self::getArg("x", AT_posint, true);
-    $y = self::getArg("y", AT_posint, true);
-    $result = $this->game->setTrainLocation($x, $y);
-    self::ajaxResponse();
-  }
-  public function setTrainDirection()
-  {
-    self::setAjaxMode();
-    $d = self::getArg("d", AT_alphanum, true);
-    $result = $this->game->setTrainDirection($d);
-    self::ajaxResponse();
-  }
+
+
+
+/* DEPRECATED */
+
+
+  // public function trackDone()
+  // {
+  //   self::setAjaxMode();
+  //   $result = $this->game->trackDone();
+  //   self::ajaxResponse();
+  // }
+  // public function setTrainLocation()
+  // {
+  //   self::setAjaxMode();
+  //   $x = self::getArg("x", AT_posint, true);
+  //   $y = self::getArg("y", AT_posint, true);
+  //   $result = $this->game->setTrainLocation($x, $y);
+  //   self::ajaxResponse();
+  // }
+  // public function setTrainDirection()
+  // {
+  //   self::setAjaxMode();
+  //   $d = self::getArg("d", AT_alphanum, true);
+  //   $result = $this->game->setTrainDirection($d);
+  //   self::ajaxResponse();
+  // }
   // TODO: defines your action entry points there
 
 

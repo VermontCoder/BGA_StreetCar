@@ -3,7 +3,7 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * Streetcar implementation : © <Your name here> <Your email address here>
+ *  implementation : © <Your name here> <Your email address here>
  * 
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -289,7 +289,7 @@ $this->tracks = array(
     array(
       "N" => "ES",
       "E" => "N",
-      "S" => "Nw",
+      "S" => "NW",
       "W" => "S",
     ),
     array(
@@ -301,7 +301,7 @@ $this->tracks = array(
     array(
       "N" => "ES",
       "E" => "N",
-      "S" => "Nw",
+      "S" => "NW",
       "W" => "S",
     ),
     array(
@@ -338,7 +338,7 @@ $this->tracks = array(
     ),
   )
 );
-$this->stops = array(
+$this->initialStops = array(
   array(
     "row" => 1,
     "col" => 8,
@@ -522,32 +522,30 @@ $this->goals  = array(
     array("E", "K", "L")
   ),
 
-
-
 );
-$this->routepoints = array(
-  array(
-    'start' => [[7, 13]],
-    'end' => [[2, 0]]
+$this->routeEndPoints = array(
+  1 => array(
+    'start' => [['6_13_E','7_13_W'],['2_0_E', '3_0_W']],
+    'end' => [['2_0_S','3_0_S'],['6_13_N','7_13_N']]
   ),
-  array(
-    'start' => [[11, 13]],
-    'end' => [[6, 0]]
+  2 => array(
+    'start' => [['10_13_E','11_13_W'],['6_0_E','7_0_W']],
+    'end' => [['6_0_S', '7_0_S'],['10_13_N','11_13_N']]
   ),
-  array(
-    'start' => [[3, 13]],
-    'end' => [[10, 0]]
+  3 => array(
+    'start' => [['2_13_E', '3_13_W'],['10_0_E', '11_0_W']],
+    'end' => [['10_0_S', '11_0_S'],['2_13_N', '3_13_N']]
   ),
-  array(
-    'start' => [[0, 7]],
-    'end' => [[13, 2]]
+  4 => array(
+    'start' => [['0_6_S','0_7_N'],['13_2_S','13_3_N']],
+    'end' => [['13_2_W','13_3_W'],['0_6_E','0_7_E']]
   ),
-  array(
-    'start' => [[0, 11]],
-    'end' => [[13, 6]]
+  5 => array(
+    'start' => [['0_10_S','0_11_N'],['13_6_S','13_7_N']],
+    'end' => [['13_6_W','13_7_W'],['0_10_E','0_11_E']]
   ),
-  array(
-    'start' => [[0, 3]],
-    'end' => [[13, 10]]
+  6 => array(
+    'start' => [['0_2_S','0_3_N'],['13_10_S','13_11_N']],
+    'end' => [['13_10_W','13_11_W'],['0_2_E','0_3_E']]
   ),
 );

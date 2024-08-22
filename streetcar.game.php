@@ -19,6 +19,9 @@
 
 
 require_once(APP_GAMEMODULE_PATH . 'module/table/table.game.php');
+require_once('modules/scConnectivityGraph.php');
+require_once('modules/scRouteFinder.php');
+require_once('modules/scRoute.php');
 
 
 class Streetcar extends Table
@@ -109,7 +112,7 @@ class Streetcar extends Table
         shuffle($start);
         $goals = array();
 
-        self::trace(">>>>>PLAYERSNAUMENBRNEEN" . self::getPlayersNumber());
+        //self::trace(">>>>>PLAYERSNAUMENBRNEEN" . self::getPlayersNumber());
         if (intval(count($players)) >= 4) {
             for ($i = 1; $i < 7; $i++) {
                 array_push($goals, $i);
@@ -124,7 +127,7 @@ class Streetcar extends Table
 
         // Create players
         // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
-        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, available_cards, startposition, goals,trainposition,traveldirection, trackdone, dice, diceused) VALUES ";
+        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, available_cards, linenum, goals,trainposition,traveldirection, trackdone, dice, diceused) VALUES ";
         $values = array();
         $cardindex = 0;
         foreach ($players as $player_id => $player) {
@@ -215,20 +218,24 @@ class Streetcar extends Table
     protected function getAllDatas()
     {
         $result = array();
-
+        $this->cGraph = new scConnectivityGraph($this);
         $current_player_id = self::getCurrentPlayerId();    // !! We must only return informations visible by this player !!
 
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
-        $sql = "SELECT player_id id, player_score score FROM player ";
+        $sql = "SELECT player_id id, player_score score, goals, linenum FROM player ";
         $result['players'] = self::getCollectionFromDb($sql);
-        $result['stops'] = $this->stops;
+        $result['initialStops'] = $this->initialStops; //This is from materials.inc
         $result['tracks'] = $this->tracks;
         $result['goals'] = $this->goals;
-        $result['routepoints'] = $this->routepoints;
+        $result['routeEndPoints'] = $this->routeEndPoints;
+        $result['route'] = $this->calcRoutes($result['players'][$current_player_id],$this->getStops());//these stops are stops located on the board.
+        
 
+        //$this->dump('Stack: ',self::getStack());
+        // $result['connectivityGraph'] = $this->cGraph->connectivityGraph;
+        //$this->cGraph->test();
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
-
         return $result;
     }
 
@@ -257,12 +264,17 @@ class Streetcar extends Table
     //@return array
     function getPlayers()
     {
-        return self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, startposition, goals,trainposition,traveldirection, trackdone, dice, diceused
+        return self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, goals,trainposition,traveldirection, trackdone, dice, diceused
                                            FROM player");
+    }
+    function getBoardAsObjectList()
+    {
+        return self::getObjectListFromDB("SELECT board_x x, board_y y, directions_free, card, rotation, stop 
+                                                               FROM board");   
     }
     function getBoard()
     {
-        return self::getDoubleKeyCollectionFromDB("SELECT board_x x, board_y y, directions_free directions_free
+        return self::getDoubleKeyCollectionFromDB("SELECT board_x x, board_y y, directions_free 
                                                                FROM board", true);
     }
     function getStop($s)
@@ -291,16 +303,54 @@ class Streetcar extends Table
         //convert to integers
         return array_map('intval', self::getObjectListFromDB("SELECT card FROM stack", true));
     }
-    function argPlayerTurn()
+
+    /**
+     * Gets the route as far as it can based on connected stops.
+     * IMPORTANT: This function requires $this->getCurrentPlayerID() which throws an error on game setup.
+     * So do not call it then.
+     * 
+     * @param array $stops Numerically indexed array of stop letters
+     * @param array $players Numerically index array of FULL player information.
+     * @return scRoute::scRoute Shortest route (in array, temporarily) 
+     */
+    function getRoute($player,$stopsLocations)
     {
+        $routeFinder = new scRouteFinder($this->cGraph,$this);
+
+        $goalsAndLocations = [];
+           
+        $playerLine = intval($player['linenum']);
+        $playerGoals = $this->goals[intval($player['goals'])-1][$playerLine-1];
+        
+        //iterate through the playerGoals and tag them with the current location of those goals
+        foreach ($playerGoals as $goal)
+        {
+            $goalsAndLocations[$goal] = $stopsLocations[$goal];
+        }
+        
+        $routes = $routeFinder->findRoutesForLine($this->routeEndPoints[$playerLine],$goalsAndLocations,$this);
+        // $routes = $routeFinder->findRoutesForLine($this->routeEndPoints[$playerLine],array('A' => null,'L'=>$stopsLocations['L'],'K'=>$stopsLocations['K']),$this);
+        //$this->dump('Routes',$routes);
+
+        $shortest = scRoute::getShortestRoute($routes);
+        return ($shortest==null) ? null :[$shortest];
+        
+    }
+
+    function argPlayerTurn()
+    {   
+        $this->cGraph = new scConnectivityGraph($this);
+        $stops =  self::getStops();
+        $players = self::getPlayers();
+       
         return array(
-            'players' => self::getPlayers(),
+            'players' => $players,
             'board' => self::getBoard(),
             'tracks' => self::getTracks(),
             'rotations' => self::getRotation(),
-            'stops' => self::getStops(),
+            'stops' => $stops,
             'stack' => self::getStack(),
-
+            'connectivityGraph'=> $this->cGraph->connectivityGraph,
         );
     }
 
@@ -337,9 +387,7 @@ class Streetcar extends Table
     function placeTracks($r1, $x1, $y1, $c1, $directions_free1,$r2, $x2, $y2, $c2, $directions_free2, $available_cards)
     {
         //available cards comes in as a comma delimited string of numbers. Convert to array
-        self::trace("cards: ".$available_cards);
         $available_cards = array_map('intval',explode(',',$available_cards));
-        //self::trace("cards2: ".$available_cards);
         
         $this->updateAndRefillAvailableCards($available_cards);
 
@@ -348,25 +396,41 @@ class Streetcar extends Table
 
         $stopToAdd = $this->addStop($x2,$y2);
         $this->insertPiece($x2,$y2,$r2,$c2, $directions_free2,$stopToAdd);
-        
-
-        // self::trace(">>LOCATIONSLSLS>>>>" . array_values($found)[0]["code"]);
-        //
        
-        $players = self::loadPlayersBasicInfos();
-        $player_id = self::getActivePlayerId();
+        $player_name = self::getActivePlayerName();
+        $stops = self::getStops();
         
         self::notifyAllPlayers('placedTrack', clienttranslate('${player_name} placed tracks.'), array(
-            'player_name' => $players[$player_id]['player_name'],
+            'player_name' =>$player_name,
             'board' => self::getBoard(),
             'tracks' => self::getTracks(),
             'rotations' => self::getRotation(),
-            'stops' => self::getStops(),
+            'stops' => $stops,
         ));
+
+        $players = self::getPlayers();
+        $this->cGraph = new scConnectivityGraph($this);
+
+        foreach($players as $player)
+        {
+            $route = $this->calcRoutes($player,$stops);
+            self::notifyPlayer($player['id'],'updateRoute','',
+            array(
+                'player_id' =>$player['id'],
+                'route' => $route,
+            ));
+        }
 
         //goto next player
         $this->gamestate->nextState('nextPlayer');
         
+    }
+
+    function calcRoutes($player,$stops)
+    {
+        $stopsLocations = scUtility::getStopsLocations($stops);
+        $route = $this->getRoute($player,$stopsLocations);
+        return $route;    
     }
 
     function updateAndRefillAvailableCards($available_cards)
@@ -387,7 +451,7 @@ class Streetcar extends Table
 
         $stackindex =  intval(self::getGameStateValue('stackindex'));
         $stack = self::getStack();
-        $this->dump( "stack:", $stack ); 
+        // $this->dump( "stack:", $stack ); 
         for ($i = 0; $i < $numNewCards; $i++) 
         {
             $card = array_shift($stack); 
@@ -409,17 +473,17 @@ class Streetcar extends Table
     {
         // find stop if near location
         $needles = [$x, $y];
-        $stopToAdd = '';
-        $north = array_filter($this->stops, function ($var) use ($needles) {
+        $stopToAdd = null;
+        $north = array_filter($this->initialStops, function ($var) use ($needles) {
             return ($var['col'] == $needles[0] && $var['row'] == $needles[1] - 1);
         });
-        $east = array_filter($this->stops, function ($var) use ($needles) {
+        $east = array_filter($this->initialStops, function ($var) use ($needles) {
             return ($var['col'] == $needles[0] + 1 && $var['row'] == $needles[1]);
         });
-        $south = array_filter($this->stops, function ($var) use ($needles) {
+        $south = array_filter($this->initialStops, function ($var) use ($needles) {
             return ($var['col'] == $needles[0] && $var['row'] == $needles[1] + 1);
         });
-        $west = array_filter($this->stops, function ($var) use ($needles) {
+        $west = array_filter($this->initialStops, function ($var) use ($needles) {
             return ($var['col'] == $needles[0] - 1 && $var['row'] == $needles[1]);
         });
         $found = $north + $east + $south + $west;
@@ -428,56 +492,57 @@ class Streetcar extends Table
         }
         // see if this stop already exist
         if (self::getStop($stopToAdd)) {
-            $stopToAdd = '';
+            $stopToAdd = null;
         }
         return $stopToAdd;
     }
 
     function insertPiece($x,$y ,$r ,$c ,$directions_free,$stopToAdd)
     {
+        //TBD change to update
+        $stopToAdd = $stopToAdd == null ? 'NULL' : "'$stopToAdd'";
         $sql_values = array();
         $sql = "INSERT INTO board (board_x,board_y,rotation, card, directions_free, stop) VALUES ";
-        $sql_values[] = "($x,$y ,$r ,$c ,'$directions_free','$stopToAdd')";
+        $sql_values[] = "($x,$y ,$r ,$c ,'$directions_free',$stopToAdd)";
         $sql .= implode(',', $sql_values);
         $sql .= " ON DUPLICATE KEY UPDATE rotation= VALUES(rotation), card = VALUES(card), directions_free = VALUES(directions_free), stop = VALUES(stop)";
         self::DbQuery($sql);
     }
 
-    
-    function trackDone()
-    {
-        $player_id = self::getActivePlayerId();
-        $sql = "UPDATE player SET  trackdone = 1 WHERE player_id = " . $player_id . ";";
-        self::DbQuery($sql);
-        self::setGameStateValue('tracksplaced', 0);
-        $this->gamestate->nextState('nextPlayer');
-    }
-    function setTrainLocation($x, $y)
-    {
-        $player_id = self::getActivePlayerId();
-        $players = self::getPlayers();
-        foreach ($players as $player_id3 => $player) {
-            if ($player["id"] == $player_id) {
-                $position = array();
-                array_push($position, intval($x));
-                array_push($position, intval($y));
-                $sql = "UPDATE player SET  trainposition = '" . json_encode(array_values($position)) . "' WHERE player_id = " . $player_id . ";";
-                self::DbQuery($sql);
-            }
-        }
-    }
-    function setTrainDirection($d)
-    {
-        $player_id = self::getActivePlayerId();
-        $players = self::getPlayers();
-        foreach ($players as $player_id3 => $player) {
-            if ($player["id"] == $player_id) {
+    // function trackDone()
+    // {
+    //     $player_id = self::getActivePlayerId();
+    //     $sql = "UPDATE player SET  trackdone = 1 WHERE player_id = " . $player_id . ";";
+    //     self::DbQuery($sql);
+    //     self::setGameStateValue('tracksplaced', 0);
+    //     $this->gamestate->nextState('nextPlayer');
+    // }
+    // function setTrainLocation($x, $y)
+    // {
+    //     $player_id = self::getActivePlayerId();
+    //     $players = self::getPlayers();
+    //     foreach ($players as $player) {
+    //         if ($player["id"] == $player_id) {
+    //             $position = array();
+    //             array_push($position, intval($x));
+    //             array_push($position, intval($y));
+    //             $sql = "UPDATE player SET  trainposition = '" . json_encode(array_values($position)) . "' WHERE player_id = " . $player_id . ";";
+    //             self::DbQuery($sql);
+    //         }
+    //     }
+    // }
+    // function setTrainDirection($d)
+    // {
+    //     $player_id = self::getActivePlayerId();
+    //     $players = self::getPlayers();
+    //     foreach ($players as $player_id3 => $player) {
+    //         if ($player["id"] == $player_id) {
 
-                $sql = "UPDATE player SET  traveldirection = '" . $d . "' WHERE player_id = " . $player_id . ";";
-                self::DbQuery($sql);
-            }
-        }
-    }
+    //             $sql = "UPDATE player SET  traveldirection = '" . $d . "' WHERE player_id = " . $player_id . ";";
+    //             self::DbQuery($sql);
+    //         }
+    //     }
+    // }
     /*
     Example:
 

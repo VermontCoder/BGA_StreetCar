@@ -105,6 +105,9 @@
   -webkit-box-sizing: border-box;
   border: 2px white solid;
 }
+.trackholder{
+  display: block;
+}
 .playertrack {
   /* width: 50px;
   height: 50px;
@@ -112,7 +115,7 @@
   display: inline-block;
   transform: rotate(0deg);
 }
-.startposition {
+.linenum {
   width: 51px;
   height: 51px;
   background-image: url("img/start.png");
@@ -198,7 +201,7 @@
   margin-top: 2px;
   margin-bottom: 2px;
   cursor: pointer;
-  display: inline-block;
+  display: none;
 }
 .stopW {
   position: absolute;
@@ -266,10 +269,18 @@
   z-index: 101;
 }
 
+.route_line
+{
+  border: 1px solid;
+  height: 0px;
+  position: absolute;
+}
+
 #reset
 {
   margin-right: 20px;
 }
+
 @keyframes blink {
   50% {
     border-color: #0000ff;
