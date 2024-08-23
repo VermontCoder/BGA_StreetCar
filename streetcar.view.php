@@ -41,7 +41,7 @@ class view_streetcar_streetcar extends game_view
         $players = $this->game->loadPlayersBasicInfos();
         $players_nbr = count($players);
 
-        $this->page->begin_block("streetcar_streetcar", "square");
+        $this->page->begin_block("streetcar_streetcar", "board");
 
         $hor_scale = 100.25;
         $ver_scale = 100.25;
@@ -49,7 +49,7 @@ class view_streetcar_streetcar extends game_view
         $offsetv = 146;
         for ($x = 1; $x <= 12; $x++) {
             for ($y = 1; $y <= 12; $y++) {
-                $this->page->insert_block("square", array(
+                $this->page->insert_block("board", array(
                     'X' => $x,
                     'Y' => $y,
                     'LEFT' => round(($x - 1) * $hor_scale) + $offset,
@@ -58,37 +58,21 @@ class view_streetcar_streetcar extends game_view
             }
         }
 
-
-        $this->page->begin_block("streetcar_streetcar", "stops");
-
-        $hor_scale = 100.25;
-        $ver_scale = 100.25;
-        $offset = 142;
-        $offsetv = 146;
-        for ($x = 1; $x <= 12; $x++) {
-            for ($y = 1; $y <= 12; $y++) {
-                $this->page->insert_block("stops", array(
-                    'X' => $x,
-                    'Y' => $y,
-                    'LEFT' => round(($x - 1) * $hor_scale) + $offset,
-                    'TOP' => round(($y - 1) * $ver_scale) + $offsetv
-                ));
-            }
-        }
         $this->page->begin_block("streetcar_streetcar", "route");
 
-        $hor_scale = 100.25;
-        $ver_scale = 100.25;
-        $offset = 142;
-        $offsetv = 146;
         for ($x = 0; $x <= 13; $x++) {
-            for ($y = 0; $y <= 13; $y++) {
-                $this->page->insert_block("route", array(
-                    'X' => $x,
-                    'Y' => $y,
-                    'LEFT' => round(($x - 1) * $hor_scale) + $offset,
-                    'TOP' => round(($y - 1) * $ver_scale) + $offsetv
-                ));
+            for ($y = 0; $y <= 13; $y++) 
+            {
+                //only insert around edge of board
+                if ($x==0 || $x==13 || $y==0 || $y==13)
+                {
+                    $this->page->insert_block("route", array(
+                        'X' => $x,
+                        'Y' => $y,
+                        'LEFT' => round(($x - 1) * $hor_scale) + $offset,
+                        'TOP' => round(($y - 1) * $ver_scale) + $offsetv
+                    ));
+                }
             }
         }
 

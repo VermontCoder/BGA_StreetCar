@@ -75,6 +75,7 @@
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   pointer-events: none;
+  z-index: 110;
 }
 .noclick {
   pointer-events: none;
@@ -123,6 +124,10 @@
   display: inline-block;
 }
 .linenum_completed
+{
+  border: 4px solid #398904;
+}
+.selectable_train_start_location
 {
   border: 4px solid #398904;
 }

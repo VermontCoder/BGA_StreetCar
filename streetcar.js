@@ -64,8 +64,6 @@ function (dojo, declare) {
             
             // TODO: Set up your game interface here, according to "gamedatas"
             
-            
-            //dojo.query( '.route' ).connect( 'onclick', this, 'onClickRoute' );
             this.rotation = 0;
             this.selectedTrack = -1;
             this.firstPlacementData = {};
@@ -82,8 +80,13 @@ function (dojo, declare) {
             //routing
             this.curRoute= gamedatas.route;
             this.isShowRoute = false;
+
+            this.onPlaceCardHandlers = [];
             
-            dojo.query( '.square' ).connect( 'onclick', this, 'onPlaceCard' );
+            for(x=1;x<=12;x++)
+                for(y=1;y<=12;y++)
+                    this.onPlaceCardHandlers.push(dojo.connect($('square_'+x+'_'+y),'onclick',this,'onPlaceCard'));
+            // this.onPlaceCardHandler = dojo.query( '.square' ).connect( 'onclick', this, 'onPlaceCard' );
             
             dojo.query( '.goalcheck' ).connect( 'onclick', this, 'onToggleShowRoute' );
             // Setup game notifications to handle (see "setupNotifications" method below)
@@ -202,9 +205,9 @@ function (dojo, declare) {
                 switch( stateName )
                 {
                     case 'placeTrack':
-                        if (!(this.curRoute[0] == null) && this.curRoute[0].isComplete)
+                        if (!(this.curRoute == null || this.curRoute[0] == null) && this.curRoute[0].isComplete)
                         {
-                            this.addActionButton( 'begin_trip', _('Begin Inaugural Trip'), 'onBeginTrip');
+                            this.addActionButton( 'begin_trip_button', _('Begin Inaugural Trip'), 'onBeginTrip');
                         }
                         break;
 /*                      
@@ -223,9 +226,6 @@ function (dojo, declare) {
                 }
             }
         },        
-        
-        ///////////////////////////////////////////////////
-        //// Utility methods
         onPlaceCard: function( evt )
         {
             // Stop this event propagation
@@ -281,7 +281,7 @@ function (dojo, declare) {
         onReset()
         {   
             //reload page.
-            dojo.destroy('reset')
+            dojo.destroy('reset_button')
             location.reload();
         },
         onRotateCard(evt)
@@ -375,9 +375,34 @@ function (dojo, declare) {
             //none of these are valid - do not show place card
             dojo.destroy('place_card_action_button');
         },
+        onPlaceTrain()
+        {
+            alert('Hello');
+        },
         onBeginTrip()
         {
-            alert('helo');
+            //setup ui to record person's choice of train start
+            dojo.destroy('place_card_action_button');
+            dojo.destroy('begin_trip_button');
+            
+            this.addActionButton('reset_button', _('Reset'), () => this.onReset());
+            $('pagemaintitletext').innerHTML = _('Select train starting location.');
+
+            //dojo.disconnect( this.onPlaceCardHandler );
+            //remove click ability on all the board squares
+            this.onPlaceCardHandlers.forEach( dojo.disconnect);
+
+            xyStart = this.extractXYD(this.curRoute[0].startNodeID);
+            xyEnd = this.extractXYD(this.curRoute[0].endNodeID);
+            
+            xyStartSquareID = 'route_'+xyStart.x + '_'+xyStart.y;
+            xyEndSquareID = 'route_'+xyEnd.x + '_'+xyEnd.y;
+            
+            dojo.connect($(xyStartSquareID), 'onclick', this, 'onPlaceTrain' );
+            dojo.connect($(xyEndSquareID), 'onclick', this, 'onPlaceTrain' );
+            
+            dojo.addClass(xyStartSquareID, 'selectable_train_start_location');
+            dojo.addClass(xyEndSquareID, 'selectable_train_start_location');
         },
         sendMovesToServer()
         {
@@ -402,8 +427,8 @@ function (dojo, declare) {
             };
             
             //clear buttons
-            dojo.destroy('reset');
-            dojo.destroy('begin_trip');
+            dojo.destroy('reset_button');
+            dojo.destroy('begin_trip_button');
             
             $('pagemaintitletext').innerHTML = 'Sending move to server...';
 
@@ -433,7 +458,7 @@ function (dojo, declare) {
         onPlacedCard()
         {
             dojo.destroy('place_card_action_button');
-            dojo.destroy('begin_trip');
+            dojo.destroy('begin_trip_button');
 
             let trackcard = this.gamedatas.tracks[this.selectedTrack][0];
             let directions_free = this.getDirections_free(trackcard, this.rotation);
@@ -486,9 +511,9 @@ function (dojo, declare) {
                 dojo.disconnect(this.rotationClickHandler);
 
                 //add ability to reset turn
-                if(!$('reset'))
+                if(!$('reset_button'))
                 {
-                    this.addActionButton('reset', _('Reset'), () => this.onReset());
+                    this.addActionButton('reset_button', _('Reset'), () => this.onReset());
                 }
             }
             else
@@ -750,49 +775,47 @@ function (dojo, declare) {
             $(evt.currentTarget.id).innerHTML = this.isShowRoute ? 'Hide Route' : 'Show Route';
             this.showRoute()
         },
+        extractXYD(nodeID)
+        {
+            splitNodeID = nodeID.split('_');
+            return {'x': parseInt(splitNodeID[0]),
+                'y': parseInt(splitNodeID[1]),
+                'd': splitNodeID[2],
+            };
+        },
+        getPixelLocationBasedOnNodeID(nodeID)
+        {
+            xOrigin = 42+50; //+50 is center of tiles
+            yOrigin = 45+50;
+
+            parsedNodeID = this.extractXYD(nodeID);
+
+            xOffset =0;
+            yOffset =0;
+
+            switch(parsedNodeID['d'])
+            {
+                case "N":
+                    yOffset = -25;
+                    break;
+                case "E":
+                    xOffset = 25;
+                    break;
+                case "S":
+                    yOffset = 25;
+                    break;
+                case "W":
+                    xOffset = -25;
+                    break;
+            }
+
+            return {
+                'x': parseInt(xOrigin + xOffset + parsedNodeID['x']*100),
+                'y': parseInt(yOrigin + yOffset + parsedNodeID['y']*100),
+            };
+        },
         showRoute()
         {
-            function extractXYD(nodeID)
-            {
-                splitNodeID = nodeID.split('_');
-                return {'x': parseInt(splitNodeID[0]),
-                    'y': parseInt(splitNodeID[1]),
-                    'd': splitNodeID[2],
-                };
-            }
-
-            function getPixelLocationBasedOnNodeID(nodeID)
-            {
-                xOrigin = 42+50; //+50 is center of tiles
-                yOrigin = 45+50;
-
-                parsedNodeID = extractXYD(nodeID);
-
-                xOffset =0;
-                yOffset =0;
-
-                switch(parsedNodeID['d'])
-                {
-                    case "N":
-                        yOffset = -25;
-                        break;
-                    case "E":
-                        xOffset = 25;
-                        break;
-                    case "S":
-                        yOffset = 25;
-                        break;
-                    case "W":
-                        xOffset = -25;
-                        break;
-                }
-
-                return {
-                    'x': parseInt(xOrigin + xOffset + parsedNodeID['x']*100),
-                    'y': parseInt(yOrigin + yOffset + parsedNodeID['y']*100),
-                };
-            }
-
             //delete previous route
             dojo.query('.route_line').orphan();
 
@@ -816,8 +839,8 @@ function (dojo, declare) {
                     {
                         childID = route[parentID];
                         
-                        parentPixelXY = getPixelLocationBasedOnNodeID(parentID);
-                        childPixelXY = getPixelLocationBasedOnNodeID(childID);
+                        parentPixelXY = this.getPixelLocationBasedOnNodeID(parentID);
+                        childPixelXY = this.getPixelLocationBasedOnNodeID(childID);
                         $('wrapper').appendChild(this.scLines.createLine(parentPixelXY['x'], parentPixelXY['y']+i*2, childPixelXY['x'], childPixelXY['y']+i*2,'red'));
                     }
                 }

@@ -26,16 +26,14 @@
 -->
 <div id="wrapper"> 
     <div id="board" class="board_wrap bg_img"> 
-        <!-- BEGIN square -->
+        <!-- BEGIN board -->
             <div id="square_{X}_{Y}" class="square" style="left: {LEFT}px; top: {TOP}px;">
+                <div id="stops_{X}_{Y}" class="stops" style="left: 0px; top: 0px;">
+                </div>
             </div>
-        <!-- END square -->
-        <!-- BEGIN stops -->
-            <div id="stops_{X}_{Y}" class="stops" style="left: {LEFT}px; top: {TOP}px;">
-            </div>
-        <!-- END stops -->  
+        <!-- END board -->
         <!-- BEGIN route -->
-            <div id="route_{X}_{Y}" class="route noclick" style="left: {LEFT}px; top: {TOP}px;">
+            <div id="route_{X}_{Y}" class="route" style="left: {LEFT}px; top: {TOP}px;">
             </div>
         <!-- END route -->        
     
