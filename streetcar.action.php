@@ -55,7 +55,14 @@ class action_streetcar extends APP_GameAction
     self::ajaxResponse();
   }
 
+  public function placeTrain()
+  {
+    $trainStartNodeID = self::getArg('trainStartNodeID', AT_alphanum,true);
+    $linenum = self::getArg('linenum', AT_posint,true);
 
+    $result = $this->game->placeTrain($linenum,$trainStartNodeID);
+    self::ajaxResponse();
+  }
 
 /* DEPRECATED */
 

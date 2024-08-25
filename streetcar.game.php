@@ -127,12 +127,12 @@ class Streetcar extends Table
 
         // Create players
         // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
-        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, available_cards, linenum, goals,trainposition,traveldirection, trackdone, dice, diceused) VALUES ";
+        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, available_cards, linenum, goals,trainposition, dice, diceused) VALUES ";
         $values = array();
         $cardindex = 0;
         foreach ($players as $player_id => $player) {
             $color = array_shift($default_colors);
-            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$start[$cardindex],$goals[$cardindex],'[]','',0, '[]',0)";
+            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$start[$cardindex],$goals[$cardindex],NULL, '[]',0)";
             $cardindex++;
         }
         $sql .= implode(',', $values);
@@ -264,7 +264,7 @@ class Streetcar extends Table
     //@return array
     function getPlayers()
     {
-        return self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, goals,trainposition,traveldirection, trackdone, dice, diceused
+        return self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, goals,trainposition, dice, diceused
                                            FROM player");
     }
     function getBoardAsObjectList()
@@ -361,7 +361,7 @@ class Streetcar extends Table
         $players = self::getPlayers();
         foreach ($players as $player_id3 => $player) {
             if ($player["id"] == $player_id) {
-                if (intval($player["trackdone"]) == 0) {
+                if ($player['trainposition'] == NULL) {
                     $this->gamestate->nextState('nextTurn');
                 } else {
                     // set dice for this turn
@@ -426,6 +426,20 @@ class Streetcar extends Table
         
     }
 
+    function placeTrain($linenum,$trainStartNodeID)
+    {
+        $player_id = self::getActivePlayerId();
+        $sql = "UPDATE `player` SET trainposition='".$trainStartNodeID."' where player_id=2383265;";
+        self::DbQuery($sql);
+
+        self::notifyAllPlayers('placedTrain', clienttranslate('${player_name} placed a train.'), array(
+            'player_name' =>self::getActivePlayerName(),
+            'player_id' => $player_id,
+            'linenum' => $linenum,
+            'trainStartNodeID' => $trainStartNodeID,
+        ));
+        $this->gamestate->nextState('nextPlayer');
+    }
     function calcRoutes($player,$stops)
     {
         $stopsLocations = scUtility::getStopsLocations($stops);
@@ -509,14 +523,6 @@ class Streetcar extends Table
         self::DbQuery($sql);
     }
 
-    // function trackDone()
-    // {
-    //     $player_id = self::getActivePlayerId();
-    //     $sql = "UPDATE player SET  trackdone = 1 WHERE player_id = " . $player_id . ";";
-    //     self::DbQuery($sql);
-    //     self::setGameStateValue('tracksplaced', 0);
-    //     $this->gamestate->nextState('nextPlayer');
-    // }
     // function setTrainLocation($x, $y)
     // {
     //     $player_id = self::getActivePlayerId();
