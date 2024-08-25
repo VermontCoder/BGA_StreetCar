@@ -375,9 +375,31 @@ function (dojo, declare) {
             //none of these are valid - do not show place card
             dojo.destroy('place_card_action_button');
         },
-        onPlaceTrain()
+        onPlaceTrain(evt)
         {
-            alert('Hello');
+            selectedTrainLoc = this.extractXY(evt.currentTarget.id);
+            routeStartNodeLoc = this.extractXYD(this.curRoute[0].startNodeID);
+
+            //default to route start
+            trainStartNode = this.curRoute[0].startNodeID;
+            alert(JSON.stringify(trainStartNode));
+            alert(JSON.stringify(selectedTrainLoc));
+
+            if ((selectedTrainLoc.x != routeStartNodeLoc.x) || (selectedTrainLoc.y != routeStartNodeLoc.y))
+            {
+                //user selected *Other* end of route to place the train.
+                //So we use the endNode coords, but change the direction to the *other* direction
+                //on the endNode.
+                routeStartNodeLoc = this.extractXYD(this.curRoute[0].endNodeID);
+                directions = this.borderTracksDirections_free(routeStartNodeLoc.x, routeStartNodeLoc.y)
+
+                //directions should have two cardinal directions as a two character string.
+                //get the direction that *isn't* the one currently in the node.
+                newDirectionIdx = directions.indexOf(routeStartNodeLoc.d)==0 ? 1 : 0;
+                trainStartNode = routeStartNodeLoc.x+'_'+routeStartNodeLoc.y+'_'+directions.charAt(newDirectionIdx);
+
+            }
+            alert(JSON.stringify(trainStartNode));
         },
         onBeginTrip()
         {
@@ -634,36 +656,67 @@ function (dojo, declare) {
 
             return badDirections;
         },
-        borderTracksDirections_free(xcheck, ycheck){
+        borderTracksDirections_free(xcheck, ycheck)
+        {
             if(ycheck==0){
-                if([2,3,6,7,10,11].indexOf(xcheck)!=-1){
-                    return 'S'
-                } else {
-                    return 'EW'
+                if([2,6,10].indexOf(xcheck)!=-1)
+                {
+                    return 'SE';
+                }
+                else if([3,7,11].indexOf(xcheck)!=-1)
+                {
+                    return 'Sw';
+                } 
+                else 
+                {
+                    return 'EW';
                 }
             }
+
             if(ycheck==13){
-                if([2,3,6,7,10,11].indexOf(xcheck)!=-1){
-                    return 'N'
-                } else {
-                    return 'EW'
+                if([2,6,10].indexOf(xcheck)!=-1)
+                {
+                    return 'NE';
+                }
+                else if([3,7,11].indexOf(xcheck)!=-1)
+                {
+                    return 'NW';
+                } 
+                else 
+                {
+                    return 'EW';
                 }
             }
+
             if(xcheck==0){
-                if([2,3,6,7,10,11].indexOf(ycheck)!=-1){
-                    return 'E'
-                } else {
+                if([2,6,10].indexOf(ycheck)!=-1)
+                {
+                    return 'SE';
+                }
+                else if ([3,7,11].indexOf(ycheck)!=-1)
+                {
+                    return 'NE';
+                } 
+                else 
+                {
                     return 'NS'
                 }
             }
             if(xcheck==13){
-                if([2,3,6,7,10,11].indexOf(ycheck)!=-1){
-                    return 'W'
-                } else {
+                if([2,6,10].indexOf(ycheck)!=-1)
+                {
+                    return 'SW';
+                }
+                else if ([3,7,11].indexOf(ycheck)!=-1)
+                {
+                    return 'NW';
+                } 
+                else 
+                {
                     return 'NS'
                 }
             }
-            return '[]'
+            return '[]';
 
         },
         getPlacedTrackId(isFirstSelection)
@@ -775,12 +828,23 @@ function (dojo, declare) {
             $(evt.currentTarget.id).innerHTML = this.isShowRoute ? 'Hide Route' : 'Show Route';
             this.showRoute()
         },
+
+        //Use this for route nodes.
         extractXYD(nodeID)
         {
             splitNodeID = nodeID.split('_');
             return {'x': parseInt(splitNodeID[0]),
                 'y': parseInt(splitNodeID[1]),
                 'd': splitNodeID[2],
+            };
+        },
+        //Use this for squares or stops
+        extractXY(nodeID)
+        {
+            splitNodeID = nodeID.split('_');
+            //skip over 'square_' or 'stop_'
+            return {'x': parseInt(splitNodeID[1]),
+                'y': parseInt(splitNodeID[2]),
             };
         },
         getPixelLocationBasedOnNodeID(nodeID)
@@ -933,8 +997,6 @@ function (dojo, declare) {
             dojo.subscribe( 'placedTrack', this, "notif_placedTrack" );
             dojo.subscribe( 'updateRoute',this,'notif_updateRoute');
             this.notifqueue.setSynchronous( 'placedTrack', 500 );
-            
-           
         },  
         
         // TODO: from this point and below, you can write your game notifications handling methods
