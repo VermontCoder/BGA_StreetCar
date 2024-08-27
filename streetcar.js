@@ -67,7 +67,7 @@ function (dojo, declare) {
                 dojo.place( this.format_block('jstpl_player_board', player ), player_board_div );
 
                 //place player trains. If they are not there, this will simply return without doing anything.
-                this.placeTrain(player.linenum,player_id,player.trainposition);
+                this.showTrain(player.linenum,player_id,player.trainposition,player.traindirection);
 
             }
             
@@ -374,7 +374,7 @@ function (dojo, declare) {
             selectedTrainLoc = this.extractXY(evt.currentTarget.id);
             trainStartNodeID = '';
 
-            //find right route
+            //find right route - may have clicked on the end of the route, so find the corresponding route with this as the start of route.
             for(i=0;i<this.routes.length;i++)
             {
                 routeStartNodeLoc = this.extractXYD(this.routes[i].startNodeID);
@@ -395,7 +395,6 @@ function (dojo, declare) {
             players = this.gamedatas.gamestate.args.players;
             linenum = parseInt(players.filter(p =>p.id==this.player_id)[0]['linenum']);
             this.ajaxcall( "/streetcar/streetcar/placeTrain.html",{linenum: linenum, trainStartNodeID: trainStartNodeID}, this, function( result ) {} );
-            
         },
         onBeginTrip()
         {
@@ -999,48 +998,57 @@ function (dojo, declare) {
         notif_placedTrain : function(notif)
         {
             console.log("notif_placedTrain", notif);
-            this.placeTrain(notif.args.linenum,notif.args.player_id,notif.args.trainStartNodeID);
+            this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.trainStartNodeID,notif.args.traindirection);
 
         },
-        getTrainRotation(trainPositionNodeID)
-        {   
-            //This relies on the fact that the routeID of the curRoute is the first routeID of the merge constructed route. 
-            //So the train is always at the begining of the route, and its routeID will be whatever the route ID is of the current route,
-            //even though it may be composed of multiple routes.
-            routeNodeID = trainPositionNodeID + '_' + this.curRoute.routeID;
-            nextRouteNodeID = this.curRoute.routeNodes[routeNodeID];
-            console.log(JSON.stringify(this.curRoute.routeNodes));
+        // getTrainRotation(trainPositionNodeID)
+        // {   
+        //     //This relies on the fact that the routeID of the curRoute is the first routeID of the merge constructed route. 
+        //     //So the train is always at the begining of the route, and its routeID will be whatever the route ID is of the current route,
+        //     //even though it may be composed of multiple routes.
+        //     routeNodeID = trainPositionNodeID + '_' + this.curRoute.routeID;
+        //     nextRouteNodeID = this.curRoute.routeNodes[routeNodeID];
+        //     console.log(JSON.stringify(this.curRoute.routeNodes));
 
-            nextRouteNodeDirection = this.extractXYD(nextRouteNodeID);
+        //     nextRouteNodeDirection = this.extractXYD(nextRouteNodeID);
             
-            //this is 180 degrees from the nextRouteNodeDirection, as the train will be entering from that side - it is facing opposite.
-            switch(nextRouteNodeDirection['d'])
+        //     //this is 180 degrees from the nextRouteNodeDirection, as the train will be entering from that side - it is facing opposite.
+        //     switch(nextRouteNodeDirection['d'])
+        //     {
+        //         case "N": return 180;
+        //         case "E": return 270;
+        //         case "S": return 0;
+        //         case "W": return 90;
+            
+        //     }
+        // },
+        getRotationFromDirection(direction)
+        {
+            switch(direction)
             {
-                case "N": return 180;
-                case "E": return 270;
-                case "S": return 0;
-                case "W": return 90;
-            
+                case "N": return 0;
+                case "E": return 90;
+                case "S": return 180;
+                case "W": return 270;
             }
         },
-        
-        placeTrain : function(linenum,player_id,nodeID)
+        showTrain : function(linenum,player_id,nodeID,traindirection)
         {
-            //if nodeID is null, there is no train to place
+            //if nodeID is null, there is no train to show
             if (nodeID==null) return;
 
             trainXYD = this.extractXYD(nodeID);
             
             //if this is a border place those are denoted by route_, otherwise its a square_
             tileID = this.validCoordinates(trainXYD.y,trainXYD.x) ? 'square_'+trainXYD.x+"_"+trainXYD.y : 'route_'+trainXYD.x+"_"+trainXYD.y;
-
-            console.log ('Params','linenum: '+linenum+'\nplayer_id: ' + player_id+'\ntileID:'+tileID);
+            rotation = this.getRotationFromDirection(traindirection);
+            console.log ('Params','linenum: '+linenum+'\nplayer_id: ' + player_id+'\ntileID:'+tileID+'\ndirection:'+traindirection+'\nrotation:'+rotation);
             
             dojo.destroy("train_"+player_id);
             dojo.place( this.format_block( 'jstpl_train', {
                 id: "train_"+player_id,
                 offsetx:(-100)*(parseInt(linenum)-1),
-                rotate:this.getTrainRotation(nodeID),
+                rotate: rotation,
             } ) , tileID);
 
         },

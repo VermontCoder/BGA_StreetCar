@@ -21,6 +21,21 @@ class scUtility
       }
   }
 
+   /**
+   * @param string $direction NSEW
+   * @return integer returns degrees version of $direction parameter.
+   */
+  public static function getDegrees($direction)
+  {
+    switch($direction)
+      {
+          case "N": return 0;
+          case "E": return 90;
+          case "S": return 180;
+          case "W": return 270;
+      }
+  }
+
   /**
    * @param string $direction NESW
    * @param integer $startTileX

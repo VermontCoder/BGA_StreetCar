@@ -127,12 +127,12 @@ class Streetcar extends Table
 
         // Create players
         // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
-        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, available_cards, linenum, goals,trainposition, dice, diceused) VALUES ";
+        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, available_cards, linenum, goals,trainposition, traindirection, dice, diceused) VALUES ";
         $values = array();
         $cardindex = 0;
         foreach ($players as $player_id => $player) {
             $color = array_shift($default_colors);
-            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$start[$cardindex],$goals[$cardindex],NULL, '[]',0)";
+            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$start[$cardindex],$goals[$cardindex],NULL,NULL, '[]',0)";
             $cardindex++;
         }
         $sql .= implode(',', $values);
@@ -223,7 +223,7 @@ class Streetcar extends Table
 
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
-        $sql = "SELECT player_id id, player_score score, goals, linenum, trainposition FROM player ";
+        $sql = "SELECT player_id id, player_score score, goals, linenum, trainposition, traindirection FROM player ";
         $result['players'] = self::getCollectionFromDb($sql);
         $result['initialStops'] = $this->initialStops; //This is from materials.inc
         $result['tracks'] = $this->tracks;
@@ -264,7 +264,7 @@ class Streetcar extends Table
     //@return array
     function getPlayers()
     {
-        return self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, goals,trainposition, dice, diceused
+        return self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, traindirection,goals,trainposition, dice, diceused
                                            FROM player");
     }
     function getBoardAsObjectList()
@@ -428,7 +428,17 @@ class Streetcar extends Table
     function placeTrain($linenum,$trainStartNodeID)
     {
         $player_id = self::getActivePlayerId();
-        $sql = "UPDATE `player` SET trainposition='".$trainStartNodeID."' where player_id=".$player_id;
+
+        //based on start node, find direction
+        $trainLoc = scUtility::key2xy($trainStartNodeID);
+
+        $traindirection = '';
+        if ($trainLoc['x'] == 0 ) { $traindirection = 'E';}
+        if ($trainLoc['y'] == 0 ) { $traindirection = 'S';}
+        if ($trainLoc['x'] == 13 ) { $traindirection = 'W';}
+        if ($trainLoc['y'] == 13 ) { $traindirection = 'N';}
+
+        $sql = "UPDATE `player` SET trainposition='".$trainStartNodeID."', traindirection='".$traindirection."' where player_id=".$player_id;
         self::DbQuery($sql);
 
         self::notifyAllPlayers('placedTrain', clienttranslate('${player_name} placed a train.'), array(
@@ -436,6 +446,7 @@ class Streetcar extends Table
             'player_id' => $player_id,
             'linenum' => $linenum,
             'trainStartNodeID' => $trainStartNodeID,
+            'traindirection' => $traindirection,
         ));
         $this->gamestate->nextState('nextPlayer');
     }
