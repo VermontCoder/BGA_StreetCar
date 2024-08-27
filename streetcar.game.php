@@ -223,13 +223,13 @@ class Streetcar extends Table
 
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
-        $sql = "SELECT player_id id, player_score score, goals, linenum FROM player ";
+        $sql = "SELECT player_id id, player_score score, goals, linenum, trainposition FROM player ";
         $result['players'] = self::getCollectionFromDb($sql);
         $result['initialStops'] = $this->initialStops; //This is from materials.inc
         $result['tracks'] = $this->tracks;
         $result['goals'] = $this->goals;
         $result['routeEndPoints'] = $this->routeEndPoints;
-        $result['route'] = $this->calcRoutes($result['players'][$current_player_id],$this->getStops());//these stops are stops located on the board.
+        $result['routes'] = $this->calcRoutes($result['players'][$current_player_id],$this->getStops());//these stops are stops located on the board.
         
 
         //$this->dump('Stack: ',self::getStack());
@@ -332,8 +332,7 @@ class Streetcar extends Table
         // $routes = $routeFinder->findRoutesForLine($this->routeEndPoints[$playerLine],array('A' => null,'L'=>$stopsLocations['L'],'K'=>$stopsLocations['K']),$this);
         //$this->dump('Routes',$routes);
 
-        $shortest = scRoute::getShortestRoute($routes);
-        return ($shortest==null) ? null :[$shortest];
+        return scRoute::getShortestRoutes($routes);
         
     }
 
@@ -413,11 +412,11 @@ class Streetcar extends Table
 
         foreach($players as $player)
         {
-            $route = $this->calcRoutes($player,$stops);
+            $routes = $this->calcRoutes($player,$stops);
             self::notifyPlayer($player['id'],'updateRoute','',
             array(
                 'player_id' =>$player['id'],
-                'route' => $route,
+                'routes' => $routes,
             ));
         }
 
@@ -429,7 +428,7 @@ class Streetcar extends Table
     function placeTrain($linenum,$trainStartNodeID)
     {
         $player_id = self::getActivePlayerId();
-        $sql = "UPDATE `player` SET trainposition='".$trainStartNodeID."' where player_id=2383265;";
+        $sql = "UPDATE `player` SET trainposition='".$trainStartNodeID."' where player_id=".$player_id;
         self::DbQuery($sql);
 
         self::notifyAllPlayers('placedTrain', clienttranslate('${player_name} placed a train.'), array(
@@ -443,8 +442,8 @@ class Streetcar extends Table
     function calcRoutes($player,$stops)
     {
         $stopsLocations = scUtility::getStopsLocations($stops);
-        $route = $this->getRoute($player,$stopsLocations);
-        return $route;    
+        $routes = $this->getRoute($player,$stopsLocations);
+        return $routes;    
     }
 
     function updateAndRefillAvailableCards($available_cards)

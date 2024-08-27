@@ -135,7 +135,7 @@
   width: 100px;
   height: 100px;
   background-image: url("img/trains.png");
-  z-index: 1000;
+  z-index: 3;
   /* margin: 2px; */
 }
 .dice {

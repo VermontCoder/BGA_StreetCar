@@ -16,7 +16,7 @@ class scRoute
     public $endNodeID;
     public $stopGoals;
     public $isComplete;
-    private $routeID;
+    public $routeID;
     private static $curRouteID =0;
 
     function __construct($startNodeID,$endNodeID) 
@@ -30,7 +30,7 @@ class scRoute
         scRoute::$curRouteID++;
     }
 
-    public static function getShortestRoute($routes)
+    public static function getShortestRoutes($routes)
     {
         if ($routes== null || count($routes)==0) return null;
         $minLength = 10000;
@@ -42,10 +42,18 @@ class scRoute
             if (!$route->isEmpty() && $routeLen < $minLength)
             {
                 $minLength = $routeLen;
-                $returnRouteIdx = $idx;
             }
         }
-        return $routes[$returnRouteIdx];
+
+        $retRoutes = [];
+        foreach($routes as $route)
+        {
+            if ($route->getLength() == $minLength)
+            {
+                $retRoutes[] = $route;
+            }
+        }
+        return $retRoutes;
     }
 
     public function getRouteNodes()
@@ -98,7 +106,9 @@ class scRoute
             $mergedRoute = $this;
             return $mergedRoute;
         }
+
         $mergedRoute = new scRoute($this->startNodeID,$otherRoute->endNodeID);
+        $mergedRoute->routeID = $this->routeID; //route will retain id of the source route.
         $mergedRoute->stopGoals = array_merge($this->stopGoals,$otherRoute->stopGoals);
         $mergedRoute->routeNodes = array_merge($this->routeNodes,$otherRoute->routeNodes);
         $mergedRoute->isComplete = ($this->isComplete || $otherRoute->isComplete);

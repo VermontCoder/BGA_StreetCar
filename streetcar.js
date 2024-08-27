@@ -51,6 +51,11 @@ function (dojo, declare) {
         {
             console.log( "Starting game setup" , gamedatas);
 
+            //routing - must come before placing trains.
+            this.routes= gamedatas.routes;
+            this.curRoute = (this.routes != null) ? this.routes[0] : null;
+            this.isShowRoute = false;
+
             // Setting up player boards
             for( var player_id in gamedatas.players )
             {
@@ -59,7 +64,11 @@ function (dojo, declare) {
                 // TODO: Setting up players boards if needed
                 var player_board_div = $('player_board_'+player_id);
 
-                dojo.place( this.format_block('jstpl_player_board', player ), player_board_div );                 
+                dojo.place( this.format_block('jstpl_player_board', player ), player_board_div );
+
+                //place player trains. If they are not there, this will simply return without doing anything.
+                this.placeTrain(player.linenum,player_id,player.trainposition);
+
             }
             
             // TODO: Set up your game interface here, according to "gamedatas"
@@ -77,9 +86,7 @@ function (dojo, declare) {
                 $('stops_'+l.col+"_"+l.row).innerHTML=html;
             });
 
-            //routing
-            this.curRoute= gamedatas.route;
-            this.isShowRoute = false;
+            
 
             this.onPlaceCardHandlers = [];
             
@@ -126,28 +133,10 @@ function (dojo, declare) {
                     this.updateStops();
                     
                     var itsme = args.args.players.filter(p =>p.id==this.player_id)[0]
-                    if (itsme.trainposition != null)
-                    {
-                        this.placeTrain(itsme.linenum,this.player_id,itsme.trainposition);
-                    }
-                    // this.setStartLocation = false
-                    // dojo.query( '.route' ).removeClass( 'noclick' );                        
-
-                    // if(itsme.trainposition=='[]'){
-                    //     this.setGamestateDescription('choosestart');
-                    //     this.setStartLocation = true
-                    //     start = this.gamedatas.routeEndPoints[parseInt(itsme["linenum"])-1]["start"]
-                    //     start.forEach(point=>{
-                    //         dojo.addClass( 'route_'+point[0]+'_'+point[1]+'', 'option-border' );
-                    //     })
-                    //     end = this.gamedatas.routeEndPoints[parseInt(itsme["linenum"])-1]["end"]
-                    //     end.forEach(point=>{
-                    //         dojo.addClass( 'route_'+point[0]+'_'+point[1]+'', 'option-border' );
-                    //     })            
-                    // } else {
-                    //     this.showDice()
-
-                    // }                
+                    // if (itsme.trainposition != null)
+                    // {
+                    //     this.placeTrain(itsme.linenum,this.player_id,itsme.trainposition);
+                    // }        
                     break;
 
             /* Example:
@@ -210,7 +199,7 @@ function (dojo, declare) {
                 switch( stateName )
                 {
                     case 'placeTrack':
-                        if (!(this.curRoute == null || this.curRoute[0] == null) && this.curRoute[0].isComplete)
+                        if (this.curRoute != null && this.curRoute.isComplete)
                         {
                             this.addActionButton( 'begin_trip_button', _('Begin Inaugural Trip'), 'onBeginTrip');
                         }
@@ -383,26 +372,21 @@ function (dojo, declare) {
         onPlaceTrain(evt)
         {
             selectedTrainLoc = this.extractXY(evt.currentTarget.id);
-            routeStartNodeLoc = this.extractXYD(this.curRoute[0].startNodeID);
+            trainStartNodeID = '';
 
-            //default to route start
-            trainStartNodeID = this.curRoute[0].startNodeID;
-
-            if ((selectedTrainLoc.x != routeStartNodeLoc.x) || (selectedTrainLoc.y != routeStartNodeLoc.y))
+            //find right route
+            for(i=0;i<this.routes.length;i++)
             {
-                //user selected *Other* end of route to place the train.
-                //So we use the endNode coords, but change the direction to the *other* direction
-                //on the endNode.
-                routeStartNodeLoc = this.extractXYD(this.curRoute[0].endNodeID);
-                directions = this.borderTracksDirections_free(routeStartNodeLoc.x, routeStartNodeLoc.y)
-
-                //directions should have two cardinal directions as a two character string.
-                //get the direction that *isn't* the one currently in the node.
-                newDirectionIdx = directions.indexOf(routeStartNodeLoc.d)==0 ? 1 : 0;
-                trainStartNodeID = routeStartNodeLoc.x+'_'+routeStartNodeLoc.y+'_'+directions.charAt(newDirectionIdx);
-
+                routeStartNodeLoc = this.extractXYD(this.routes[i].startNodeID);
+                if (routeStartNodeLoc.x == selectedTrainLoc.x && routeStartNodeLoc.y == selectedTrainLoc.y )
+                {
+                    trainStartNodeID = this.routes[i].startNodeID;
+                    this.curRoute = this.routes[i];
+                    break;
+                }
             }
 
+            alert(JSON.stringify(trainStartNodeID));
             //break down selection UI
             dojo.disconnect(this.placeTrainHandlers[0]);
             dojo.disconnect(this.placeTrainHandlers[1]);
@@ -411,7 +395,7 @@ function (dojo, declare) {
             players = this.gamedatas.gamestate.args.players;
             linenum = parseInt(players.filter(p =>p.id==this.player_id)[0]['linenum']);
             this.ajaxcall( "/streetcar/streetcar/placeTrain.html",{linenum: linenum, trainStartNodeID: trainStartNodeID}, this, function( result ) {} );
-            //alert(JSON.stringify(trainStartNode));
+            
         },
         onBeginTrip()
         {
@@ -426,8 +410,8 @@ function (dojo, declare) {
             //remove click ability on all the board squares
             this.onPlaceCardHandlers.forEach( dojo.disconnect);
 
-            xyStart = this.extractXYD(this.curRoute[0].startNodeID);
-            xyEnd = this.extractXYD(this.curRoute[0].endNodeID);
+            xyStart = this.extractXYD(this.curRoute.startNodeID);
+            xyEnd = this.extractXYD(this.curRoute.endNodeID);
             
             xyStartSquareID = 'route_'+xyStart.x + '_'+xyStart.y;
             xyEndSquareID = 'route_'+xyEnd.x + '_'+xyEnd.y;
@@ -758,7 +742,7 @@ function (dojo, declare) {
                     });
 
                     dojo.style('checktrack_'+player.id,'display','block');
-                    if (!(this.curRoute==null) && this.curRoute[0].isComplete)
+                    if (!(this.curRoute==null) && this.curRoute.isComplete)
                     {
                         dojo.style('completedMsg_'+player.id,'display','inline-block');
                         dojo.addClass('start_'+player.id,'linenum_completed');
@@ -898,7 +882,7 @@ function (dojo, declare) {
             //delete previous route
             dojo.query('.route_line').orphan();
 
-            console.debug(JSON.stringify(this.curRoute));
+            console.log(JSON.stringify(this.curRoute));
 
             //if we are not showing the route, we are done.
             if (!this.isShowRoute) return;
@@ -906,24 +890,23 @@ function (dojo, declare) {
             //no route to show.
             if (this.curRoute == null) return;
 
-            for(i=0;i<this.curRoute.length;i++)
-            {
-                let route = this.curRoute[i].routeNodes; //will be null if there is no route.
-                
-                //console.debug(JSON.stringify(route));
+            
+            let route = this.curRoute.routeNodes; //will be null if there is no route.
+            
+            //console.debug(JSON.stringify(route));
 
-                for (var parentID in route) 
+            for (var parentID in route) 
+            {
+                if (Object.prototype.hasOwnProperty.call(route, parentID))
                 {
-                    if (Object.prototype.hasOwnProperty.call(route, parentID))
-                    {
-                        childID = route[parentID];
-                        
-                        parentPixelXY = this.getPixelLocationBasedOnNodeID(parentID);
-                        childPixelXY = this.getPixelLocationBasedOnNodeID(childID);
-                        $('wrapper').appendChild(this.scLines.createLine(parentPixelXY['x'], parentPixelXY['y']+i*2, childPixelXY['x'], childPixelXY['y']+i*2,'red'));
-                    }
+                    childID = route[parentID];
+                    
+                    parentPixelXY = this.getPixelLocationBasedOnNodeID(parentID);
+                    childPixelXY = this.getPixelLocationBasedOnNodeID(childID);
+                    $('wrapper').appendChild(this.scLines.createLine(parentPixelXY['x'], parentPixelXY['y'], childPixelXY['x'], childPixelXY['y'],'red'));
                 }
             }
+            
 
            // let graph = this.gamedatas.gamestate.args.connectivityGraph;
             //console.debug(JSON.stringify(graph));
@@ -1019,10 +1002,35 @@ function (dojo, declare) {
             this.placeTrain(notif.args.linenum,notif.args.player_id,notif.args.trainStartNodeID);
 
         },
+        getTrainRotation(trainPositionNodeID)
+        {   
+            //This relies on the fact that the routeID of the curRoute is the first routeID of the merge constructed route. 
+            //So the train is always at the begining of the route, and its routeID will be whatever the route ID is of the current route,
+            //even though it may be composed of multiple routes.
+            routeNodeID = trainPositionNodeID + '_' + this.curRoute.routeID;
+            nextRouteNodeID = this.curRoute.routeNodes[routeNodeID];
+            console.log(JSON.stringify(this.curRoute.routeNodes));
+
+            nextRouteNodeDirection = this.extractXYD(nextRouteNodeID);
+            
+            //this is 180 degrees from the nextRouteNodeDirection, as the train will be entering from that side - it is facing opposite.
+            switch(nextRouteNodeDirection['d'])
+            {
+                case "N": return 180;
+                case "E": return 270;
+                case "S": return 0;
+                case "W": return 90;
+            
+            }
+        },
         
         placeTrain : function(linenum,player_id,nodeID)
         {
+            //if nodeID is null, there is no train to place
+            if (nodeID==null) return;
+
             trainXYD = this.extractXYD(nodeID);
+            
             //if this is a border place those are denoted by route_, otherwise its a square_
             tileID = this.validCoordinates(trainXYD.y,trainXYD.x) ? 'square_'+trainXYD.x+"_"+trainXYD.y : 'route_'+trainXYD.x+"_"+trainXYD.y;
 
@@ -1032,14 +1040,15 @@ function (dojo, declare) {
             dojo.place( this.format_block( 'jstpl_train', {
                 id: "train_"+player_id,
                 offsetx:(-100)*(parseInt(linenum)-1),
-                rotate:0,
+                rotate:this.getTrainRotation(nodeID),
             } ) , tileID);
 
         },
         notif_updateRoute: function( notif )
         {
             console.log('notif_updateRoute',notif.args.player_id);
-            this.curRoute = notif.args.route;
+            this.routes = notif.args.routes;
+            this.curRoute = (this.routes != null) ? this.routes[0] : null;
             this.showRoute();
         },
 
