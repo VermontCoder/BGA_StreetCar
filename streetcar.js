@@ -19,7 +19,9 @@
     "dojo","dojo/_base/declare",
     "ebg/core/gamegui",
     "ebg/counter",
-    g_gamethemeurl + "modules/js/scLines.js"
+    g_gamethemeurl + "modules/js/scLines.js",
+    g_gamethemeurl + "modules/js/scUtility.js",
+    g_gamethemeurl + "modules/js/scEventHandlers.js"
 ],
 function (dojo, declare) {
     return declare("bgagame.streetcar", ebg.core.gamegui, {
@@ -29,8 +31,7 @@ function (dojo, declare) {
             // Here, you can init the global variables of your user interface
             // Example:
             // this.myGlobalValue = 0;
-            this.nesw = ["N","E","S","W"];
-            this.scLines =  new bgagame.scLines();
+            
 
         },
         
@@ -51,6 +52,11 @@ function (dojo, declare) {
         {
             console.log( "Starting game setup" , gamedatas);
 
+            this.nesw = ["N","E","S","W"];
+            this.scLines =  new bgagame.scLines();
+            this.scUtility = new bgagame.scUtility();
+            this.scEventHandlers = new bgagame.scEventHandlers(this);
+            
             //routing - must come before placing trains.
             this.routes= gamedatas.routes;
             this.curRoute = (this.routes != null) ? this.routes[0] : null;
@@ -480,7 +486,7 @@ function (dojo, declare) {
             dojo.destroy('begin_trip_button');
 
             let trackcard = this.gamedatas.tracks[this.selectedTrack][0];
-            let directions_free = this.getDirections_free(trackcard, this.rotation);
+            let directions_free = this.scUtility.getDirections_free(trackcard, this.rotation);
             //console.log("place it", trackcard, this.rotation, this.posx,this.posy,directions_free,this.gamedatas.gamestate.args.board);
 
             // remove from available cards.
@@ -581,7 +587,7 @@ function (dojo, declare) {
         //If placed on an existing track and it does not conform to the directions, function returns 'x'
         fitTrack(trackcard, rotation, x, y)
         {
-            directions_free = this.getDirections_free(trackcard, rotation);
+            directions_free = this.scUtility.getDirections_free(trackcard, rotation);
             badDirections = [];
            
             if(this.gamedatas.gamestate.args.board[x][y] !='[]') 
@@ -762,6 +768,7 @@ function (dojo, declare) {
                 }
             })
             dojo.query( '.playertrack' ).connect( 'onclick', this, 'onSelectTrack' );
+            //dojo.query( '.playertrack' ).connect( 'onclick', this, this.scEventHandlers.test() )
         }, 
         updateTracks() {
 
