@@ -19,9 +19,9 @@
 
 
 require_once(APP_GAMEMODULE_PATH . 'module/table/table.game.php');
-require_once('modules/scConnectivityGraph.php');
-require_once('modules/scRouteFinder.php');
-require_once('modules/scRoute.php');
+require_once('modules/php/scConnectivityGraph.php');
+require_once('modules/php/scRouteFinder.php');
+require_once('modules/php/scRoute.php');
 
 
 class Streetcar extends Table

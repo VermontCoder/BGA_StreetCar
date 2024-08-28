@@ -19,7 +19,7 @@
     "dojo","dojo/_base/declare",
     "ebg/core/gamegui",
     "ebg/counter",
-    g_gamethemeurl + "modules/scLines.js"
+    g_gamethemeurl + "modules/js/scLines.js"
 ],
 function (dojo, declare) {
     return declare("bgagame.streetcar", ebg.core.gamegui, {
