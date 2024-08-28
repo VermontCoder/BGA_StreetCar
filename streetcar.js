@@ -258,9 +258,9 @@ function (dojo, declare) {
                 let isStop = this.gamedatas.initialStops.filter(l => l.row==this.posy && l.col==this.posx).length>0
                 if(!isStop) 
                 {
-                    dojo.destroy(this.getPlacedTrackId(this.isFirstSelection));
+                    dojo.destroy(this.scUtility.getPlacedTrackId(this.isFirstSelection));
                     dojo.place( this.format_block( 'jstpl_track', {
-                        id: this.getPlacedTrackId(this.isFirstSelection),
+                        id: this.scUtility.getPlacedTrackId(this.isFirstSelection),
                         offsetx:-100* this.selectedTrack,
                         rotate:this.rotation
                     } ) , "square_"+this.posx+"_"+this.posy);
@@ -268,7 +268,7 @@ function (dojo, declare) {
                     badDirections = this.fitCardOnBoard();
                     this.showPlaceCardActionButton(badDirections);
                     
-                    this.rotationClickHandler = dojo.connect($(this.getPlacedTrackId(this.isFirstSelection)), 'onclick', this, 'onRotateCard' );
+                    this.rotationClickHandler = dojo.connect($(this.scUtility.getPlacedTrackId(this.isFirstSelection)), 'onclick', this, 'onRotateCard' );
                 }
                 else
                 {
@@ -288,7 +288,7 @@ function (dojo, declare) {
         {
             this.rotation = (this.rotation + 90) % 360;
             
-            this.rotateTo(this.getPlacedTrackId(this.isFirstSelection), this.rotation);
+            this.rotateTo(this.scUtility.getPlacedTrackId(this.isFirstSelection), this.rotation);
             badDirections = this.fitCardOnBoard();
             this.showPlaceCardActionButton(badDirections);
         },             
@@ -298,7 +298,7 @@ function (dojo, declare) {
             badDirections = this.fitTrack(this.gamedatas.tracks[this.selectedTrack][0],
                 this.rotation, parseInt(this.posx), parseInt(this.posy));
 
-            dojo.addClass(this.getPlacedTrackId(this.isFirstSelection),this.isFirstSelection ? 'track_placement' : 'track_placement2');
+            dojo.addClass(this.scUtility.getPlacedTrackId(this.isFirstSelection),this.isFirstSelection ? 'track_placement' : 'track_placement2');
             borderColorString = '';
             if (badDirections.includes('x'))
             {
@@ -324,7 +324,7 @@ function (dojo, declare) {
                 });
             }
             
-            dojo.style(this.getPlacedTrackId(this.isFirstSelection),"border-color",borderColorString.trimEnd());
+            dojo.style(this.scUtility.getPlacedTrackId(this.isFirstSelection),"border-color",borderColorString.trimEnd());
            
             return badDirections;
         },
@@ -377,13 +377,13 @@ function (dojo, declare) {
         },
         onPlaceTrain(evt)
         {
-            selectedTrainLoc = this.extractXY(evt.currentTarget.id);
+            selectedTrainLoc = this.scUtility.extractXY(evt.currentTarget.id);
             trainStartNodeID = '';
 
             //find right route - may have clicked on the end of the route, so find the corresponding route with this as the start of route.
             for(i=0;i<this.routes.length;i++)
             {
-                routeStartNodeLoc = this.extractXYD(this.routes[i].startNodeID);
+                routeStartNodeLoc = this.scUtility.extractXYD(this.routes[i].startNodeID);
                 if (routeStartNodeLoc.x == selectedTrainLoc.x && routeStartNodeLoc.y == selectedTrainLoc.y )
                 {
                     trainStartNodeID = this.routes[i].startNodeID;
@@ -392,7 +392,7 @@ function (dojo, declare) {
                 }
             }
 
-            alert(JSON.stringify(trainStartNodeID));
+            //alert(JSON.stringify(trainStartNodeID));
             //break down selection UI
             dojo.disconnect(this.placeTrainHandlers[0]);
             dojo.disconnect(this.placeTrainHandlers[1]);
@@ -415,8 +415,8 @@ function (dojo, declare) {
             //remove click ability on all the board squares
             this.onPlaceCardHandlers.forEach( dojo.disconnect);
 
-            xyStart = this.extractXYD(this.curRoute.startNodeID);
-            xyEnd = this.extractXYD(this.curRoute.endNodeID);
+            xyStart = this.scUtility.extractXYD(this.curRoute.startNodeID);
+            xyEnd = this.scUtility.extractXYD(this.curRoute.endNodeID);
             
             xyStartSquareID = 'route_'+xyStart.x + '_'+xyStart.y;
             xyEndSquareID = 'route_'+xyEnd.x + '_'+xyEnd.y;
@@ -471,8 +471,8 @@ function (dojo, declare) {
             } ) , 'square_'+paramList.x2+"_"+paramList.y2);
 
             //remove temp track
-            dojo.destroy(this.getPlacedTrackId(true));
-            dojo.destroy(this.getPlacedTrackId(false));
+            dojo.destroy(this.scUtility.getPlacedTrackId(true));
+            dojo.destroy(this.scUtility.getPlacedTrackId(false));
 
             //clear firstPlacementData
             this.firstPlacementData = {};
@@ -643,7 +643,7 @@ function (dojo, declare) {
                         //direction is good, empty square
                         return; //acts like a "continue"
                 } else {
-                    trackcheck = this.borderTracksDirections_free(xcheck, ycheck);
+                    trackcheck = this.scUtility.borderTracksDirections_free(xcheck, ycheck);
                 }
 
                 //180 degree rotation - if we are looking North from the selected, this will look south from the north track.
@@ -658,75 +658,6 @@ function (dojo, declare) {
             });
 
             return badDirections;
-        },
-        borderTracksDirections_free(xcheck, ycheck)
-        {
-            if(ycheck==0){
-                if([2,6,10].indexOf(xcheck)!=-1)
-                {
-                    return 'SE';
-                }
-                else if([3,7,11].indexOf(xcheck)!=-1)
-                {
-                    return 'Sw';
-                } 
-                else 
-                {
-                    return 'EW';
-                }
-            }
-
-            if(ycheck==13){
-                if([2,6,10].indexOf(xcheck)!=-1)
-                {
-                    return 'NE';
-                }
-                else if([3,7,11].indexOf(xcheck)!=-1)
-                {
-                    return 'NW';
-                } 
-                else 
-                {
-                    return 'EW';
-                }
-            }
-
-            if(xcheck==0){
-                if([2,6,10].indexOf(ycheck)!=-1)
-                {
-                    return 'SE';
-                }
-                else if ([3,7,11].indexOf(ycheck)!=-1)
-                {
-                    return 'NE';
-                } 
-                else 
-                {
-                    return 'NS'
-                }
-            }
-            if(xcheck==13){
-                if([2,6,10].indexOf(ycheck)!=-1)
-                {
-                    return 'SW';
-                }
-                else if ([3,7,11].indexOf(ycheck)!=-1)
-                {
-                    return 'NW';
-                } 
-                else 
-                {
-                    return 'NS'
-                }
-            }
-            return '[]';
-
-        },
-        getPlacedTrackId(isFirstSelection)
-        {
-            //isFirstSelection is a parameter because sometimes even when we are in 2nd selection, we want to know
-            //the id of the first selection.
-            return 'placed_track_' + (isFirstSelection ? "0" : "1");
         },
        
         updatePlayers: function(players, defaultscoring){
@@ -797,16 +728,16 @@ function (dojo, declare) {
                     if(stops[x][y]!='' && stops[x][y]!=null){
                         dojo.destroy('stoplocation_'+stops[x][y])
                         var html=""
-                        if(this.validCoordinates(x,y+1) && this.gamedatas.initialStops.filter(l => l.row==y+1 && l.col==x).length>0){
+                        if(this.scUtility.validCoordinates(x,y+1) && this.gamedatas.initialStops.filter(l => l.row==y+1 && l.col==x).length>0){
                             html = "<div class='goallocation stopN' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>"
                         }
-                        if(this.validCoordinates(x,y-1) && this.gamedatas.initialStops.filter(l => l.row==y-1 && l.col==x).length>0){
+                        if(this.scUtility.validCoordinates(x,y-1) && this.gamedatas.initialStops.filter(l => l.row==y-1 && l.col==x).length>0){
                             html = "<div class='goallocation stopS' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>"
                         }
-                        if(this.validCoordinates(x+1,y) && this.gamedatas.initialStops.filter(l => l.row==y && l.col==x+1).length>0){
+                        if(this.scUtility.validCoordinates(x+1,y) && this.gamedatas.initialStops.filter(l => l.row==y && l.col==x+1).length>0){
                             html = "<div class='goallocation stopE' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>"
                         }
-                        if(this.validCoordinates(x-1,y) && this.gamedatas.initialStops.filter(l => l.row==y && l.col==x-1).length>0){
+                        if(this.scUtility.validCoordinates(x-1,y) && this.gamedatas.initialStops.filter(l => l.row==y && l.col==x-1).length>0){
                             html = "<div class='goallocation stopW' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>"
                         }
                         $('stops_'+x+"_"+y).innerHTML=html
@@ -815,11 +746,7 @@ function (dojo, declare) {
                 }
             }
         },
-        validCoordinates(row, col)
-        {
-            // console.log(">>vc",row,col)
-            return (row >= 1 && row < 13 && col >= 1 && col < 13);
-        }, 
+        
         onToggleShowRoute(evt)
         {
             //Don't toggle if no route
@@ -835,29 +762,13 @@ function (dojo, declare) {
         },
 
         //Use this for route nodes.
-        extractXYD(nodeID)
-        {
-            splitNodeID = nodeID.split('_');
-            return {'x': parseInt(splitNodeID[0]),
-                'y': parseInt(splitNodeID[1]),
-                'd': splitNodeID[2],
-            };
-        },
-        //Use this for squares or stops
-        extractXY(nodeID)
-        {
-            splitNodeID = nodeID.split('_');
-            //skip over 'square_' or 'stop_'
-            return {'x': parseInt(splitNodeID[1]),
-                'y': parseInt(splitNodeID[2]),
-            };
-        },
+       
         getPixelLocationBasedOnNodeID(nodeID)
         {
             xOrigin = 42+50; //+50 is center of tiles
             yOrigin = 45+50;
 
-            parsedNodeID = this.extractXYD(nodeID);
+            parsedNodeID = this.scUtility.extractXYD(nodeID);
 
             xOffset =0;
             yOffset =0;
@@ -927,7 +838,7 @@ function (dojo, declare) {
             dojo.query( '.playertrack' ).removeClass('trackselected')
             
             // destroy previous selected track
-            dojo.destroy(this.getPlacedTrackId(this.isFirstSelection));
+            dojo.destroy(this.scUtility.getPlacedTrackId(this.isFirstSelection));
             if(coords[2]==this.player_id){
                 this.selectedTrack = parseInt(coords[1]);
                 dojo.addClass( evt.currentTarget.id, 'trackselected' );
@@ -1008,6 +919,7 @@ function (dojo, declare) {
             this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.trainStartNodeID,notif.args.traindirection);
 
         },
+
         // getTrainRotation(trainPositionNodeID)
         // {   
         //     //This relies on the fact that the routeID of the curRoute is the first routeID of the merge constructed route. 
@@ -1017,7 +929,7 @@ function (dojo, declare) {
         //     nextRouteNodeID = this.curRoute.routeNodes[routeNodeID];
         //     console.log(JSON.stringify(this.curRoute.routeNodes));
 
-        //     nextRouteNodeDirection = this.extractXYD(nextRouteNodeID);
+        //     nextRouteNodeDirection = this.scUtility.extractXYD(nextRouteNodeID);
             
         //     //this is 180 degrees from the nextRouteNodeDirection, as the train will be entering from that side - it is facing opposite.
         //     switch(nextRouteNodeDirection['d'])
@@ -1044,10 +956,10 @@ function (dojo, declare) {
             //if nodeID is null, there is no train to show
             if (nodeID==null) return;
 
-            trainXYD = this.extractXYD(nodeID);
+            trainXYD = this.scUtility.extractXYD(nodeID);
             
             //if this is a border place those are denoted by route_, otherwise its a square_
-            tileID = this.validCoordinates(trainXYD.y,trainXYD.x) ? 'square_'+trainXYD.x+"_"+trainXYD.y : 'route_'+trainXYD.x+"_"+trainXYD.y;
+            tileID = this.scUtility.validCoordinates(trainXYD.y,trainXYD.x) ? 'square_'+trainXYD.x+"_"+trainXYD.y : 'route_'+trainXYD.x+"_"+trainXYD.y;
             rotation = this.getRotationFromDirection(traindirection);
             console.log ('Params','linenum: '+linenum+'\nplayer_id: ' + player_id+'\ntileID:'+tileID+'\ndirection:'+traindirection+'\nrotation:'+rotation);
             
@@ -1066,457 +978,5 @@ function (dojo, declare) {
             this.curRoute = (this.routes != null) ? this.routes[0] : null;
             this.showRoute();
         },
-
-
-        // onClickRoute: function( evt )
-        // {
-        //     // Stop this event propagation
-        //     dojo.stopEvent( evt )
-        //     console.log( "onClickRoute")
-        //     var coords = evt.currentTarget.id.split('_');
-        //     var x = parseInt(coords[1])
-        //     var y = parseInt(coords[2]);
-        //     let tracks = this.gamedatas.gamestate.args.tracks;
-        //     let rotations = this.gamedatas.gamestate.args.rotations;
-        //     let board = this.gamedatas.gamestate.args.board;
-        //     let directions = this.gamedatas.tracks[tracks[x][y]][[0,90,180,270].indexOf(parseInt(rotations[x][y]))]
-        //     //find direction
-        //     let traveled = 'N'
-        //     if(this.routestartX == x){
-        //         if(this.routestartY>y){
-        //             traveled ='S'
-        //         } else {
-        //             traveled = 'N'
-        //         }
-        //     } else {
-        //         if(this.routestartX>x){
-        //             traveled ='E'
-        //         } else {
-        //             traveled = 'W'
-        //         }                
-        //     }
-        //     var optionsactive = 0
-           
-        //     console.log("place train",x,y,this.currentState)
-        //     //movetrain?
-        //     if(this.currentState == 'moveTrain' && this.checkAction( 'moveTrain') && dojo.hasClass(evt.currentTarget.id, "option-border")){
-        //         if(this.setStartLocation){
-        //             //just set startlocation 
-        //             this.ajaxcall( "/streetcar/streetcar/setTrainLocation.html",{ x:x, y:y}, this, function( result ) {} );
-        //             this.showDice()
-
-        //         } else {
-        //             console.log("HIERO!!!", traveled)
-        //             this.ajaxcall( "/streetcar/streetcar/setTrainLocation.html",{ x:x, y:y}, this, function( result ) {
-        //                 this.ajaxcall( "/streetcar/streetcar/setTrainDirection.html",{ d:traveled}, this, function( result ) {} );
-        //             } );
-        //         }
-        //     } else {
-        //         if(this.routestartX==-1 && this.routestartY==-1){
-        //             if(dojo.hasClass(evt.currentTarget.id, "option-border")){
-        //                 console.log("---TRAVELDIR", traveled)
-        //                 // this.route[parseInt(x)][parseInt(y)] = 1
-        //                 console.log(x,y,this.routestartX,this.routestartY)
-        //                 dojo.query( '.route' ).removeClass( 'option-border' );
-        //                 if(directions.N!='' ){
-        //                     let newx = parseInt(parseInt(x))
-        //                     let newy = parseInt(parseInt(y)-1)
-        //                     console.log(">>ADD N>>",'route_'+newx+'_'+newy,directions.N)
-        //                     let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
-        //                     if(neighbour.S!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
-
-        //                         dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
-        //                         optionsactive++
-        //                     }
-
-        //                 }
-        //                 if(directions.E!=''){
-        //                     let newx = parseInt(parseInt(x)+1)
-        //                     let newy = parseInt(parseInt(y))
-        //                     console.log(">>ADD E>>",'route_'+newx+'_'+newy,directions.E);
-        //                     let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
-        //                     if(neighbour.W!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
-        //                         dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
-        //                         optionsactive++
-        //                     }
-        //                 }
-        //                 if(directions.S!=''){
-        //                     let newx = parseInt(parseInt(x))
-        //                     let newy = parseInt(parseInt(y)+1)
-        //                     console.log(">>ADD S>>",'route_'+newx+'_'+newy,directions.S)
-        //                     let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
-        //                     if(neighbour.N!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
-
-        //                         dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
-        //                         optionsactive++
-        //                     }
-        //                 }                
-        //                 if(directions.W!=''){
-        //                     let newx = parseInt(parseInt(x)-1)
-        //                     let newy = parseInt(parseInt(y))
-        //                     console.log(">>ADD W>>",'route_'+newx+'_'+newy,directions.W)
-        //                     let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
-        //                     if(neighbour.E!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
-        //                         dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
-        //                         optionsactive++
-        //                     }
-
-        //                 }
-        //                 this.routestartX = x 
-        //                 this.routestartY = y
-        //                 this.routestarted = [x,y]
-        //             }
-        //         } else {
-        //         if(dojo.hasClass(evt.currentTarget.id, "option-border")){
-        //             console.log("TRAVELDIR", traveled, directions[traveled])
-        //             // this.route[parseInt(x)][parseInt(y)] = 1
-        //             console.log(x,y,this.routestartX,this.routestartY)
-        //             dojo.query( '.route' ).removeClass( 'option-border' );
-        //             if(directions[traveled].indexOf('N')!=-1){
-        //                 let newx = parseInt(parseInt(x))
-        //                 let newy = parseInt(parseInt(y)-1)
-        //                 console.log(">>ADD N>>",'route_'+newx+'_'+newy,directions.N)
-        //                 let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
-        //                 if(neighbour.S!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
-
-        //                     dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
-        //                     optionsactive++
-        //                 }
-
-        //             }
-        //             if(directions[traveled].indexOf('E')!=-1){
-        //                 let newx = parseInt(parseInt(x)+1)
-        //                 let newy = parseInt(parseInt(y))
-        //                 console.log(">>ADD E>>",'route_'+newx+'_'+newy,directions.E);
-        //                 let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
-        //                 if(neighbour.W!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
-        //                     dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
-        //                     optionsactive++
-        //                 }
-        //             }
-        //             if(directions[traveled].indexOf('S')!=-1){
-        //                 let newx = parseInt(parseInt(x))
-        //                 let newy = parseInt(parseInt(y)+1)
-        //                 console.log(">>ADD S>>",'route_'+newx+'_'+newy,directions.S)
-        //                 let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
-        //                 if(neighbour.N!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
-
-        //                     dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
-        //                     optionsactive++
-        //                 }
-        //             }                
-        //             if(directions[traveled].indexOf('W')!=-1){
-        //                 let newx = parseInt(parseInt(x)-1)
-        //                 let newy = parseInt(parseInt(y))
-        //                 console.log(">>ADD W>>",'route_'+newx+'_'+newy,directions.W)
-        //                 let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
-        //                 if(neighbour.E!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
-        //                     dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
-        //                     optionsactive++
-        //                 }
-
-        //             }
-        //             this.routestartX = x 
-        //             this.routestartY = y
-        //             // check if we reach goals or end
-        //             isLocation = this.gamedatas.gamestate.args.stops[x][y]
-        //             console.log("goalreached", isLocation)
-        //             var itsme = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.player_id)[0]
-        //             let goals = this.gamedatas.goals[parseInt(itsme.goals)-1][parseInt(itsme.linenum)-1]
-
-        //             if(isLocation!='' && isLocation!=null){
-        //                 goals.forEach(g =>{
-        //                     console.log("COMPARE goals", g, isLocation)
-        //                         if(g===isLocation){
-        //                             dojo.addClass( 'goallocation_'+isLocation, 'goalreached')
-        //                             this.goalsReached ++
-        //                             console.log("plusgoal")
-        //                         }
-        //                     })
-
-        //             }
-        //             // endpoint
-        //             let endpoint = false
-        //             start = this.gamedatas.routeEndPoints[parseInt(itsme["linenum"])-1]["start"]
-        //             start.forEach(point=>{
-        //                 if(this.routestarted[0] != point[0] && this.routestarted[1]!= point[1] && point[0]==x && point[1]==y){
-        //                     endpoint = true
-        //                 }
-        //             })
-        //             end = this.gamedatas.routeEndPoints[parseInt(itsme["linenum"])-1]["end"]
-        //             end.forEach(point=>{
-        //                 if(this.routestarted[0] != point[0] && this.routestarted[1]!= point[1] && point[0]==x && point[1]==y){
-        //                     endpoint = true
-        //                 }
-        //             })
-        //             console.log("cjeckEND ", endpoint, this.goalsReached, goals.length)
-        //             if(endpoint && this.goalsReached == goals.length){
-        //                 console.log("route complete, travel it")
-        //                 this.showMessage( _("You completed your route. Moving to travel state."), 'info');	
-        //                 this.ajaxcall( "/streetcar/streetcar/trackDone.html",{}, this, function( result ) {})
-
-        //             } else {
-        //                 if(optionsactive==0){
-        //                     this.showMessage( _("No more options to travel."), 'info');	
-        //                     this.onGoalCheck();
-        //                     dojo.query( '.goallocation' ).removeClass('goalreached')
-        //                     dojo.query( '.route' ).removeClass( 'option-border' );
-        //                 }     
-        //             }              
-
-        //         }     
-
-        //         this.previoustraveled = traveled
-        //     }
-    
-        //     }
-
-        //     //
-        // },
-       
-        // enableNeighbours(x,y){
-        //     let tracks = this.gamedatas.gamestate.args.tracks;
-        //     let rotations = this.gamedatas.gamestate.args.rotations;
-        //     let board = this.gamedatas.gamestate.args.board;
-        //     let directions = this.gamedatas.tracks[tracks[x][y]][[0,90,180,270].indexOf(parseInt(rotations[x][y]))]
-        //     var optionsactive = 0
-        //     if(directions.N!='' ){
-        //         let newx = parseInt(parseInt(x))
-        //         let newy = parseInt(parseInt(y)-1)
-        //         console.log(">>ADD N>>",'route_'+newx+'_'+newy,directions.N)
-        //         let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
-        //         if(neighbour.S!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
-
-        //             dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
-        //             optionsactive++
-        //         }
-
-        //     }
-        //     if(directions.E!=''){
-        //         let newx = parseInt(parseInt(x)+1)
-        //         let newy = parseInt(parseInt(y))
-        //         console.log(">>ADD E>>",'route_'+newx+'_'+newy,directions.E);
-        //         let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
-        //         if(neighbour.W!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
-        //             dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
-        //             optionsactive++
-        //         }
-        //     }
-        //     if(directions.S!=''){
-        //         let newx = parseInt(parseInt(x))
-        //         let newy = parseInt(parseInt(y)+1)
-        //         console.log(">>ADD S>>",'route_'+newx+'_'+newy,directions.S)
-        //         let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
-        //         if(neighbour.N!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
-
-        //             dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
-        //             optionsactive++
-        //         }
-        //     }                
-        //     if(directions.W!=''){
-        //         let newx = parseInt(parseInt(x)-1)
-        //         let newy = parseInt(parseInt(y))
-        //         console.log(">>ADD W>>",'route_'+newx+'_'+newy,directions.W)
-        //         let neighbour = this.gamedatas.tracks[tracks[newx][newy]][[0,90,180,270].indexOf(parseInt(rotations[newx][newy]))]
-        //         if(neighbour.E!='' && board[newx][newy]!='[]' && (this.routestartX != newx || this.routestartY!=newy)){
-        //             dojo.addClass( 'route_'+newx+'_'+newy, 'option-border' );
-        //             optionsactive++
-        //         }
-
-        //     }            
-        // },
-        // showDirection(){
-        //     let board = this.gamedatas.gamestate.args.board;
-        //     let tracks = this.gamedatas.gamestate.args.tracks;
-        //     let rotations = this.gamedatas.gamestate.args.rotations;
-        //     for(var x = 1; x<=12; x++){
-        //         for(var y = 1; y<=12; y++){
-        //             if(board[x][y]!='[]'){
-        //                 let track = tracks[x][y];
-        //                 let trackcard =  this.gamedatas.tracks[track][["0","90","180","270"].indexOf(rotations[x][y])]                
-        //                  if(trackcard.N!=''){
-        //                     dojo.place( this.format_block( 'jstpl_direction', {
-        //                         d: "N",
-        //                         px:x,
-        //                         py:y,
-        //                     } ) , 'route_'+x+"_"+y);  
-        //                     dojo.addClass( 'direction_'+x+'_'+y+'_N', 'stopN' );
-        //                 }
-        //                 if(trackcard.E!=''){
-        //                     dojo.place( this.format_block( 'jstpl_direction', {
-        //                         d: "E",
-        //                         px:x,
-        //                         py:y,
-        //                     } ) , 'route_'+x+"_"+y);  
-        //                     dojo.addClass( 'direction_'+x+'_'+y+'_E', 'stopE' );
-        //                 }                        
-        //                 if(trackcard.S!=''){
-        //                     dojo.place( this.format_block( 'jstpl_direction', {
-        //                         d: "S",
-        //                         px:x,
-        //                         py:y,
-        //                     } ) , 'route_'+x+"_"+y);  
-        //                     dojo.addClass( 'direction_'+x+'_'+y+'_S', 'stopS' );
-        //                 } 
-        //                 if(trackcard.W!=''){
-        //                     dojo.place( this.format_block( 'jstpl_direction', {
-        //                         d: "W",
-        //                         px:x,
-        //                         py:y,
-        //                     } ) , 'route_'+x+"_"+y);  
-        //                     dojo.addClass( 'direction_'+x+'_'+y+'_W', 'stopW' );
-        //                 }                         
-        //             }
-
-        //         }
-        //     }
-        // },
-        // async checkTrack(){
-        //     if( this.isCurrentPlayerActive() ) {
-        //         var itsme = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.player_id)[0]
-        //         start = this.gamedatas.routeEndPoints[parseInt(itsme["linenum"])-1]["start"]
-        //         this.endlocations = this.gamedatas.routeEndPoints[parseInt(itsme["linenum"])-1]["end"]
-        //         console.log(this.endlocations)
-        //         if(parseInt(itsme["linenum"])<=3){
-        //             this.endpointDestination = "N"
-        //         } else {
-        //             this.endpointDestination = "E"
-        //         }
-        //         this.locationsToReach = this.gamedatas.goals[parseInt(itsme.goals)-1][parseInt(itsme.linenum)-1]
-        //         this.fillStack = Array()
-        //         this.genCheckMatrix()
-        //         //await this.canReachEnd(start[0][0],start[0][1])
-        //         // console.log(">>>>>>>>>>>>>>", this.gamedatas.tracks)
-        //     }
-        // },
-        // genCheckMatrix(){
-        //     this.checkMatrix = new Array();
-        //     for(var x =1;x<13;x++){
-        //         this.genCheckMatrix[x]= new Array()
-        //         for(var y =1; y<13;y++){
-        //             this.genCheckMatrix[x][y] = 0;
-        //         }
-        //     }
-        // },
-       
-        
-        
-        // onGoalCheck(){
-        //     console.log("onGoalCheck",this.traceTrack)
-        //     if(!this.traceTrack){
-        //         var itsme = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.player_id)[0]
-        //         start = this.gamedatas.routeEndPoints[parseInt(itsme["linenum"])-1]["start"]
-        //         start.forEach(point=>{
-        //             dojo.addClass( 'route_'+point[0]+'_'+point[1]+'', 'option-border' );
-        //         })
-        //         end = this.gamedatas.routeEndPoints[parseInt(itsme["linenum"])-1]["end"]
-        //         end.forEach(point=>{
-        //             dojo.addClass( 'route_'+point[0]+'_'+point[1]+'', 'option-border' );
-        //         })            
-        //         dojo.query( '.route' ).removeClass( 'noclick' );
-        //         this.traceTrack = true
-        //         this.goalsReached = 0
-        //     } else {
-        //         dojo.query( '.route' ).addClass( 'noclick' );
-        //         this.traceTrack = false
-        //     }
-
-        //     this.route = new Array()
-        //     for (var i=0;i<14;i++){
-        //         this.route[i]= new Array()
-        //         for(var j=0;j<14;j++){
-        //             this.route[i][j] = 0;
-        //         }
-        //     }
-        //     this.routestartX = -1;
-        //     this.routestartY = -1;
-
-        // },
-        ///////////////////////////////////////////////////
-        //// Player's action
-        // onShowLocation(evt){
-        //     var coords =evt.currentTarget.id.split('_');
-        //     let location = this.gamedatas.initialStops.filter(l => l.code== coords[1])[0]
-        //     dojo.style( 'stops_'+location.col+"_"+location.row, 'border', 'solid 2px white' );
-
-        // },
-        // onHideLocation(evt){
-        //     var coords =evt.currentTarget.id.split('_');
-        //     let location = this.gamedatas.initialStops.filter(l => l.code== coords[1])[0]
-        //     dojo.style( 'stops_'+location.col+"_"+location.row, 'border', '' );
-        // },
-        /*
-        
-            Here, you are defining methods to handle player's action (ex: results of mouse click on 
-            game objects).
-            
-            Most of the time, these methods:
-            _ check the action is possible at this game state.
-            _ make a call to the game server
-        
-        */
-        
-        /* Example:
-        
-        onMyMethodToCall1: function( evt )
-        {
-            console.log( 'onMyMethodToCall1' );
-            
-            // Preventing default browser reaction
-            dojo.stopEvent( evt );
-
-            // Check that this action is possible (see "possibleactions" in states.inc.php)
-            if( ! this.checkAction( 'myAction' ) )
-            {   return; }
-
-            this.ajaxcall( "/streetcar/streetcar/myAction.html", { 
-                                                                    lock: true, 
-                                                                    myArgument1: arg1, 
-                                                                    myArgument2: arg2,
-                                                                    ...
-                                                                 }, 
-                         this, function( result ) {
-                            
-                            // What to do after the server call if it succeeded
-                            // (most of the time: nothing)
-                            
-                         }, function( is_error) {
-
-                            // What to do after the server call in anyway (success or failure)
-                            // (most of the time: nothing)
-
-                         } );        
-        },        
-        
-        */
-
-        
-        ///////////////////////////////////////////////////
-        //// Reaction to cometD notifications
-
-        /*
-            setupNotifications:
-            
-            In this method, you associate each of your game notifications with your local method to handle it.
-            
-            Note: game notification names correspond to "notifyAllPlayers" and "notifyPlayer" calls in
-                  your streetcar.game.php file.
-        
-        */
-        
-        /*
-        Example:
-        
-        notif_cardPlayed: function( notif )
-        {
-            console.log( 'notif_cardPlayed' );
-            console.log( notif );
-            
-            // Note: notif.args contains the arguments specified during you "notifyAllPlayers" / "notifyPlayer" PHP call
-            
-            // TODO: play the card in the user interface.
-        },    
-        
-        */
    });             
 });
