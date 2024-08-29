@@ -51,7 +51,7 @@ function (dojo, declare) {
         setup: function( gamedatas )
         {
             console.log( "Starting game setup" , gamedatas);
-
+            
             this.nesw = ["N","E","S","W"];
             this.scLines =  new bgagame.scLines();
             this.scUtility = new bgagame.scUtility();
@@ -91,16 +91,11 @@ function (dojo, declare) {
                 html = "<div class='goallocation goalstart' id='stoplocation_"+l.code+"'>"+l.code+"</div><div class='goalname' id='goalname_"+l.code+"'>"+l.name+"</div>";
                 $('stops_'+l.col+"_"+l.row).innerHTML=html;
             });
-
-            
-
-            this.onPlaceCardHandlers = [];
             
             //do it this way so we can later destroy the click handlers.
             for(x=1;x<=12;x++)
                 for(y=1;y<=12;y++)
-                    this.onPlaceCardHandlers.push(dojo.connect($('square_'+x+'_'+y),'onclick',this,'onPlaceCard'));
-            // this.onPlaceCardHandler = dojo.query( '.square' ).connect( 'onclick', this, 'onPlaceCard' );
+                    this.scEventHandlers.onPlaceCardHandlers.push(dojo.connect($('square_'+x+'_'+y), 'onclick', this, 'onPlaceCard'));
             
             dojo.query( '.goalcheck' ).connect( 'onclick', this, 'onToggleShowRoute' );
             // Setup game notifications to handle (see "setupNotifications" method below)
@@ -225,156 +220,8 @@ function (dojo, declare) {
 */
                 }
             }
-        },        
-        onPlaceCard: function( evt )
-        {
-            // Stop this event propagation
-            dojo.stopEvent( evt );
-            
-            if( this.checkAction( 'playTrack' ))
-            {
-                if(this.selectedTrack==-1){
-                    this.showMessage( _("Select track part you want to place."), 'error');	
-                    return;
-                }
-                console.log("placecard");
-                var coords = evt.currentTarget.id.split('_');
-                if (coords[1] == this.firstPlacementData.posx && coords[2]== this.firstPlacementData.posy)
-                {
-                    this.showMessage( _("You cannot play on your first placement."), 'error');	
-                    return;
-                }
-                
-                this.posx =parseInt(coords[1]);
-                this.posy =parseInt(coords[2]);
-
-                if(parseInt(this.gamedatas.gamestate.args.tracks[this.posx][this.posy])>=6)
-                {
-                    this.showMessage( _("This track can not be replaced."), 'error');	
-                    dojo.destroy('place_card_action_button'); //eliminates place card button in action buttons.
-                    return;
-                }
-
-                let isStop = this.gamedatas.initialStops.filter(l => l.row==this.posy && l.col==this.posx).length>0
-                if(!isStop) 
-                {
-                    dojo.destroy(this.scUtility.getPlacedTrackId(this.isFirstSelection));
-                    dojo.place( this.format_block( 'jstpl_track', {
-                        id: this.scUtility.getPlacedTrackId(this.isFirstSelection),
-                        offsetx:-100* this.selectedTrack,
-                        rotate:this.rotation
-                    } ) , "square_"+this.posx+"_"+this.posy);
-
-                    badDirections = this.fitCardOnBoard();
-                    this.showPlaceCardActionButton(badDirections);
-                    
-                    this.rotationClickHandler = dojo.connect($(this.scUtility.getPlacedTrackId(this.isFirstSelection)), 'onclick', this, 'onRotateCard' );
-                }
-                else
-                {
-                    this.showMessage( _("Cannot put track on stop."), 'error');
-                    dojo.destroy('place_card_action_button'); //deletes place track button.
-                }   
-                    
-            }
-        },   
-        onReset()
-        {   
-            //reload page.
-            dojo.destroy('reset_button')
-            location.reload();
         },
-        onRotateCard(evt)
-        {
-            this.rotation = (this.rotation + 90) % 360;
-            
-            this.rotateTo(this.scUtility.getPlacedTrackId(this.isFirstSelection), this.rotation);
-            badDirections = this.fitCardOnBoard();
-            this.showPlaceCardActionButton(badDirections);
-        },             
-        fitCardOnBoard()
-        {
-            dojo.destroy('place_card_action_button');
-            badDirections = this.fitTrack(this.gamedatas.tracks[this.selectedTrack][0],
-                this.rotation, parseInt(this.posx), parseInt(this.posy));
-
-            dojo.addClass(this.scUtility.getPlacedTrackId(this.isFirstSelection),this.isFirstSelection ? 'track_placement' : 'track_placement2');
-            borderColorString = '';
-            if (badDirections.includes('x'))
-            {
-                //track on board is not compatible with track being placed
-                borderColorString = 'red red red red ';
-            }
-            else
-            { 
-                //color border green if the direction is ok, red if not.
-                this.nesw.forEach((direction,idx) => {
-                    //so the borders of the card are *also* rotated.
-                    //that means we have to conform to the rotated position when creating the borderColorString
-                    rotationOffset = this.rotation/90;
-                    direction = this.nesw[(idx + rotationOffset)%4];
-                    if (badDirections.includes(direction))
-                    {
-                        borderColorString += 'red ';
-                    }
-                    else
-                    {
-                        borderColorString += 'green ';
-                    }
-                });
-            }
-            
-            dojo.style(this.scUtility.getPlacedTrackId(this.isFirstSelection),"border-color",borderColorString.trimEnd());
-           
-            return badDirections;
-        },
-        showPlaceCardActionButton(badDirections)
-        {
-            if (badDirections.includes('x')) return; //case where player tried to place on non-conforming space.
-            if (this.isFirstSelection && badDirections.length <= 1)
-            {
-                //Allow the placement with one bad direction. The user could fix it next placement.
-                this.addActionButton( 'place_card_action_button', _('Place track'), () => this.onPlacedCard() );
-                return;
-            }
-
-            if (badDirections.length == 0 && this.firstPlacementData.badDirections.length == 0)
-            {
-                this.addActionButton( 'place_card_action_button', _('Place track'), () => this.onPlacedCard() );
-                return;
-            }
-
-            if (badDirections.length == 0 && this.firstPlacementData.badDirections.length == 1)
-            {
-                //This is a special case - only show the place button *if* the badDirection of the first tile points at the 2nd tile.
-                //If so, then the new placement fixed the problem (because it doesn't have any bad sides)
-                showPlaceActionButton = false;
-                switch(this.firstPlacementData.badDirections[0])
-                {
-                    case "N":
-                        showPlaceActionButton = (this.posx == this.firstPlacementData.posx) && (this.posy == this.firstPlacementData.posy-1);
-                        break;
-                    case "E":
-                        showPlaceActionButton = (this.posx  == this.firstPlacementData.posx+ 1) && (this.posy == this.firstPlacementData.posy);
-                        break;
-                    case "S":
-                        showPlaceActionButton = (this.posx == this.firstPlacementData.posx) && (this.posy == this.firstPlacementData.posy+1);
-                        break;
-                    case "W":
-                        showPlaceActionButton = (this.posx  == this.firstPlacementData.posx- 1) && (this.posy == this.firstPlacementData.posy);
-                }
-
-                if (showPlaceActionButton)
-                {
-                    this.addActionButton( 'place_card_action_button', _('Place track'), () => this.onPlacedCard() );
-                    return;
-                }
-                
-            }
-
-            //none of these are valid - do not show place card
-            dojo.destroy('place_card_action_button');
-        },
+        
         onPlaceTrain(evt)
         {
             selectedTrainLoc = this.scUtility.extractXY(evt.currentTarget.id);
@@ -413,7 +260,7 @@ function (dojo, declare) {
 
             //dojo.disconnect( this.onPlaceCardHandler );
             //remove click ability on all the board squares
-            this.onPlaceCardHandlers.forEach( dojo.disconnect);
+            this.onPlaceCardHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
 
             xyStart = this.scUtility.extractXYD(this.curRoute.startNodeID);
             xyEnd = this.scUtility.extractXYD(this.curRoute.endNodeID);
@@ -479,187 +326,6 @@ function (dojo, declare) {
             this.ajaxcall( "/streetcar/streetcar/placeTracks.html",paramList, this, function( result ) {} );
         },
 
-        //user has decided to actually put card down.
-        onPlacedCard()
-        {
-            dojo.destroy('place_card_action_button');
-            dojo.destroy('begin_trip_button');
-
-            let trackcard = this.gamedatas.tracks[this.selectedTrack][0];
-            let directions_free = this.scUtility.getDirections_free(trackcard, this.rotation);
-            //console.log("place it", trackcard, this.rotation, this.posx,this.posy,directions_free,this.gamedatas.gamestate.args.board);
-
-            // remove from available cards.
-            var itsme = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.player_id)[0];
-            
-            let availableCards = JSON.parse(itsme["available_cards"])
-            var index = availableCards.indexOf(parseInt(this.selectedTrack));
-            if (index !== -1) {
-                availableCards.splice(index, 1);
-            }    
-
-            //if this track is replacing a track on the board, move it to the player's available cards.
-            trackOnBoardID = this.gamedatas.gamestate.args.tracks[this.posx][this.posy];
-            isReplacing = this.gamedatas.gamestate.args.board[this.posx][this.posy] != '[]';
-            if (isReplacing)
-            {
-                availableCards.push(parseInt(trackOnBoardID));
-            }
-
-            itsme["available_cards"] = JSON.stringify(availableCards);
-            
-            this.updatePlayers(this.gamedatas.gamestate.args.players);
-
-            if (this.isFirstSelection)
-            {
-                //save data from first placement
-                this.firstPlacementData.directions_free = directions_free;
-                this.firstPlacementData.rotation = this.rotation;
-                this.firstPlacementData.selectedTrack = this.selectedTrack;
-                this.firstPlacementData.posx = this.posx;
-                this.firstPlacementData.posy = this.posy;
-                this.firstPlacementData.badDirections = this.fitCardOnBoard();
-
-                //write selected track data to underlying board
-                this.gamedatas.gamestate.args.board[this.posx][this.posy]= directions_free;
-                this.gamedatas.gamestate.args.rotations[this.posx][this.posy] = this.rotation;
-                this.gamedatas.gamestate.args.tracks[this.posx][this.posy] = this.selectedTrack;
-
-
-                //reset so user can select another piece
-                this.selectedTrack =-1;
-                this.rotation = 0;
-
-                this.isFirstSelection = false;
-
-                //make the tile unrotatable.
-                dojo.disconnect(this.rotationClickHandler);
-
-                //add ability to reset turn
-                if(!$('reset_button'))
-                {
-                    this.addActionButton('reset_button', _('Reset'), () => this.onReset());
-                }
-            }
-            else
-            {
-                this.directions_free = directions_free; //pass this along
-                //Since this the 2nd placement, we are good to go.
-                this.sendMovesToServer();
-            } 
-        },
-
-        //Based on current card rotation, establish the directions free now
-        getDirections_free(trackcard, rotation)
-        {
-            let directions_free = ""
-
-            //process each direction on the track card and add to the directions free based on the rotation.
-            this.nesw.forEach(direction =>{
-                if (trackcard[direction] != '')
-                {
-                    offset = this.nesw.indexOf(direction)*90; //this changes the index in the nwse array. This *90 is the amount of additional rotation we need.
-                    directions_free += this.nesw[(((rotation+offset)%360)/90)];
-                }
-            });
-            
-            return directions_free                
-
-        },
-
-        /* Returns true if the new track supports movement in as many ways or more than the track it is replacing. */
-        checktrackmatch(currenttrack, newtrack){
-            let match = true
-
-            this.nesw.forEach( direction =>{
-                for (var i = 0; i < currenttrack[direction].length; i++) {
-                    if(match){
-                        match = newtrack[direction].indexOf(currenttrack[direction].charAt(i))!=-1;
-                    }
-                }
-            });                         
-            return match
-        },
-
-        //Does this track fit in this location on the board?
-        //If yes, an empty array is returned.
-        //If no the cardinal directions which are not a good fit are returned.
-        //If placed on an existing track and it does not conform to the directions, function returns 'x'
-        fitTrack(trackcard, rotation, x, y)
-        {
-            directions_free = this.scUtility.getDirections_free(trackcard, rotation);
-            badDirections = [];
-           
-            if(this.gamedatas.gamestate.args.board[x][y] !='[]') 
-            {
-                //This card has been placed on another card. Check it for compatibility.
-                let cardOnBoardTrackID = this.gamedatas.gamestate.args.tracks[x][y];
-                let rotationOfCardOnBoard = this.gamedatas.gamestate.args.rotations[x][y];
-                let cardOnBoard = this.gamedatas.tracks[cardOnBoardTrackID][rotationOfCardOnBoard/90];
-                let trackcardcheck =  this.gamedatas.tracks[this.selectedTrack][parseInt(rotation)/90];
-                if(!this.checktrackmatch(cardOnBoard, trackcardcheck)){
-                    this.showMessage( _("Existing paths need to remain the same."), 'info');	                    
-                    return ['x']; //new track is incompatible with track on board
-                }
-            }
-
-            this.nesw.forEach(direction =>{
-                switch(direction)
-                {
-                    case "N":
-                        var xcheck = x;
-                        var ycheck = y-1;
-                        break;
-                    case "E":
-                        var xcheck = x+1;
-                        var ycheck = y;
-                        break;
-                    case "S":
-                        var xcheck = x;
-                        var ycheck = y+1;
-                        break;
-                    case "W":
-                        var xcheck = x-1;
-                        var ycheck = y;
-                        break;
-                }
-
-                
-                if(directions_free.indexOf(direction)!=-1)
-                {
-                    //check for a stop
-                    if (this.gamedatas.initialStops.filter(l => l.row==ycheck && l.col==xcheck).length>0)
-                    {
-                        badDirections.push(direction);
-                        return; //acts like a "continue"
-                    }
-                }
-
-                trackcheck = '[]';
-                if(xcheck>=1 && xcheck<=12 && ycheck>=1 && ycheck<=12){
-                    //check for empty square in this direction
-                    trackcheck = this.gamedatas.gamestate.args.board[xcheck ][ycheck];
-                    if (trackcheck == '[]')
-                        //direction is good, empty square
-                        return; //acts like a "continue"
-                } else {
-                    trackcheck = this.scUtility.borderTracksDirections_free(xcheck, ycheck);
-                }
-
-                //180 degree rotation - if we are looking North from the selected, this will look south from the north track.
-                directionFromTrackcheck = this.nesw[(this.nesw.indexOf(direction)+2)%4];
-
-                //if both true or both false, we don't want to record this direction as bad. Otherwise we do. XOR.
-                isSideFreeAtSelectedTrack = trackcheck.indexOf(directionFromTrackcheck) != -1;
-                isSelectedTrackFreeTowardThisTrack = directions_free.indexOf(direction)!=-1
-                if(isSideFreeAtSelectedTrack ? !isSelectedTrackFreeTowardThisTrack :isSelectedTrackFreeTowardThisTrack){
-                        badDirections.push(direction);
-                }  
-            });
-
-            return badDirections;
-        },
-       
         updatePlayers: function(players, defaultscoring){
             //update player boards
             //delete previous tracks on player board
@@ -697,9 +363,9 @@ function (dojo, declare) {
                 } else {
                     dojo.destroy('start_'+player.id)
                 }
-            })
-            dojo.query( '.playertrack' ).connect( 'onclick', this, 'onSelectTrack' );
-            //dojo.query( '.playertrack' ).connect( 'onclick', this, this.scEventHandlers.test() )
+            });
+            
+            dojo.query( '.playertrack' ).connect( 'onclick', this, 'onSelectCard');
         }, 
         updateTracks() {
 
@@ -831,19 +497,7 @@ function (dojo, declare) {
         },
         
 
-        onSelectTrack(evt){
-            dojo.stopEvent( evt );
-            dojo.destroy('place_card_action_button'); //cannot place an unplaced track.
-            var coords = evt.currentTarget.id.split('_');
-            dojo.query( '.playertrack' ).removeClass('trackselected')
-            
-            // destroy previous selected track
-            dojo.destroy(this.scUtility.getPlacedTrackId(this.isFirstSelection));
-            if(coords[2]==this.player_id){
-                this.selectedTrack = parseInt(coords[1]);
-                dojo.addClass( evt.currentTarget.id, 'trackselected' );
-            }
-        },
+        
         
         showDice(){
             this.setGamestateDescription('choosedie');
@@ -918,6 +572,17 @@ function (dojo, declare) {
             console.log("notif_placedTrain", notif);
             this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.trainStartNodeID,notif.args.traindirection);
 
+        },
+
+        //Have to put stubs here to pass game object (???don't know why).
+        onSelectCard(evt)
+        {
+            this.scEventHandlers.onSelectCard(evt, this);
+        },
+
+        onPlaceCard(evt)
+        {
+            this.scEventHandlers.onPlaceCard(evt,this);
         },
 
         // getTrainRotation(trainPositionNodeID)
