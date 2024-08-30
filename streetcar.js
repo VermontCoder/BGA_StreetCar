@@ -133,11 +133,7 @@ function (dojo, declare) {
                     this.updateTracks();
                     this.updateStops();
                     
-                    var itsme = args.args.players.filter(p =>p.id==this.player_id)[0]
-                    // if (itsme.trainposition != null)
-                    // {
-                    //     this.placeTrain(itsme.linenum,this.player_id,itsme.trainposition);
-                    // }        
+                    var itsme = args.args.players.filter(p =>p.id==this.player_id)[0];      
                     break;
 
             /* Example:
@@ -222,60 +218,60 @@ function (dojo, declare) {
             }
         },
         
-        onPlaceTrain(evt)
-        {
-            selectedTrainLoc = this.scUtility.extractXY(evt.currentTarget.id);
-            trainStartNodeID = '';
+        // onPlaceTrain(evt)
+        // {
+        //     selectedTrainLoc = this.scUtility.extractXY(evt.currentTarget.id);
+        //     trainStartNodeID = '';
 
-            //find right route - may have clicked on the end of the route, so find the corresponding route with this as the start of route.
-            for(i=0;i<this.routes.length;i++)
-            {
-                routeStartNodeLoc = this.scUtility.extractXYD(this.routes[i].startNodeID);
-                if (routeStartNodeLoc.x == selectedTrainLoc.x && routeStartNodeLoc.y == selectedTrainLoc.y )
-                {
-                    trainStartNodeID = this.routes[i].startNodeID;
-                    this.curRoute = this.routes[i];
-                    break;
-                }
-            }
+        //     //find right route - may have clicked on the end of the route, so find the corresponding route with this as the start of route.
+        //     for(i=0;i<this.routes.length;i++)
+        //     {
+        //         routeStartNodeLoc = this.scUtility.extractXYD(this.routes[i].startNodeID);
+        //         if (routeStartNodeLoc.x == selectedTrainLoc.x && routeStartNodeLoc.y == selectedTrainLoc.y )
+        //         {
+        //             trainStartNodeID = this.routes[i].startNodeID;
+        //             this.curRoute = this.routes[i];
+        //             break;
+        //         }
+        //     }
 
-            //alert(JSON.stringify(trainStartNodeID));
-            //break down selection UI
-            dojo.disconnect(this.placeTrainHandlers[0]);
-            dojo.disconnect(this.placeTrainHandlers[1]);
-            dojo.query(".selectable_train_start_location").removeClass('selectable_train_start_location');
+        //     //alert(JSON.stringify(trainStartNodeID));
+        //     //break down selection UI
+        //     dojo.disconnect(this.placeTrainHandlers[0]);
+        //     dojo.disconnect(this.placeTrainHandlers[1]);
+        //     dojo.query(".selectable_train_start_location").removeClass('selectable_train_start_location');
 
-            players = this.gamedatas.gamestate.args.players;
-            linenum = parseInt(players.filter(p =>p.id==this.player_id)[0]['linenum']);
-            this.ajaxcall( "/streetcar/streetcar/placeTrain.html",{linenum: linenum, trainStartNodeID: trainStartNodeID}, this, function( result ) {} );
-        },
-        onBeginTrip()
-        {
-            //setup ui to record person's choice of train start
-            dojo.destroy('place_card_action_button');
-            dojo.destroy('begin_trip_button');
+        //     players = this.gamedatas.gamestate.args.players;
+        //     linenum = parseInt(players.filter(p =>p.id==this.player_id)[0]['linenum']);
+        //     this.ajaxcall( "/streetcar/streetcar/placeTrain.html",{linenum: linenum, trainStartNodeID: trainStartNodeID}, this, function( result ) {} );
+        // },
+        // onBeginTrip()
+        // {
+        //     //setup ui to record person's choice of train start
+        //     dojo.destroy('place_card_action_button');
+        //     dojo.destroy('begin_trip_button');
             
-            this.addActionButton('reset_button', _('Reset'), () => this.onReset());
-            $('pagemaintitletext').innerHTML = _('Select train starting location.');
+        //     this.addActionButton('reset_button', _('Reset'), () => this.onReset());
+        //     $('pagemaintitletext').innerHTML = _('Select train starting location.');
 
-            //dojo.disconnect( this.onPlaceCardHandler );
-            //remove click ability on all the board squares
-            this.onPlaceCardHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
+        //     //dojo.disconnect( this.onPlaceCardHandler );
+        //     //remove click ability on all the board squares
+        //     this.onPlaceCardHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
 
-            xyStart = this.scUtility.extractXYD(this.curRoute.startNodeID);
-            xyEnd = this.scUtility.extractXYD(this.curRoute.endNodeID);
+        //     xyStart = this.scUtility.extractXYD(this.curRoute.startNodeID);
+        //     xyEnd = this.scUtility.extractXYD(this.curRoute.endNodeID);
             
-            xyStartSquareID = 'route_'+xyStart.x + '_'+xyStart.y;
-            xyEndSquareID = 'route_'+xyEnd.x + '_'+xyEnd.y;
+        //     xyStartSquareID = 'route_'+xyStart.x + '_'+xyStart.y;
+        //     xyEndSquareID = 'route_'+xyEnd.x + '_'+xyEnd.y;
             
-            //save handlers to be removed after they click.
-            this.placeTrainHandlers = [];
-            this.placeTrainHandlers.push(dojo.connect($(xyStartSquareID), 'onclick', this, 'onPlaceTrain' ));
-            this.placeTrainHandlers.push(dojo.connect($(xyEndSquareID), 'onclick', this, 'onPlaceTrain' ));
+        //     //save handlers to be removed after they click.
+        //     this.placeTrainHandlers = [];
+        //     this.placeTrainHandlers.push(dojo.connect($(xyStartSquareID), 'onclick', this, 'onPlaceTrain' ));
+        //     this.placeTrainHandlers.push(dojo.connect($(xyEndSquareID), 'onclick', this, 'onPlaceTrain' ));
             
-            dojo.addClass(xyStartSquareID, 'selectable_train_start_location');
-            dojo.addClass(xyEndSquareID, 'selectable_train_start_location');
-        },
+        //     dojo.addClass(xyStartSquareID, 'selectable_train_start_location');
+        //     dojo.addClass(xyEndSquareID, 'selectable_train_start_location');
+        // },
         sendMovesToServer()
         {
             //list of available cards cannot be sent as [0,2,3...], but as a comma delimited string of nums.
@@ -574,6 +570,14 @@ function (dojo, declare) {
 
         },
 
+        notif_updateRoute: function( notif )
+        {
+            console.log('notif_updateRoute',notif.args.player_id);
+            this.routes = notif.args.routes;
+            this.curRoute = (this.routes != null) ? this.routes[0] : null;
+            this.showRoute();
+        },
+
         //Have to put stubs here to pass game object (???don't know why).
         onSelectCard(evt)
         {
@@ -583,6 +587,11 @@ function (dojo, declare) {
         onPlaceCard(evt)
         {
             this.scEventHandlers.onPlaceCard(evt,this);
+        },
+
+        onBeginTrip()
+        {
+            this.scEventHandlers.onBeginTrip(this);
         },
 
         // getTrainRotation(trainPositionNodeID)
@@ -606,16 +615,7 @@ function (dojo, declare) {
             
         //     }
         // },
-        getRotationFromDirection(direction)
-        {
-            switch(direction)
-            {
-                case "N": return 0;
-                case "E": return 90;
-                case "S": return 180;
-                case "W": return 270;
-            }
-        },
+       
         showTrain : function(linenum,player_id,nodeID,traindirection)
         {
             //if nodeID is null, there is no train to show
@@ -625,7 +625,7 @@ function (dojo, declare) {
             
             //if this is a border place those are denoted by route_, otherwise its a square_
             tileID = this.scUtility.validCoordinates(trainXYD.y,trainXYD.x) ? 'square_'+trainXYD.x+"_"+trainXYD.y : 'route_'+trainXYD.x+"_"+trainXYD.y;
-            rotation = this.getRotationFromDirection(traindirection);
+            rotation = this.scUtility.getRotationFromDirection(traindirection);
             console.log ('Params','linenum: '+linenum+'\nplayer_id: ' + player_id+'\ntileID:'+tileID+'\ndirection:'+traindirection+'\nrotation:'+rotation);
             
             dojo.destroy("train_"+player_id);
@@ -636,12 +636,6 @@ function (dojo, declare) {
             } ) , tileID);
 
         },
-        notif_updateRoute: function( notif )
-        {
-            console.log('notif_updateRoute',notif.args.player_id);
-            this.routes = notif.args.routes;
-            this.curRoute = (this.routes != null) ? this.routes[0] : null;
-            this.showRoute();
-        },
+        
    });             
 });

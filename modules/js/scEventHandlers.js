@@ -4,14 +4,17 @@ define([
     "dojo", "dojo/_base/declare",
 ], function( dojo, declare )
 {
-    var classDefinition = declare("bgagame.scEventHandlers", null, { 
+    return declare("bgagame.scEventHandlers", null, { 
         
         constructor: function (game) {
             this.game = game; //DOES NOT PERSIST IN EVENT HANDLER CALLS????
             this.scUtility = this.game.scUtility;
             this.nesw = this.game.nesw;
             this.onPlaceCardHandlers = [];
+            this.onPlaceTrainHandlers = [];
         },
+
+
         /*********************************************************************************** */
         /*              PLACING CARD                                                        */
         /*********************************************************************************** */
@@ -343,6 +346,74 @@ define([
 
             return badDirections;
         },
+
+        /********************************************************************************* */
+        /*                      Train Placement                                             */
+        /********************************************************************************* */
+        
+        /**
+         * User has clicked on start inaugural trip.
+         **/
+
+        onBeginTrip(game)
+        {
+            //setup ui to record person's choice of train start
+            dojo.destroy('place_card_action_button');
+            dojo.destroy('begin_trip_button');
+            
+            this.game.addActionButton('reset_button', _('Reset'), () => this.onReset());
+            $('pagemaintitletext').innerHTML = _('Select train starting location.');
+
+            //dojo.disconnect( this.onPlaceCardHandler );
+            //remove click ability on all the board squares
+            this.onPlaceCardHandlers.forEach( dojo.disconnect);
+
+            xyStart = this.scUtility.extractXYD(this.game.curRoute.startNodeID);
+            xyEnd = this.scUtility.extractXYD(this.game.curRoute.endNodeID);
+            
+            xyStartSquareID = 'route_'+xyStart.x + '_'+xyStart.y;
+            xyEndSquareID = 'route_'+xyEnd.x + '_'+xyEnd.y;
+            
+            //save handlers to be removed after they click.
+            this.onPlaceTrainHandlers.push(dojo.connect($(xyStartSquareID), 'onclick', this, 'onPlaceTrain' ));
+            this.onPlaceTrainHandlers.push(dojo.connect($(xyEndSquareID), 'onclick', this, 'onPlaceTrain' ));
+            
+            dojo.addClass(xyStartSquareID, 'selectable_train_start_location');
+            dojo.addClass(xyEndSquareID, 'selectable_train_start_location');
+        },
+
+        /**
+         * User has selected a square to start the trip from.
+         * @param {Object} evt 
+         */
+        onPlaceTrain(evt)
+        {
+            selectedTrainLoc = this.scUtility.extractXY(evt.currentTarget.id);
+            trainStartNodeID = '';
+
+            //find right route - may have clicked on the end of the route, so find the corresponding route with this as the start of route.
+            for(i=0;i<this.game.routes.length;i++)
+            {
+                routeStartNodeLoc = this.scUtility.extractXYD(this.game.routes[i].startNodeID);
+                if (routeStartNodeLoc.x == selectedTrainLoc.x && routeStartNodeLoc.y == selectedTrainLoc.y )
+                {
+                    trainStartNodeID = this.game.routes[i].startNodeID;
+                    this.curRoute = this.game.routes[i];
+                    break;
+                }
+            }
+
+            //alert(JSON.stringify(trainStartNodeID));
+            //break down selection UI
+            dojo.disconnect(this.onPlaceTrainHandlers[0]);
+            dojo.disconnect(this.onPlaceTrainHandlers[1]);
+            dojo.query(".selectable_train_start_location").removeClass('selectable_train_start_location');
+
+            players = this.game.gamedatas.gamestate.args.players;
+            linenum = parseInt(players.filter(p =>p.id==this.game.player_id)[0]['linenum']);
+            this.game.ajaxcall( "/streetcar/streetcar/placeTrain.html",{linenum: linenum, trainStartNodeID: trainStartNodeID}, this.game, function( result ) {} );
+        },
+        
 
          /*********************************************************************************** */
         /*             RESET                                                                  */

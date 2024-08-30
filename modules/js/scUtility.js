@@ -32,6 +32,16 @@ return declare("bgagame.scUtility", null, {
             
             return directions_free                
         },
+        getRotationFromDirection(direction)
+        {
+            switch(direction)
+            {
+                case "N": return 0;
+                case "E": return 90;
+                case "S": return 180;
+                case "W": return 270;
+            }
+        },
         /**
          * As border tiles are a special case, we need to do this here.
          * Looking to deprecate!!!
