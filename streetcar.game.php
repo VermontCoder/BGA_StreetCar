@@ -133,7 +133,7 @@ class Streetcar extends Table
         $cardindex = 0;
         foreach ($players as $player_id => $player) {
             $color = array_shift($default_colors);
-            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$start[$cardindex],$goals[$cardindex],NULL,NULL, '[]',0)";
+            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$start[$cardindex],$goals[$cardindex],NULL,NULL, NULL,0)";
             $cardindex++;
         }
         $sql .= implode(',', $values);
@@ -361,9 +361,11 @@ class Streetcar extends Table
         $players = self::getPlayers();
         foreach ($players as $player_id3 => $player) {
             if ($player["id"] == $player_id) {
-                if ($player['trainposition'] == NULL) {
+                if ($player['trainposition'] == NULL) 
+                {
                     $this->gamestate->nextState('placeTrack');
-                } else {
+                } 
+                else {
                     // set dice for this turn
                     $thrown = scUtility::rollDice(3);
                     $sql = "UPDATE player SET  diceused = 0, dice = '" . json_encode(array_values($thrown)) . "' WHERE player_id = " . $player_id . ";";
@@ -372,6 +374,13 @@ class Streetcar extends Table
                 }
             }
         }
+    }
+
+    function stRollDice()
+    {
+        $players = self::getPlayers();
+        $player_id = self::getActivePlayerID();
+        
     }
     //////////////////////////////////////////////////////////////////////////////
     //////////// Player actions
