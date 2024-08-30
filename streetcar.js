@@ -409,19 +409,7 @@ function (dojo, declare) {
             }
         },
         
-        onToggleShowRoute(evt)
-        {
-            //Don't toggle if no route
-            dojo.stopEvent(evt);
-            if (this.curRoute == null)
-            {
-                this.showMessage( _("No stations connect with goal stops."), 'info'); 
-                return;
-            }
-            this.isShowRoute = this.isShowRoute ? false : true;
-            $(evt.currentTarget.id).innerHTML = this.isShowRoute ? 'Hide Route' : 'Show Route';
-            this.showRoute()
-        },
+        
 
         //Use this for route nodes.
        
@@ -485,15 +473,7 @@ function (dojo, declare) {
                     $('wrapper').appendChild(this.scLines.createLine(parentPixelXY['x'], parentPixelXY['y'], childPixelXY['x'], childPixelXY['y'],'red'));
                 }
             }
-            
-
-           // let graph = this.gamedatas.gamestate.args.connectivityGraph;
-            //console.debug(JSON.stringify(graph));
-
         },
-        
-
-        
         
         showDice(){
             this.setGamestateDescription('choosedie');
@@ -534,16 +514,6 @@ function (dojo, declare) {
         
         setupNotifications: function()
         {
-             // TODO: here, associate your game notifications with local methods
-            
-            // Example 1: standard notification handling
-            // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-            
-            // Example 2: standard notification handling + tell the user interface to wait
-            //            during 3 seconds after calling the method in order to let the players
-            //            see what is happening in the game.
-            // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-            // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
             // 
             dojo.subscribe( 'placedTrack', this, "notif_placedTrack" );
             dojo.subscribe( 'updateRoute',this,'notif_updateRoute');
@@ -592,6 +562,11 @@ function (dojo, declare) {
         onBeginTrip()
         {
             this.scEventHandlers.onBeginTrip(this);
+        },
+
+        onToggleShowRoute(evt)
+        {
+            this.scEventHandlers.onToggleShowRoute(evt,this);
         },
 
         // getTrainRotation(trainPositionNodeID)

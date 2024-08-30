@@ -415,6 +415,23 @@ define([
         },
         
 
+        /**
+         * User clicked on the show route/ Hide route button. 
+         * @param {Object} evt 
+         */
+
+        onToggleShowRoute(evt,game)
+        {
+            //Don't toggle if no route
+            if (this.game.curRoute == null)
+            {
+                this.game.showMessage( _("No stations connect with goal stops."), 'info'); 
+                return;
+            }
+            this.game.isShowRoute = this.game.isShowRoute ? false : true;
+            $(evt.currentTarget.id).innerHTML = this.game.isShowRoute ? 'Hide Route' : 'Show Route';
+            this.game.showRoute();
+        },
          /*********************************************************************************** */
         /*             RESET                                                                  */
         /*********************************************************************************** */
