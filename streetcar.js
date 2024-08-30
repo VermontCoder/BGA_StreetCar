@@ -56,12 +56,13 @@ function (dojo, declare) {
             this.nesw = ["N","E","S","W"];
             this.scLines =  new bgagame.scLines();
             this.scUtility = new bgagame.scUtility();
+            this.scRouting = new bgagame.scRouting(this,gamedatas.routes);
             this.scEventHandlers = new bgagame.scEventHandlers(this);
-            this.scRouting = new bgagame.scRouting(this);
+            
             
             //routing - must come before placing trains.
-            this.routes= gamedatas.routes;
-            this.curRoute = (this.routes != null) ? this.routes[0] : null;
+            // this.routes= gamedatas.routes;
+            // this.scRouting.curRoute = (this.routes != null) ? this.routes[0] : null;
             this.isShowRoute = false;
 
             // Setting up player boards
@@ -129,6 +130,9 @@ function (dojo, declare) {
                     this.updateTracks();
                     this.updateStops();
                    
+                    break;
+                case "rollDice":
+                    console.log('rollDice');
                     break;
                 case "moveTrain":
                     this.updatePlayers(args.args.players);
@@ -198,10 +202,16 @@ function (dojo, declare) {
                 switch( stateName )
                 {
                     case 'placeTrack':
-                        if (this.curRoute != null && this.curRoute.isComplete)
+                        if (this.scRouting.curRoute != null && this.scRouting.curRoute.isComplete)
                         {
                             this.addActionButton( 'begin_trip_button', _('Begin Inaugural Trip'), 'onBeginTrip');
                         }
+                        break;
+                    case 'rollDice':
+                        this.addActionButton( 'roll_dice_button', _('Roll Dice'), 'onRollDice');
+                        this.addActionButton( 'done_with_turn_button', _('Done With Turn'), 'onDoneWithTurn');
+                        //These buttons just move us into next state.
+                        
                         break;
                 }
             }
@@ -308,7 +318,7 @@ function (dojo, declare) {
                     });
 
                     dojo.style('checktrack_'+player.id,'display','block');
-                    if (!(this.curRoute==null) && this.curRoute.isComplete)
+                    if (!(this.scRouting.curRoute==null) && this.scRouting.curRoute.isComplete)
                     {
                         dojo.style('completedMsg_'+player.id,'display','inline-block');
                         dojo.addClass('start_'+player.id,'linenum_completed');
@@ -379,72 +389,6 @@ function (dojo, declare) {
             }
         },
         
-        
-
-        //Use this for route nodes.
-       
-        // getPixelLocationBasedOnNodeID(nodeID)
-        // {
-        //     xOrigin = 42+50; //+50 is center of tiles
-        //     yOrigin = 45+50;
-
-        //     parsedNodeID = this.scUtility.extractXYD(nodeID);
-
-        //     xOffset =0;
-        //     yOffset =0;
-
-        //     switch(parsedNodeID['d'])
-        //     {
-        //         case "N":
-        //             yOffset = -25;
-        //             break;
-        //         case "E":
-        //             xOffset = 25;
-        //             break;
-        //         case "S":
-        //             yOffset = 25;
-        //             break;
-        //         case "W":
-        //             xOffset = -25;
-        //             break;
-        //     }
-
-        //     return {
-        //         'x': parseInt(xOrigin + xOffset + parsedNodeID['x']*100),
-        //         'y': parseInt(yOrigin + yOffset + parsedNodeID['y']*100),
-        //     };
-        // },
-        // showRoute()
-        // {
-        //     //delete previous route
-        //     dojo.query('.route_line').orphan();
-
-        //     console.log(JSON.stringify(this.curRoute));
-
-        //     //if we are not showing the route, we are done.
-        //     if (!this.isShowRoute) return;
-            
-        //     //no route to show.
-        //     if (this.curRoute == null) return;
-
-            
-        //     let route = this.curRoute.routeNodes; //will be null if there is no route.
-            
-        //     //console.debug(JSON.stringify(route));
-
-        //     for (var parentID in route) 
-        //     {
-        //         if (Object.prototype.hasOwnProperty.call(route, parentID))
-        //         {
-        //             childID = route[parentID];
-                    
-        //             parentPixelXY = this.getPixelLocationBasedOnNodeID(parentID);
-        //             childPixelXY = this.getPixelLocationBasedOnNodeID(childID);
-        //             $('wrapper').appendChild(this.scLines.createLine(parentPixelXY['x'], parentPixelXY['y'], childPixelXY['x'], childPixelXY['y'],'red'));
-        //         }
-        //     }
-        // },
-        
         showDice(){
             this.setGamestateDescription('choosedie');
 
@@ -513,9 +457,7 @@ function (dojo, declare) {
         notif_updateRoute: function( notif )
         {
             console.log('notif_updateRoute',notif.args.player_id);
-            this.routes = notif.args.routes;
-            this.curRoute = (this.routes != null) ? this.routes[0] : null;
-            this.scRouting.showRoute();
+            this.scRouting.updateRoutes(notif.args.routes);
         },
 
         //Have to put stubs here to pass game object (???don't know why).
@@ -539,14 +481,26 @@ function (dojo, declare) {
             this.scEventHandlers.onToggleShowRoute(evt,this.scRouting);
         },
 
+        onRollDice()
+        {
+            this.scEventHandlers.onRollDice();
+        },
+
+        onDoneWithTurn()
+        {
+            this.scEventHandlers.onDoneWithTurn();
+        }
+
+
+
         // getTrainRotation(trainPositionNodeID)
         // {   
         //     //This relies on the fact that the routeID of the curRoute is the first routeID of the merge constructed route. 
         //     //So the train is always at the begining of the route, and its routeID will be whatever the route ID is of the current route,
         //     //even though it may be composed of multiple routes.
-        //     routeNodeID = trainPositionNodeID + '_' + this.curRoute.routeID;
-        //     nextRouteNodeID = this.curRoute.routeNodes[routeNodeID];
-        //     console.log(JSON.stringify(this.curRoute.routeNodes));
+        //     routeNodeID = trainPositionNodeID + '_' + this.scRouting.curRoute.routeID;
+        //     nextRouteNodeID = this.scRouting.curRoute.routeNodes[routeNodeID];
+        //     console.log(JSON.stringify(this.scRouting.curRoute.routeNodes));
 
         //     nextRouteNodeDirection = this.scUtility.extractXYD(nextRouteNodeID);
             
@@ -560,8 +514,6 @@ function (dojo, declare) {
             
         //     }
         // },
-       
-        
         
    });             
 });

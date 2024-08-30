@@ -68,8 +68,8 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} must play a track part.'),
         "type" => "activeplayer",
         "args" => "argPlayerTurn",
-        "possibleactions" => array('playTrack', 'moveTrain'),
-        "transitions" => array("nextPlayer" => 11, "moveTrain" => 20, "zombiePass" => 11, "gameEnd" => 99)
+        "possibleactions" => array('playTrack'),
+        "transitions" => array("nextPlayer" => 11, "zombiePass" => 11)
     ),
 
     11 => array(
@@ -77,21 +77,36 @@ $machinestates = array(
         "type" => "game",
         "action" => "stNextPlayer",
         "updateGameProgression" => true,
-        "transitions" => array("nextTurn" => 10, "moveTrain" => 20, "cantPlay" => 11, "endGame" => 99)
+        "transitions" => array("placeTrack" => 10, "rollDice" => 12, "cantPlay" => 11, "endGame" => 99)
     ),
-    20 => array(
-        "name" => "moveTrain",
-        "description" => clienttranslate('${actplayer} must move train.'),
-        "descriptionmyturn" => clienttranslate('${you} must move train.'),
-        "descriptionchoosestart" => clienttranslate('${actplayer} must select starting position.'),
-        "descriptionmyturnchoosestart" => clienttranslate('${you} must select starting position.'),
-        "descriptionchoosedie" => clienttranslate('${actplayer} must select die.'),
-        "descriptionmyturnchoosedie" => clienttranslate('${you} must select die.'),
+    12 => array(
+        "name" => "rollDice",
+        "description" => clienttranslate('${actplayer} must roll dice or end their turn.'),
+        "descriptionmyturn" => clienttranslate('${you} must roll dice or end your turn.'),
 
         "type" => "activeplayer",
         "args" => "argPlayerTurn",
-        "possibleactions" => array('moveTrain'),
-        "transitions" => array("nextPlayer" => 11, "zombiePass" => 11, "gameEnd" => 99)
+        //"possibleactions" => array('rollDice'),
+        "transitions" => array( "selectDie"=> 13, "nextPlayer" => 11, "zombiePass" => 11)
+    ),
+    13 => array(
+        "name" => "selectDie",
+        "description" => clienttranslate('${actplayer} must select a die.'),
+        "descriptionmyturn" => clienttranslate('${you} must select a die.'),
+
+        "type" => "activeplayer",
+        //"args" => "argSelectDie",
+        "possibleactions" => array('selectDie'),
+        "transitions" => array( "moveTrain"=> 14)
+    ),
+    14 => array(
+        "name" => "moveTrain",
+        "description" => clienttranslate('${actplayer} moves their train.'),
+        "descriptionmyturn" => clienttranslate('${you} move train.'),
+
+        "type" => "game",
+        "args" => "argPlayerTurn",
+        "transitions" => array("rollDice" => 12, "gameEnd" => 99)
     ),
 
     /*

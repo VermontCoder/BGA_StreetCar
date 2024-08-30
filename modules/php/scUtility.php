@@ -93,4 +93,18 @@ class scUtility
 
     return $stopLocations;
   }
+
+  /**
+   * get numDice number of six sided dice.
+   * @param integer $numDice
+   */
+  public static function rollDice($numDice)
+  {
+    $thrown = array();
+    for ($i = 0; $i < $numDice; $i++) {
+        array_push($thrown, random_int(1, 6));
+    }
+
+    return $thrown;
+  }
 }

@@ -22,6 +22,7 @@ require_once(APP_GAMEMODULE_PATH . 'module/table/table.game.php');
 require_once('modules/php/scConnectivityGraph.php');
 require_once('modules/php/scRouteFinder.php');
 require_once('modules/php/scRoute.php');
+require_once('modules/php/scUtility.php');
 
 
 class Streetcar extends Table
@@ -223,7 +224,7 @@ class Streetcar extends Table
 
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
-        $sql = "SELECT player_id id, player_score score, goals, linenum, trainposition, traindirection FROM player ";
+        $sql = "SELECT player_id id, player_score score, goals, linenum, trainposition, traindirection, dice, diceused FROM player ";
         $result['players'] = self::getCollectionFromDb($sql);
         $result['initialStops'] = $this->initialStops; //This is from materials.inc
         $result['tracks'] = $this->tracks;
@@ -361,16 +362,13 @@ class Streetcar extends Table
         foreach ($players as $player_id3 => $player) {
             if ($player["id"] == $player_id) {
                 if ($player['trainposition'] == NULL) {
-                    $this->gamestate->nextState('nextTurn');
+                    $this->gamestate->nextState('placeTrack');
                 } else {
                     // set dice for this turn
-                    $thrown = array();
-                    for ($i = 0; $i < 3; $i++) {
-                        array_push($thrown, rand(1, 6));
-                    }
+                    $thrown = scUtility::rollDice(3);
                     $sql = "UPDATE player SET  diceused = 0, dice = '" . json_encode(array_values($thrown)) . "' WHERE player_id = " . $player_id . ";";
                     self::DbQuery($sql);
-                    $this->gamestate->nextState('moveTrain');
+                    $this->gamestate->nextState('rollDice');
                 }
             }
         }
@@ -533,56 +531,7 @@ class Streetcar extends Table
         self::DbQuery($sql);
     }
 
-    // function setTrainLocation($x, $y)
-    // {
-    //     $player_id = self::getActivePlayerId();
-    //     $players = self::getPlayers();
-    //     foreach ($players as $player) {
-    //         if ($player["id"] == $player_id) {
-    //             $position = array();
-    //             array_push($position, intval($x));
-    //             array_push($position, intval($y));
-    //             $sql = "UPDATE player SET  trainposition = '" . json_encode(array_values($position)) . "' WHERE player_id = " . $player_id . ";";
-    //             self::DbQuery($sql);
-    //         }
-    //     }
-    // }
-    // function setTrainDirection($d)
-    // {
-    //     $player_id = self::getActivePlayerId();
-    //     $players = self::getPlayers();
-    //     foreach ($players as $player_id3 => $player) {
-    //         if ($player["id"] == $player_id) {
-
-    //             $sql = "UPDATE player SET  traveldirection = '" . $d . "' WHERE player_id = " . $player_id . ";";
-    //             self::DbQuery($sql);
-    //         }
-    //     }
-    // }
-    /*
-    Example:
-
-    function playCard( $card_id )
-    {
-        // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
-        self::checkAction( 'playCard' ); 
-        
-        $player_id = self::getActivePlayerId();
-        
-        // Add your game logic to play a card there 
-        ...
-        
-        // Notify all players about the card played
-        self::notifyAllPlayers( "cardPlayed", clienttranslate( '${player_name} plays ${card_name}' ), array(
-            'player_id' => $player_id,
-            'player_name' => self::getActivePlayerName(),
-            'card_name' => $card_name,
-            'card_id' => $card_id
-        ) );
-          
-    }
-    
-    */
+   
 
 
     //////////////////////////////////////////////////////////////////////////////

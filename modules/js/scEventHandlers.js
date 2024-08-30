@@ -357,6 +357,7 @@ define([
 
         onBeginTrip(game)
         {
+            this.game = game;
             //setup ui to record person's choice of train start
             dojo.destroy('place_card_action_button');
             dojo.destroy('begin_trip_button');
@@ -368,8 +369,8 @@ define([
             //remove click ability on all the board squares
             this.onPlaceCardHandlers.forEach( dojo.disconnect);
 
-            xyStart = this.scUtility.extractXYD(this.game.curRoute.startNodeID);
-            xyEnd = this.scUtility.extractXYD(this.game.curRoute.endNodeID);
+            xyStart = this.scUtility.extractXYD(this.game.scRouting.curRoute.startNodeID);
+            xyEnd = this.scUtility.extractXYD(this.game.scRouting.curRoute.endNodeID);
             
             xyStartSquareID = 'route_'+xyStart.x + '_'+xyStart.y;
             xyEndSquareID = 'route_'+xyEnd.x + '_'+xyEnd.y;
@@ -392,13 +393,13 @@ define([
             trainStartNodeID = '';
 
             //find right route - may have clicked on the end of the route, so find the corresponding route with this as the start of route.
-            for(i=0;i<this.game.routes.length;i++)
+            for(i=0;i<this.game.scRouting.routes.length;i++)
             {
-                routeStartNodeLoc = this.scUtility.extractXYD(this.game.routes[i].startNodeID);
+                routeStartNodeLoc = this.scUtility.extractXYD(this.game.scRouting.routes[i].startNodeID);
                 if (routeStartNodeLoc.x == selectedTrainLoc.x && routeStartNodeLoc.y == selectedTrainLoc.y )
                 {
-                    trainStartNodeID = this.game.routes[i].startNodeID;
-                    this.curRoute = this.game.routes[i];
+                    trainStartNodeID = this.game.scRouting.routes[i].startNodeID;
+                    this.curRoute = this.game.scRouting.routes[i];
                     break;
                 }
             }
@@ -423,7 +424,7 @@ define([
         onToggleShowRoute(evt,scRouting)
         {
             //Don't toggle if no route
-            if (this.game.curRoute == null)
+            if (scRouting.curRoute == null)
             {
                 this.game.showMessage( _("No stations connect with goal stops."), 'info'); 
                 return;
@@ -436,12 +437,25 @@ define([
         /*             RESET                                                                  */
         /*********************************************************************************** */
 
-
         onReset()
         {   
             //reload page.
             dojo.destroy('reset_button')
             location.reload();
         },
+
+        /*********************************************************************************** */
+        /*              DICE ROLLING                                                        */
+        /********************************************************************************** */
+        onRollDice()
+        {
+            alert('Roll Dice');
+        },
+
+        onDoneWithTurn()
+        {
+            alert('Done with Turn');
+        },
+
     });
 });

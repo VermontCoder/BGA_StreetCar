@@ -4,14 +4,22 @@ define([
 {
 return declare("bgagame.scRouting", null, 
     {    
-        constructor: function(game)
+        constructor: function(game, routes)
         {
             this.nesw = ["N","E","S","W"];
             this.game = game;
             this.scUtility = game.scUtility;
             this.scLines = game.scLines;
+            
+            this.updateRoutes(routes);
         },
 
+        updateRoutes(newRoutes)
+        {
+            this.routes = newRoutes;
+            this.curRoute = (this.routes != null) ? this.routes[0] : null;
+            this.showRoute();
+        },
         showRoute()
         {
             //delete previous route
@@ -23,10 +31,10 @@ return declare("bgagame.scRouting", null,
             if (!this.game.isShowRoute) return;
             
             //no route to show.
-            if (this.game.curRoute == null) return;
+            if (this.curRoute == null) return;
 
             
-            let route = this.game.curRoute.routeNodes; //will be null if there is no route.
+            let route = this.curRoute.routeNodes; //will be null if there is no route.
             
             //console.debug(JSON.stringify(route));
 
