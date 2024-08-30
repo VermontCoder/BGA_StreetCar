@@ -420,7 +420,7 @@ define([
          * @param {Object} evt 
          */
 
-        onToggleShowRoute(evt,game)
+        onToggleShowRoute(evt,scRouting)
         {
             //Don't toggle if no route
             if (this.game.curRoute == null)
@@ -430,7 +430,7 @@ define([
             }
             this.game.isShowRoute = this.game.isShowRoute ? false : true;
             $(evt.currentTarget.id).innerHTML = this.game.isShowRoute ? 'Hide Route' : 'Show Route';
-            this.game.showRoute();
+            scRouting.showRoute();
         },
          /*********************************************************************************** */
         /*             RESET                                                                  */
