@@ -133,6 +133,11 @@ function (dojo, declare) {
                     break;
                 case "rollDice":
                     console.log('rollDice');
+                    this.updatePlayers(args.args.players);
+                    this.updateTracks();
+                    this.updateStops();
+                    
+                    var itsme = args.args.players.filter(p =>p.id==this.player_id)[0];     
                     break;
                 case "moveTrain":
                     this.updatePlayers(args.args.players);

@@ -128,12 +128,12 @@ class Streetcar extends Table
 
         // Create players
         // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
-        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, available_cards, linenum, goals,trainposition, traindirection, dice, diceused) VALUES ";
+        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, available_cards, linenum, goals,trainposition, traindirection, endnodeids, dice, diceused) VALUES ";
         $values = array();
         $cardindex = 0;
         foreach ($players as $player_id => $player) {
             $color = array_shift($default_colors);
-            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$start[$cardindex],$goals[$cardindex],NULL,NULL, NULL,0)";
+            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$start[$cardindex],$goals[$cardindex],NULL,NULL, NULL,NULL,0)";
             $cardindex++;
         }
         $sql .= implode(',', $values);
@@ -224,7 +224,7 @@ class Streetcar extends Table
 
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
-        $sql = "SELECT player_id id, player_score score, goals, linenum, trainposition, traindirection, dice, diceused FROM player ";
+        $sql = "SELECT player_id id, player_score score, goals, linenum, trainposition, traindirection, endnodeids, dice, diceused FROM player ";
         $result['players'] = self::getCollectionFromDb($sql);
         $result['initialStops'] = $this->initialStops; //This is from materials.inc
         $result['tracks'] = $this->tracks;
@@ -265,7 +265,7 @@ class Streetcar extends Table
     //@return array
     function getPlayers()
     {
-        return self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, traindirection,goals,trainposition, dice, diceused
+        return self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, traindirection,goals,trainposition, endnodeids, dice, diceused
                                            FROM player");
     }
     function getBoardAsObjectList()
@@ -432,7 +432,7 @@ class Streetcar extends Table
         
     }
 
-    function placeTrain($linenum,$trainStartNodeID)
+    function placeTrain($linenum,$trainStartNodeID,$trainEndNodeID)
     {
         $player_id = self::getActivePlayerId();
 
@@ -445,7 +445,22 @@ class Streetcar extends Table
         if ($trainLoc['x'] == 13 ) { $traindirection = 'W';}
         if ($trainLoc['y'] == 13 ) { $traindirection = 'N';}
 
-        $sql = "UPDATE `player` SET trainposition='".$trainStartNodeID."', traindirection='".$traindirection."' where player_id=".$player_id;
+        //the train could end at either of the two endpoints. Get the missing endpoint from materials.inc.
+        //save the two endpoints as string with comma separator.
+        $trainEndNodeIDs = '';
+        
+        // $this->dump('trainEndNode',$trainEndNodeID);
+        // $this->dump('endponts',$this->routeEndPoints[((int)$linenum)]);
+        $nodes = $this->routeEndPoints[((int)$linenum)]['end'];
+        if ($nodes[0][0] == $trainEndNodeID) { $trainEndNodeIDs= $trainEndNodeID.','.$nodes[0][1]; }
+        if ($nodes[0][1] == $trainEndNodeID) { $trainEndNodeIDs = $trainEndNodeID.','.$nodes[0][0]; }
+        if ($nodes[1][0] == $trainEndNodeID) { $trainEndNodeIDs = $trainEndNodeID.','.$nodes[1][1]; }
+        if ($nodes[1][1] == $trainEndNodeID) { $trainEndNodeIDs = $trainEndNodeID.','.$nodes[1][0]; }
+
+        //$this->dump('nodes',$nodes);
+      
+
+        $sql = "UPDATE `player` SET trainposition='".$trainStartNodeID."', traindirection='".$traindirection."', endnodeids='".$trainEndNodeIDs."' where player_id=".$player_id;
         self::DbQuery($sql);
 
         self::notifyAllPlayers('placedTrain', clienttranslate('${player_name} placed a train.'), array(

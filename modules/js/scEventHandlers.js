@@ -391,6 +391,7 @@ define([
         {
             selectedTrainLoc = this.scUtility.extractXY(evt.currentTarget.id);
             trainStartNodeID = '';
+            trainEndNodeID ='';
 
             //find right route - may have clicked on the end of the route, so find the corresponding route with this as the start of route.
             for(i=0;i<this.game.scRouting.routes.length;i++)
@@ -399,6 +400,7 @@ define([
                 if (routeStartNodeLoc.x == selectedTrainLoc.x && routeStartNodeLoc.y == selectedTrainLoc.y )
                 {
                     trainStartNodeID = this.game.scRouting.routes[i].startNodeID;
+                    trainEndNodeID = this.game.scRouting.routes[i].endNodeID;
                     this.curRoute = this.game.scRouting.routes[i];
                     break;
                 }
@@ -412,7 +414,7 @@ define([
 
             players = this.game.gamedatas.gamestate.args.players;
             linenum = parseInt(players.filter(p =>p.id==this.game.player_id)[0]['linenum']);
-            this.game.ajaxcall( "/streetcar/streetcar/placeTrain.html",{linenum: linenum, trainStartNodeID: trainStartNodeID}, this.game, function( result ) {} );
+            this.game.ajaxcall( "/streetcar/streetcar/placeTrain.html",{linenum: linenum, trainStartNodeID: trainStartNodeID, trainEndNodeID: trainEndNodeID}, this.game, function( result ) {} );
         },
         
 

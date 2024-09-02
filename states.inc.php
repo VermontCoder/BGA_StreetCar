@@ -86,6 +86,7 @@ $machinestates = array(
 
         "type" => "activeplayer",
         "action" => "stRollDice",
+        "args" => "argPlayerTurn",
         //"possibleactions" => array('rollDice'),
         "transitions" => array( "selectDie"=> 13, "nextPlayer" => 11, "zombiePass" => 11)
     ),
@@ -95,7 +96,7 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} must select a die.'),
 
         "type" => "activeplayer",
-        //"args" => "argSelectDie",
+        "args" => "argPlayerTurn",
         "possibleactions" => array('selectDie'),
         "transitions" => array( "moveTrain"=> 14)
     ),

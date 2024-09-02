@@ -59,8 +59,9 @@ class action_streetcar extends APP_GameAction
   {
     $trainStartNodeID = self::getArg('trainStartNodeID', AT_alphanum,true);
     $linenum = self::getArg('linenum', AT_posint,true);
+    $trainEndNodeID = self::getArg('trainEndNodeID', AT_alphanum, true);
 
-    $result = $this->game->placeTrain($linenum,$trainStartNodeID);
+    $result = $this->game->placeTrain($linenum,$trainStartNodeID,$trainEndNodeID);
     self::ajaxResponse();
   }
 
