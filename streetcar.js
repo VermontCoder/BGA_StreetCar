@@ -402,7 +402,7 @@ function (dojo, declare) {
         },
         
         showDice(){
-            this.setGamestateDescription('choosedie');
+            
 
             var itsme = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.player_id)[0]
             //draw train on location
