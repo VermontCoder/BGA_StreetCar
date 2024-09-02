@@ -144,7 +144,8 @@ function (dojo, declare) {
                     this.updateTracks();
                     this.updateStops();
                     
-                    var itsme = args.args.players.filter(p =>p.id==this.player_id)[0];     
+                    this.showDice();
+                   
                     break;
                 case "moveTrain":
                     this.updatePlayers(args.args.players);
@@ -207,7 +208,11 @@ function (dojo, declare) {
         onUpdateActionButtons: function( stateName, args )
         {
             console.log( 'onUpdateActionButtons: '+stateName );
-            if (!$('extra_actions')) dojo.place("<div id='extra_actions'></div>",'generalactions');
+            if (!$('extra_actions'))
+            { 
+                dojo.place("<div id='extra_actions' class='extra_actions'></div>",'generalactions');
+                dojo.place('dice','extra_actions');
+            }
                       
             if( this.isCurrentPlayerActive() )
             {            
@@ -401,29 +406,28 @@ function (dojo, declare) {
             }
         },
         
-        showDice(){
-            
-
-            var itsme = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.player_id)[0]
-            //draw train on location
-            let location = JSON.parse(itsme.trainposition)
+        showDice()
+        {
+            var activePlayer = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.getActivePlayerId())[0];
             
             // show dice
             dojo.style( 'dice', 'display', 'inline-flex' );
             $('dice').innerHTML= ""
-            let die = JSON.parse(itsme['dice'])
-            console.log(die)
-            die.forEach(d =>{
-                let v = parseInt(d)-1
-                console.log(d, v)
+            dice = JSON.parse(activePlayer['dice']);
+
+            for(i=0;i<dice.length;i++)
+            {
                 dojo.place( this.format_block( 'jstpl_die', {
-                    id: d,
-                    offsetx:-80*v,
+                    id: i + '_' + (dice[i]),
+                    offsetx:-80*(dice[i]-1),
                     rotate:0
                 } ) , 'dice'); 
+            }
 
-            })
-            dojo.query('.die').connect( 'onclick', this, 'onSelectDie' );
+            if (this.isCurrentPlayerActive())
+            {
+                dojo.query('.die').connect( 'onclick', this, 'onSelectDie' );
+            }
         },
         onSelectDie(evt )
         {

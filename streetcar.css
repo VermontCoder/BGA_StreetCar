@@ -138,12 +138,14 @@
   z-index: 3;
   /* margin: 2px; */
 }
+.extra_actions
+{
+  display: block;
+}
 .dice {
-  position: absolute;
-  top: 0px;
   left: calc(50% - 200px);
   width: 400px;
-  height: 200px;
+  height: auto;
   margin: auto;
   display: none; //inline-flex;
 }
