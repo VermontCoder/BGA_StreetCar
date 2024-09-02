@@ -85,7 +85,7 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} must roll dice or end your turn.'),
 
         "type" => "activeplayer",
-        "action" => "stRollDice",
+        //"action" => "stRollDice",
         "args" => "argPlayerTurn",
         //"possibleactions" => array('rollDice'),
         "transitions" => array( "selectDie"=> 13, "nextPlayer" => 11, "zombiePass" => 11)

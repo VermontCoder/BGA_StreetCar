@@ -437,6 +437,8 @@ function (dojo, declare) {
             dojo.subscribe( 'placedTrack', this, "notif_placedTrack" );
             dojo.subscribe( 'updateRoute',this,'notif_updateRoute');
             dojo.subscribe( 'placedTrain', this, 'notif_placedTrain');
+            dojo.subscribe( 'rolledDice', this, 'notif_rolledDice');
+            dojo.subscribe( 'selectedDie', this, 'notif_selectedDie');
             //this.notifqueue.setSynchronous( 'placedTrack', 500 );
         },  
         
@@ -463,6 +465,17 @@ function (dojo, declare) {
         {
             console.log('notif_updateRoute',notif.args.player_id);
             this.scRouting.updateRoutes(notif.args.routes);
+        },
+
+        notif_rolledDice: function( notif )
+        {
+            console.log('notif_rolledDice: ',notif.args.throw);
+            alert(JSON.stringify(notif));
+        },
+
+        notif_selectedDie: function( notif )
+        {
+            console.log('notif_selectedDie', JSON.stringify(notif));
         },
 
         //Have to put stubs here to pass game object (???don't know why).

@@ -359,29 +359,20 @@ class Streetcar extends Table
         // Active next player
         $player_id = self::activeNextPlayer();
         $players = self::getPlayers();
-        foreach ($players as $player_id3 => $player) {
+        foreach ($players as $player) {
             if ($player["id"] == $player_id) {
                 if ($player['trainposition'] == NULL) 
                 {
                     $this->gamestate->nextState('placeTrack');
                 } 
                 else {
-                    // set dice for this turn
-                    $thrown = scUtility::rollDice(3);
-                    $sql = "UPDATE player SET  diceused = 0, dice = '" . json_encode(array_values($thrown)) . "' WHERE player_id = " . $player_id . ";";
-                    self::DbQuery($sql);
                     $this->gamestate->nextState('rollDice');
                 }
             }
         }
     }
 
-    function stRollDice()
-    {
-        $players = self::getPlayers();
-        $player_id = self::getActivePlayerID();
-        
-    }
+   
     //////////////////////////////////////////////////////////////////////////////
     //////////// Player actions
     //////////// 
@@ -472,6 +463,37 @@ class Streetcar extends Table
         ));
         $this->gamestate->nextState('nextPlayer');
     }
+
+    function rollDice()
+    {
+        $players = self::getPlayers();
+        $player_id = self::getActivePlayerID();
+        //get number of dice to throw
+        $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
+        $diceUsed = (int)self::getUniqueValueFromDB($sql);
+
+        $this->dump('diceUsed',$diceUsed);
+         // set dice for this turn
+        $throw = scUtility::rollDice(3-$diceUsed);
+        $sql = "UPDATE player SET dice = '" . json_encode(array_values($throw)) . "' WHERE player_id = " . $player_id . ";";
+        self::DbQuery($sql);
+
+        self::notifyAllPlayers('rolledDice', clienttranslate('${player_name} rolled dice.'), array(
+            'player_name' =>self::getActivePlayerName(),
+            'player_id' => $player_id,
+            'throw' => $throw,
+        ));
+
+        $this->gamestate->nextState('selectDie');
+    }
+
+    function selectDie()
+    {
+        
+    }
+
+    //*********************************************** */
+
     function calcRoutes($player,$stops)
     {
         $stopsLocations = scUtility::getStopsLocations($stops);

@@ -451,7 +451,7 @@ define([
         /********************************************************************************** */
         onRollDice()
         {
-            alert('Roll Dice');
+            this.game.ajaxcall( "/streetcar/streetcar/rollDice.html",{}, this.game, function( result ) {} );
         },
 
         onDoneWithTurn()
