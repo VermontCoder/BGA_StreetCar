@@ -71,6 +71,12 @@ class action_streetcar extends APP_GameAction
     self::ajaxResponse();
   }
 
+  public function doneWithTurn()
+  {
+    $result = $this->game->doneWithTurn();
+    self::ajaxResponse();
+  }
+
 /* DEPRECATED */
 
 

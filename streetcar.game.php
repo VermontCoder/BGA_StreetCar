@@ -468,6 +468,7 @@ class Streetcar extends Table
     {
         $players = self::getPlayers();
         $player_id = self::getActivePlayerID();
+
         //get number of dice to throw
         $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
         $diceUsed = (int)self::getUniqueValueFromDB($sql);
@@ -489,7 +490,21 @@ class Streetcar extends Table
 
     function selectDie()
     {
-        
+
+    }
+
+    function doneWithTurn()
+    {
+        //player has decided to end dice throwing
+        $player_id = self::getActivePlayerID();
+        $sql = "UPDATE player SET dice = NULL, diceused=0 WHERE player_id = " . $player_id . ";";
+        self::DbQuery($sql);
+        self::notifyAllPlayers('doneWithTurn', clienttranslate('${player_name} has finished their turn.'), array(
+            'player_name' =>self::getActivePlayerName(),
+        ));
+
+        //goto next player
+        $this->gamestate->nextState('nextPlayer');
     }
 
     //*********************************************** */

@@ -456,7 +456,7 @@ define([
 
         onDoneWithTurn()
         {
-            alert('Done with Turn');
+            this.game.ajaxcall( "/streetcar/streetcar/doneWithTurn.html",{}, this.game, function( result ) {} );
         },
 
     });

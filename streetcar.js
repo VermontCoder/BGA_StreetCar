@@ -136,6 +136,13 @@ function (dojo, declare) {
                     this.updatePlayers(args.args.players);
                     this.updateTracks();
                     this.updateStops();
+                      
+                    break;
+                case "selectDie":
+                    console.log('selectDie');
+                    this.updatePlayers(args.args.players);
+                    this.updateTracks();
+                    this.updateStops();
                     
                     var itsme = args.args.players.filter(p =>p.id==this.player_id)[0];     
                     break;
