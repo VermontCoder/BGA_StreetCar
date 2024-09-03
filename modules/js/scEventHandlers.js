@@ -459,5 +459,17 @@ define([
             this.game.ajaxcall( "/streetcar/streetcar/doneWithTurn.html",{}, this.game, function( result ) {} );
         },
 
+        onSelectDie(evt )
+        {
+            // Stop this event propagation
+            dojo.stopEvent( evt )
+            var coords = evt.currentTarget.id.split('_');
+            var die = parseInt(coords[2]);
+            var dieIdx = parseInt(coords[1]);
+            console.log("onSelectDie", die);
+            //dojo.style( 'dice', 'display', 'none' );
+            this.game.ajaxcall( "/streetcar/streetcar/selectDie.html",{'dieIdx':dieIdx,'die':die}, this.game, function( result ) {} );
+        },
+
     });
 });

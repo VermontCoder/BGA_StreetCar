@@ -466,9 +466,8 @@ class Streetcar extends Table
 
     function rollDice()
     {
-        $players = self::getPlayers();
         $player_id = self::getActivePlayerID();
-
+        
         //get number of dice to throw
         $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
         $diceUsed = (int)self::getUniqueValueFromDB($sql);
@@ -488,9 +487,34 @@ class Streetcar extends Table
         $this->gamestate->nextState('selectDie');
     }
 
-    function selectDie()
+    function selectDie($dieIdx,$die)
     {
+        $player_id = self::getActivePlayerID();
+        $sql = "SELECT dice FROM player WHERE player_id = " . $player_id . ";";
+        $dice= json_decode(self::getUniqueValueFromDB($sql));
 
+       
+        if ($dice[(int)$dieIdx] == (int)$die)
+        {
+            unset($dice[(int)$dieIdx]);
+        }
+        else
+        {
+            throw new BgaSystemException( "Die Selected is Not Possible." );
+        }
+
+        $sql = "UPDATE player SET dice='".json_encode(array_values($dice))."', diceused= diceUsed+1 WHERE player_id = " . $player_id . ";";
+    
+        self::DbQuery($sql);
+
+        self::notifyAllPlayers('selectedDice', clienttranslate('${player_name} selected die.'), array(
+            'player_name' =>self::getActivePlayerName(),
+            'player_id' => $player_id,
+            'dieIdx' => $dieIdx,
+            'possibleTrainMoves' => '0_0_N,2_1_W',
+        ));
+        
+        $this->gamestate->nextState('moveTrain');
     }
 
     function doneWithTurn()

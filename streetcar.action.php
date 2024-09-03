@@ -77,6 +77,15 @@ class action_streetcar extends APP_GameAction
     self::ajaxResponse();
   }
 
+  public function selectDie()
+  {
+    self::setAjaxMode();
+    $dieIdx = self::getArg("dieIdx", AT_posint,true);
+    $die = self::getArg("die", AT_posint, true );
+    $this->game->selectDie($dieIdx,$die);
+    self::ajaxResponse();
+  }
+
 /* DEPRECATED */
 
 

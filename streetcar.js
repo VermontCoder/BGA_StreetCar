@@ -211,7 +211,9 @@ function (dojo, declare) {
             if (!$('extra_actions'))
             { 
                 dojo.place("<div id='extra_actions' class='extra_actions'></div>",'generalactions');
-                dojo.place('dice','extra_actions');
+                // j = this.format_block(jstpl_dice, {});
+                // alert(JSON.stringify(j));
+                dojo.place('<div id="dice" class="dice"></div>','extra_actions');
             }
                       
             if( this.isCurrentPlayerActive() )
@@ -429,18 +431,7 @@ function (dojo, declare) {
                 dojo.query('.die').connect( 'onclick', this, 'onSelectDie' );
             }
         },
-        onSelectDie(evt )
-        {
-            var itsme = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.player_id)[0]
-
-            // Stop this event propagation
-            dojo.stopEvent( evt )
-            var coords = evt.currentTarget.id.split('_');
-            var die = parseInt(coords[1])
-            console.log("onSelectDie", die)
-            dojo.style( 'dice', 'display', 'none' );
-
-        },
+        
         
         setupNotifications: function()
         {
@@ -518,9 +509,12 @@ function (dojo, declare) {
         onDoneWithTurn()
         {
             this.scEventHandlers.onDoneWithTurn();
-        }
+        },
 
-
+        onSelectDie(evt)
+        {
+            this.scEventHandlers.onSelectDie(evt);
+        },
 
         // getTrainRotation(trainPositionNodeID)
         // {   

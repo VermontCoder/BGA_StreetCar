@@ -38,11 +38,6 @@
         <!-- END route -->        
     
     </div>
-    <div id="dice" class="dice">
-        <div class="die"></div>
-        <div class="die"></div>
-        <div class="die"></div>
-    </div>
 </div>
 <script type="text/javascript">
 
@@ -64,6 +59,8 @@ var jstpl_player_board='<div class="boardblock">\
             <div id="checktrack_${id}" class="goalcheck" >Show Route</div>\
             <div id="track_${id}" class="trackholder"></div>\
             </div>';
+            
+var jstpl_dice = '<div id="dice" class="dice"></div>';
 </script>  
 
 
