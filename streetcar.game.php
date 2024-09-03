@@ -383,6 +383,7 @@ class Streetcar extends Table
     */
     function placeTracks($r1, $x1, $y1, $c1, $directions_free1,$r2, $x2, $y2, $c2, $directions_free2, $available_cards)
     {
+        $this->checkAction( 'placeTrack' );
         //available cards comes in as a comma delimited string of numbers. Convert to array
         $available_cards = array_map('intval',explode(',',$available_cards));
         
@@ -466,6 +467,7 @@ class Streetcar extends Table
 
     function rollDice()
     {
+        $this->checkAction( 'rollDice' );
         $player_id = self::getActivePlayerID();
         
         //get number of dice to throw
@@ -489,10 +491,10 @@ class Streetcar extends Table
 
     function selectDie($dieIdx,$die)
     {
+        //$this->checkAction( 'selectDie' );
         $player_id = self::getActivePlayerID();
         $sql = "SELECT dice FROM player WHERE player_id = " . $player_id . ";";
         $dice= json_decode(self::getUniqueValueFromDB($sql));
-
        
         if ($dice[(int)$dieIdx] == (int)$die)
         {

@@ -87,7 +87,7 @@ $machinestates = array(
         "type" => "activeplayer",
         //"action" => "stRollDice",
         "args" => "argPlayerTurn",
-        //"possibleactions" => array('rollDice'),
+        "possibleactions" => array('rollDice'),
         "transitions" => array( "selectDie"=> 13, "nextPlayer" => 11, "zombiePass" => 11)
     ),
     13 => array(
@@ -98,16 +98,16 @@ $machinestates = array(
         "type" => "activeplayer",
         "args" => "argPlayerTurn",
         "possibleactions" => array('selectDie'),
-        "transitions" => array( "moveTrain"=> 14)
+        "transitions" => array( "moveTrain"=> 14),
     ),
     14 => array(
         "name" => "moveTrain",
         "description" => clienttranslate('${actplayer} moves their train.'),
         "descriptionmyturn" => clienttranslate('${you} move train.'),
 
-        "type" => "game",
+        "type" => "activeplayer",
         "args" => "argPlayerTurn",
-        "transitions" => array("rollDice" => 12, "gameEnd" => 99)
+        "transitions" => array("rollDice" => 12, "nextPlayer"=> 11, "gameEnd" => 99)
     ),
 
     /*
