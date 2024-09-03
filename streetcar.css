@@ -131,6 +131,14 @@
 {
   border: 4px solid #398904;
 }
+.selectable_train_destination_location
+{
+  border: 4px solid #398904;
+  z-index: 1000;
+  margin-top: -4px;
+  margin-left: -4px;
+}
+
 .train {
   width: 100px;
   height: 100px;
@@ -147,7 +155,7 @@
   width: 400px;
   height: auto;
   margin: auto;
-  display: none; //inline-flex;
+  display: none; 
 }
 .die {
   width: 80px;

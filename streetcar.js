@@ -95,11 +95,6 @@ function (dojo, declare) {
                 $('stops_'+l.col+"_"+l.row).innerHTML=html;
             });
             
-            //do it this way so we can later destroy the click handlers.
-            for(x=1;x<=12;x++)
-                for(y=1;y<=12;y++)
-                    this.scEventHandlers.onPlaceCardHandlers.push(dojo.connect($('square_'+x+'_'+y), 'onclick', this, 'onPlaceCard'));
-            
             dojo.query( '.goalcheck' ).connect( 'onclick', this, 'onToggleShowRoute' );
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
@@ -129,7 +124,14 @@ function (dojo, declare) {
                     this.updatePlayers(args.args.players);
                     this.updateTracks();
                     this.updateStops();
-                   
+
+                    //clear out previous clickhandlers, if they exist
+                    this.scEventHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
+                     //do it this way so we can later destroy the click handlers.
+                    for(x=1;x<=12;x++)
+                        for(y=1;y<=12;y++)
+                            this.scEventHandlers.onPlaceCardHandlers.push(dojo.connect($('square_'+x+'_'+y), 'onclick', this, 'onPlaceCard'));
+                            
                     break;
                 case "rollDice":
                     console.log('rollDice');
@@ -148,11 +150,13 @@ function (dojo, declare) {
                    
                     break;
                 case "moveTrain":
+                    console.log('moveTrain');
                     this.updatePlayers(args.args.players);
                     this.updateTracks();
                     this.updateStops();
                     
-                    var itsme = args.args.players.filter(p =>p.id==this.player_id)[0];      
+                    this.showTrainDestinations(args.args.trainMoveNodeIDs);
+                    
                     break;
 
             /* Example:
@@ -431,6 +435,23 @@ function (dojo, declare) {
                 dojo.query('.die').connect( 'onclick', this, 'onSelectDie' );
             }
         },
+
+        showTrainDestinations(trainMoveNodeIDs)
+        {
+            if (this.isCurrentPlayerActive())
+            {
+                this.trainDestinations = [];
+                trainMoveNodeIDs.forEach(nodeID => {
+                    xydNode = this.scUtility.extractXYD(nodeID);
+                    this.trainDestinations.push(xydNode); //save direction info.
+                    boardID = ('square_'+xydNode.x+'_'+xydNode.y).toString(); //string conversion needed, don't know why.
+                    
+                    handler = dojo.connect($(boardID),'onclick', this, 'onSelectTrainDestination');
+                    this.scEventHandlers.onSetTrainDestinationHandlers.push(handler);
+                    dojo.addClass(boardID,'selectable_train_destination_location');
+                }); 
+            }
+        },
         
         
         setupNotifications: function()
@@ -472,7 +493,6 @@ function (dojo, declare) {
         notif_rolledDice: function( notif )
         {
             console.log('notif_rolledDice: ',notif.args.throw);
-            alert(JSON.stringify(notif));
         },
 
         notif_selectedDie: function( notif )
@@ -515,6 +535,11 @@ function (dojo, declare) {
         {
             this.scEventHandlers.onSelectDie(evt);
         },
+
+        onSelectTrainDestination(evt)
+        {
+            this.scEventHandlers.onSelectTrainDestination(evt, this.trainDestinations);
+        }
 
         // getTrainRotation(trainPositionNodeID)
         // {   

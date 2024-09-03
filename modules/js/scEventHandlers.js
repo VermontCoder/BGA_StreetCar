@@ -12,6 +12,7 @@ define([
             this.nesw = this.game.nesw;
             this.onPlaceCardHandlers = [];
             this.onPlaceTrainHandlers = [];
+            this.onSetTrainDestinationHandlers = [];
         },
 
 
@@ -470,6 +471,11 @@ define([
             //dojo.style( 'dice', 'display', 'none' );
             this.game.ajaxcall( "/streetcar/streetcar/selectDie.html",{'dieIdx':dieIdx,'die':die}, this.game, function( result ) {} );
         },
+
+        onSelectTrainDestination(evt, destinationNode)
+        {
+            alert('ghhghg');
+        }
 
     });
 });

@@ -337,8 +337,8 @@ class Streetcar extends Table
         
     }
 
-    function argPlayerTurn()
-    {   
+    function getDataToClient()
+    {
         $this->cGraph = new scConnectivityGraph($this);
         $stops =  self::getStops();
         $players = self::getPlayers();
@@ -352,6 +352,19 @@ class Streetcar extends Table
             'stack' => self::getStack(),
             'connectivityGraph'=> $this->cGraph->connectivityGraph,
         );
+    }
+    function argPlayerTurn()
+    {   
+        return $this->getDataToClient();
+    }
+
+    function argMoveTrain()
+    {
+        $retArray =$this->getDataToClient();
+
+        //TO DO - return legit locations for train to move to.
+        $retArray['trainMoveNodeIDs'] = ['2_2_N'];
+        return $retArray;
     }
 
     function stNextPlayer()
@@ -491,7 +504,7 @@ class Streetcar extends Table
 
     function selectDie($dieIdx,$die)
     {
-        //$this->checkAction( 'selectDie' );
+        $this->checkAction( 'selectDie' );
         $player_id = self::getActivePlayerID();
         $sql = "SELECT dice FROM player WHERE player_id = " . $player_id . ";";
         $dice= json_decode(self::getUniqueValueFromDB($sql));
@@ -509,7 +522,7 @@ class Streetcar extends Table
     
         self::DbQuery($sql);
 
-        self::notifyAllPlayers('selectedDice', clienttranslate('${player_name} selected die.'), array(
+        self::notifyAllPlayers('selectedDie', clienttranslate('${player_name} selected die.'), array(
             'player_name' =>self::getActivePlayerName(),
             'player_id' => $player_id,
             'dieIdx' => $dieIdx,

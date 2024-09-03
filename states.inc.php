@@ -103,10 +103,10 @@ $machinestates = array(
     14 => array(
         "name" => "moveTrain",
         "description" => clienttranslate('${actplayer} moves their train.'),
-        "descriptionmyturn" => clienttranslate('${you} move train.'),
+        "descriptionmyturn" => clienttranslate('${you} must move your train.'),
 
         "type" => "activeplayer",
-        "args" => "argPlayerTurn",
+        "args" => "argMoveTrain",
         "transitions" => array("rollDice" => 12, "nextPlayer"=> 11, "gameEnd" => 99)
     ),
 

@@ -173,9 +173,9 @@ INSERT INTO `board` (`board_x`, `board_y`, `directions_free`, `stop`, `card`, `r
 (13, 11, 'NW', NULL, 1, 90);
 
 INSERT INTO `player` (`player_no`, `player_id`, `player_canal`, `player_name`, `player_avatar`, `player_color`, `player_score`, `player_score_aux`, `player_zombie`, `player_ai`, `player_eliminated`, `player_next_notif_no`, `player_enter_game`, `player_over_time`, `player_is_multiactive`, `player_start_reflexion_time`, `player_remaining_reflexion_time`, `player_beginner`, `player_state`, `available_cards`, `linenum`, `goals`, `trainposition`, `traindirection`,`endnodeids`, `dice`, `diceused`) VALUES
-(1, 2383265, 'e1125f02eb659cab4641608dd4f02ed8', 'FindYodaWinCash1', '000000', 'ff0000', 0, 0, 0, 0, 0, 1, 1, 1, 0, NULL, -124, 0xffffffffffffffffffffffffffffffff, NULL, '[1,5,4,0,1]', 1, 1, NULL,  NULL,NULL, 0),
-(2, 2383268, '01b19d9441c935b9b0a242d23a4086ff', 'FindYodaWinCash4', '000000', '008000', 0, 0, 0, 0, 0, 1, 1, 1, 0, NULL, -20, 0xffffffffffffffffffffffffffffffff, NULL, '[0,0,0,5,0]', 6, 5, NULL,  NULL,NULL, 0),
-(3, 2383264, '95f682f784c45c42d62c187b8cc86d01', 'FindYodaWinCash0', '000000', '0000ff', 0, 0, 0, 0, 0, 1, 1, 1, 0, NULL, -310, 0xffffffffffffffffffffffffffffffff, NULL, '[1,10,1,0,1]', 4, 3, NULL,  NULL,NULL, 0),
-(4, 2383267, '9ecc8a0738ddb715b34c5baca0c013d7', 'FindYodaWinCash3', '000000', 'ffa500', 0, 0, 0, 0, 0, 1, 1, 1, 0, NULL, -152, 0xffffffffffffffffffffffffffffffff, NULL, '[0,0,0,1,0]', 2, 4, NULL,  NULL,NULL, 0),
+(1, 2383265, 'e1125f02eb659cab4641608dd4f02ed8', 'FindYodaWinCash1', '000000', 'ff0000', 0, 0, 0, 0, 0, 1, 1, 1, 0, NULL, -124, 0xffffffffffffffffffffffffffffffff, NULL, '[1,5,4,0,1]', 1, 1, NULL, NULL,  NULL,NULL, 0),
+(2, 2383268, '01b19d9441c935b9b0a242d23a4086ff', 'FindYodaWinCash4', '000000', '008000', 0, 0, 0, 0, 0, 1, 1, 1, 0, NULL, -20, 0xffffffffffffffffffffffffffffffff, NULL, '[0,0,0,5,0]', 6, 5, NULL, NULL,  NULL,NULL, 0),
+(3, 2383264, '95f682f784c45c42d62c187b8cc86d01', 'FindYodaWinCash0', '000000', '0000ff', 0, 0, 0, 0, 0, 1, 1, 1, 0, NULL, -310, 0xffffffffffffffffffffffffffffffff, NULL, '[1,10,1,0,1]', 4, 3, NULL, NULL,  NULL,NULL, 0),
+(4, 2383267, '9ecc8a0738ddb715b34c5baca0c013d7', 'FindYodaWinCash3', '000000', 'ffa500', 0, 0, 0, 0, 0, 1, 1, 1, 0, NULL, -152, 0xffffffffffffffffffffffffffffffff, NULL, '[0,0,0,1,0]', 2, 4, NULL,NULL,  NULL,NULL, 0),
 (5, 2383266, '540f880951f8543c349a30698aca21e8', 'FindYodaWinCash2', '000000', '773300', 0, 0, 0, 0, 0, 1, 1, 1, 0, '2024-08-20 20:34:10', -46, 0xffffffffffffffffffffffffffffffff, NULL, '[0,1,6,9,6]', 3, 2, NULL,  NULL,NULL, 0);
 
