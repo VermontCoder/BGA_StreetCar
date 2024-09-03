@@ -477,14 +477,21 @@ define([
         /********************************************************************************** */
         onSelectTrainDestination(evt, destinationNode)
         {
+            //remove highlighting & clickability
+            dojo.query(".selectable_train_destination_location").removeClass('selectable_train_destination_location');
+            this.onSetTrainDestinationHandlers.forEach(dojo.disconnect);
+            
             alert('ghhghg');
         },
 
         onChooseDifferentDie()
         {
+            //remove highlighting & clickability
+            dojo.query(".selectable_train_destination_location").removeClass('selectable_train_destination_location');
+            this.onSetTrainDestinationHandlers.forEach(dojo.disconnect);
+            
             this.game.ajaxcall( "/streetcar/streetcar/chooseDifferentDie.html",{}, this.game, function( result ) {} );
         }
-
 
     });
 });

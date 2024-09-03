@@ -39,6 +39,7 @@ class Streetcar extends Table
 
         self::initGameStateLabels(array(
             "stackindex" => 10,
+            "curDie" => 11, //only used to undo die selection 
 
             //    "my_first_global_variable" => 10,
             //    "my_second_global_variable" => 11,
@@ -70,6 +71,7 @@ class Streetcar extends Table
         $gameinfos = self::getGameinfos();
         $default_colors = $gameinfos['player_colors'];
         self::setGameStateInitialValue('stackindex', 0);
+        self::setGameStateInitialValue('curDie',0);
 
         $allcards = array();
         for ($i = 0; $i < 21; $i++) {
@@ -525,16 +527,28 @@ class Streetcar extends Table
         self::notifyAllPlayers('selectedDie', clienttranslate('${player_name} selected die.'), array(
             'player_name' =>self::getActivePlayerName(),
             'player_id' => $player_id,
-            'dieIdx' => $dieIdx,
+            'die' => $die,
             'possibleTrainMoves' => '0_0_N,2_1_W',
         ));
         
+        self::setGameStateValue('curDie',$die);
         $this->gamestate->nextState('moveTrain');
     }
 
     function chooseDifferentDie()
     {
+        //put die back.
         $this->checkAction('chooseDifferentDie');
+
+        $player_id = self::getActivePlayerID();
+        $sql = "SELECT dice FROM player WHERE player_id = " . $player_id . ";";
+        
+        $dice= json_decode(self::getUniqueValueFromDB($sql));
+        $dice[] = intval(self::getGameStateValue('curDie'));;
+
+        $sql = "UPDATE player SET dice='".json_encode(array_values($dice))."', diceused= diceUsed-1 WHERE player_id = " . $player_id . ";";
+        self::DbQuery($sql);
+        
         $this->gamestate->nextState('selectDie');
     }
 
