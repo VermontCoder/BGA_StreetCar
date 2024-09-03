@@ -532,9 +532,16 @@ class Streetcar extends Table
         $this->gamestate->nextState('moveTrain');
     }
 
+    function chooseDifferentDie()
+    {
+        $this->checkAction('chooseDifferentDie');
+        $this->gamestate->nextState('selectDie');
+    }
+
     function doneWithTurn()
     {
         //player has decided to end dice throwing
+        $this->checkAction(('doneWithTurn'));
         $player_id = self::getActivePlayerID();
         $sql = "UPDATE player SET dice = NULL, diceused=0 WHERE player_id = " . $player_id . ";";
         self::DbQuery($sql);

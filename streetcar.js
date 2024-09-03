@@ -231,11 +231,13 @@ function (dojo, declare) {
                         }
                         break;
                     case 'rollDice':
+                        //These buttons just move us into next state.
                         this.addActionButton( 'roll_dice_button', _('Roll Dice'), 'onRollDice');
                         this.addActionButton( 'done_with_turn_button', _('Done With Turn'), 'onDoneWithTurn');
-                        //These buttons just move us into next state.
                         
                         break;
+                    case 'moveTrain':
+                        this.addActionButton( 'choose_different_die', _('Choose a different die'), 'onChooseDifferentDie')
                 }
             }
         },
@@ -536,10 +538,16 @@ function (dojo, declare) {
             this.scEventHandlers.onSelectDie(evt);
         },
 
+        onChooseDifferentDie()
+        {
+            //send back to select die state.
+            this.scEventHandlers.onChooseDifferentDie();
+        },
+
         onSelectTrainDestination(evt)
         {
             this.scEventHandlers.onSelectTrainDestination(evt, this.trainDestinations);
-        }
+        },
 
         // getTrainRotation(trainPositionNodeID)
         // {   

@@ -472,10 +472,19 @@ define([
             this.game.ajaxcall( "/streetcar/streetcar/selectDie.html",{'dieIdx':dieIdx,'die':die}, this.game, function( result ) {} );
         },
 
+        /*********************************************************************************** */
+        /*             TRAIN DESTINATION                                                        */
+        /********************************************************************************** */
         onSelectTrainDestination(evt, destinationNode)
         {
             alert('ghhghg');
+        },
+
+        onChooseDifferentDie()
+        {
+            this.game.ajaxcall( "/streetcar/streetcar/chooseDifferentDie.html",{}, this.game, function( result ) {} );
         }
+
 
     });
 });

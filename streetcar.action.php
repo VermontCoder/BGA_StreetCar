@@ -86,6 +86,12 @@ class action_streetcar extends APP_GameAction
     self::ajaxResponse();
   }
 
+  public function chooseDifferentDie()
+  {
+    $result = $this->game->chooseDifferentDie();
+    self::ajaxResponse();
+  }
+
 /* DEPRECATED */
 
 
