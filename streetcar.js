@@ -318,7 +318,7 @@ function (dojo, declare) {
             
             dojo.destroy("train_"+player_id);
             dojo.place( this.format_block( 'jstpl_train', {
-                id: "train_"+player_id,
+                id: player_id,
                 offsetx:(-100)*(parseInt(linenum)-1),
                 rotate: rotation,
             } ) , tileID);
@@ -464,6 +464,7 @@ function (dojo, declare) {
             dojo.subscribe( 'placedTrain', this, 'notif_placedTrain');
             dojo.subscribe( 'rolledDice', this, 'notif_rolledDice');
             dojo.subscribe( 'selectedDie', this, 'notif_selectedDie');
+            dojo.subscribe( 'moveTrain', this, 'notif_moveTrain');
             //this.notifqueue.setSynchronous( 'placedTrack', 500 );
         },  
         
@@ -501,6 +502,13 @@ function (dojo, declare) {
         {
             console.log('notif_selectedDie', JSON.stringify(notif));
             this.showTrainDestinations(notif.args.possibleTrainMoves);
+        },
+
+        notif_moveTrain : function( notif )
+        {
+            console.log('notif_moveTrain', JSON.stringify(notif));
+
+            this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.nodeID, notif.args.traindirection);
         },
 
         //Have to put stubs here to pass game object (???don't know why).

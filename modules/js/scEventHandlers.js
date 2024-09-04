@@ -478,13 +478,26 @@ define([
         /*********************************************************************************** */
         /*             TRAIN DESTINATION                                                        */
         /********************************************************************************** */
-        onSelectTrainDestination(evt, destinationNode)
+        onSelectTrainDestination(evt, destinationNodes)
         {
+            destinationNode = null;
+            for (i=0; i < destinationNodes.length; i++)
+            {
+                xyTarget = this.scUtility.extractXY(evt.currentTarget.id);
+                xyNode = destinationNodes[i];
+                if ((xyTarget.x == xyNode.x) && (xyTarget.y == xyNode.y))
+                {
+                    destinationNode = this.scUtility.XYDtoKey(destinationNodes[i]);
+                    break;
+                }
+            }
+            //determine which destinationNode was clicked on
+            
             //remove highlighting & clickability
             dojo.query(".selectable_train_destination_location").removeClass('selectable_train_destination_location');
             this.onSetTrainDestinationHandlers.forEach(dojo.disconnect);
             
-            alert('ghhghg');
+            this.game.ajaxcall( "/streetcar/streetcar/selectTrainDestination.html",{'destinationNode':destinationNode}, this.game, function( result ) {} );
         },
 
         onChooseDifferentDie()

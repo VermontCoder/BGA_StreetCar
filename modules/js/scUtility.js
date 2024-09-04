@@ -42,75 +42,7 @@ return declare("bgagame.scUtility", null, {
                 case "W": return 270;
             }
         },
-        // /**
-        //  * As border tiles are a special case, we need to do this here.
-        //  * Looking to deprecate!!!
-        //  * @param {Int} xcheck 
-        //  * @param {Int} ycheck 
-        //  * @returns 
-        //  */
-        // borderTracksDirections_free(xcheck, ycheck)
-        // {
-        //     if(ycheck==0){
-        //         if([2,6,10].indexOf(xcheck)!=-1)
-        //         {
-        //             return 'SE';
-        //         }
-        //         else if([3,7,11].indexOf(xcheck)!=-1)
-        //         {
-        //             return 'Sw';
-        //         } 
-        //         else 
-        //         {
-        //             return 'EW';
-        //         }
-        //     }
 
-        //     if(ycheck==13){
-        //         if([2,6,10].indexOf(xcheck)!=-1)
-        //         {
-        //             return 'NE';
-        //         }
-        //         else if([3,7,11].indexOf(xcheck)!=-1)
-        //         {
-        //             return 'NW';
-        //         } 
-        //         else 
-        //         {
-        //             return 'EW';
-        //         }
-        //     }
-
-        //     if(xcheck==0){
-        //         if([2,6,10].indexOf(ycheck)!=-1)
-        //         {
-        //             return 'SE';
-        //         }
-        //         else if ([3,7,11].indexOf(ycheck)!=-1)
-        //         {
-        //             return 'NE';
-        //         } 
-        //         else 
-        //         {
-        //             return 'NS'
-        //         }
-        //     }
-        //     if(xcheck==13){
-        //         if([2,6,10].indexOf(ycheck)!=-1)
-        //         {
-        //             return 'SW';
-        //         }
-        //         else if ([3,7,11].indexOf(ycheck)!=-1)
-        //         {
-        //             return 'NW';
-        //         } 
-        //         else 
-        //         {
-        //             return 'NS'
-        //         }
-        //     }
-        //     return '[]';
-        // },
 
         /**
          * The first placed track id is _0, the other _1
@@ -147,6 +79,17 @@ return declare("bgagame.scUtility", null, {
                 'd': splitNodeID[2],
             };
         },
+
+        /**
+         * From data get nodeID
+         * @param {x: xCoord, y: yCoord, d: NESW} nodeData
+         * @returns {String} nodeID
+         */
+        XYDtoKey(nodeData)
+        {
+            return nodeData.x +'_'+nodeData.y+'_'+nodeData.d;
+        },
+
         /**
          * Use this for squares or stops
          * @param {String} nodeID 
@@ -161,5 +104,7 @@ return declare("bgagame.scUtility", null, {
                 'y': parseInt(splitNodeID[2]),
             };
         },
+
+
     });
 });

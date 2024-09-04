@@ -576,6 +576,45 @@ class Streetcar extends Table
         $this->gamestate->nextState('nextPlayer');
     }
 
+    function selectTrainDestination($destinationNode)
+    {
+        $this->checkAction(('selectTrainDestination'));
+        $player_id = self::getActivePlayerID();
+
+        //what line number is this?
+        $sql = "SELECT linenum FROM player WHERE player_id = " . $player_id . ";";
+        $linenum= self::getUniqueValueFromDB($sql);
+
+        //worry about direction later
+        $direction = 'N';
+        $sql = "UPDATE player set trainposition='".$destinationNode."', traindirection='".$direction."' WHERE player_id = ".$player_id . ";";
+        self::DbQuery($sql);
+
+        self::notifyAllPlayers('moveTrain', clienttranslate('${player_name} has moved their train.'), array(
+            'player_name' =>self::getActivePlayerName(),
+            'player_id' => $player_id,
+            'nodeID' => $destinationNode,
+            'traindirection' => $direction,
+            'linenum' => $linenum
+        ));
+
+        //TODO - check for win condition!!!!
+
+        ///
+
+        $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
+        $diceUsed= (int)self::getUniqueValueFromDB($sql);
+
+        if ($diceUsed == 3)
+        {
+            $this->doneWithTurn();
+        }
+        else
+        {
+            $this->gamestate->nextState('rollDice');
+        }
+    }
+
     //*********************************************** */
 
     function calcRoutes($player,$stops)

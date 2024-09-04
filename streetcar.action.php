@@ -92,6 +92,13 @@ class action_streetcar extends APP_GameAction
     self::ajaxResponse();
   }
 
+  public function selectTrainDestination()
+  {
+    $destinationNode = self::getArg("destinationNode",AT_alphanum, true);
+    $this->game->selectTrainDestination($destinationNode);
+    self::ajaxResponse();
+  }
+
 /* DEPRECATED */
 
 
