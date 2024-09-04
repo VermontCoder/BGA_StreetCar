@@ -4,13 +4,14 @@
 class scUtility
 {
   public static $NESW = ['N','E','S','W'];
+  public static $unplayableIDs = [];
   
   /**
    * @param string $direction NSEW
    * @return string returns direction opposite $direction parameter.
    */
   
-   public static function get180($direction)
+  public static function get180($direction)
   {
       switch($direction)
       {
@@ -21,10 +22,10 @@ class scUtility
       }
   }
 
-   /**
-   * @param string $direction NSEW
-   * @return integer returns degrees version of $direction parameter.
-   */
+  /**
+  * @param string $direction NSEW
+  * @return integer returns degrees version of $direction parameter.
+  */
   public static function getDegrees($direction)
   {
     switch($direction)
@@ -106,5 +107,52 @@ class scUtility
     }
 
     return $thrown;
+  }
+
+  /**
+   * Determines if a coordinate lands in the unplayable border area.
+   * @param integer $x
+   * @param integer $y
+   * @param mixed $game this from game.php
+   */
+  public static function isUnplayable($x, $y, $game)
+  {
+    //so we don't recalculate over and over, just figure this out once.
+    if (count(scUtility::$unplayableIDs) == 0)
+    {
+      scUtility::initializeUnplayableIDs($game);
+    }
+
+    if ($x < 0 || $x >13 || $y < 0 || $y > 13) return true;
+    $game->dump('unplayable: ',scUtility::$unplayableIDs);
+
+    return isset(scUtility::$unplayableIDs[scUtility::xy2key($x,$y)]);
+  }
+
+  //** Creates a key => true list where the key is $x.'_'.$y for unplayable locations */
+  private static function initializeUnplayableIDs($game)
+  {
+    //use the game->routeEndPoints to construct this list from edge tiles that don't have an endpoint.
+    $playableIDs = [];
+    foreach($game->routeEndPoints as $startAndEndPoints)
+      foreach($startAndEndPoints as $listsOfEndPoints)
+        foreach($listsOfEndPoints as $listOfEndPoints)
+          foreach($listOfEndPoints as $endPoint)
+          {
+            $xy = scUtility::key2xy($endPoint);
+            $playableIDs[scUtility::xy2key($xy['x'],$xy['y'])]=true;
+          }
+
+    for($x=0; $x <= 13; $x++)
+        for($y=0;$y <= 13; $y++)
+        {
+          if($x==0 || $y==0 || $x == 13 || $y==13)
+          {
+            if (!isset($playableIDs[scUtility::xy2key($x,$y)]))
+            {
+              scUtility::$unplayableIDs[scUtility::xy2key($x,$y)]=true;
+            }
+          }
+        }
   }
 }

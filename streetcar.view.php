@@ -39,7 +39,6 @@ class view_streetcar_streetcar extends game_view
     {
         // Get players & players number
         $players = $this->game->loadPlayersBasicInfos();
-        $players_nbr = count($players);
 
         $this->page->begin_block("streetcar_streetcar", "board");
 
@@ -47,8 +46,8 @@ class view_streetcar_streetcar extends game_view
         $ver_scale = 100.25;
         $offset = 142;
         $offsetv = 146;
-        for ($x = 1; $x <= 12; $x++) {
-            for ($y = 1; $y <= 12; $y++) {
+        for ($x = 0; $x <= 13; $x++) {
+            for ($y = 0; $y <= 13; $y++) {
                 $this->page->insert_block("board", array(
                     'X' => $x,
                     'Y' => $y,
@@ -58,23 +57,23 @@ class view_streetcar_streetcar extends game_view
             }
         }
 
-        $this->page->begin_block("streetcar_streetcar", "route");
+        // $this->page->begin_block("streetcar_streetcar", "route");
 
-        for ($x = 0; $x <= 13; $x++) {
-            for ($y = 0; $y <= 13; $y++) 
-            {
-                //only insert around edge of board
-                if ($x==0 || $x==13 || $y==0 || $y==13)
-                {
-                    $this->page->insert_block("route", array(
-                        'X' => $x,
-                        'Y' => $y,
-                        'LEFT' => round(($x - 1) * $hor_scale) + $offset,
-                        'TOP' => round(($y - 1) * $ver_scale) + $offsetv
-                    ));
-                }
-            }
-        }
+        // for ($x = 0; $x <= 13; $x++) {
+        //     for ($y = 0; $y <= 13; $y++) 
+        //     {
+        //         //only insert around edge of board
+        //         if ($x==0 || $x==13 || $y==0 || $y==13)
+        //         {
+        //             $this->page->insert_block("route", array(
+        //                 'X' => $x,
+        //                 'Y' => $y,
+        //                 'LEFT' => round(($x - 1) * $hor_scale) + $offset,
+        //                 'TOP' => round(($y - 1) * $ver_scale) + $offsetv
+        //             ));
+        //         }
+        //     }
+        // }
 
         /*
         

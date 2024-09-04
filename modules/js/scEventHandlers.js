@@ -43,7 +43,7 @@ define([
             // Stop this event propagation
             dojo.stopEvent( evt );
             
-            if( this.game.checkAction( 'playTrack' ))
+            if( this.game.checkAction( 'placeTrack' ))
             {
                 if(this.game.selectedTrack==-1){
                     this.game.showMessage( _("Select track part you want to place."), 'error');	
@@ -312,7 +312,8 @@ define([
                         break;
                 }
 
-                
+                trackcheck = this.game.gamedatas.gamestate.args.board[xcheck ][ycheck];
+
                 if(directions_free.indexOf(direction)!=-1)
                 {
                     //check for a stop
@@ -321,19 +322,21 @@ define([
                         badDirections.push(direction);
                         return; //acts like a "continue"
                     }
+
+                    //check for invalid border square
+                    if (trackcheck == 'X')
+                    {
+                        badDirections.push(direction);
+                        return;
+                    }
                 }
 
-                trackcheck = '[]';
-                if(xcheck>=1 && xcheck<=12 && ycheck>=1 && ycheck<=12){
-                    //check for empty square in this direction
-                    trackcheck = this.game.gamedatas.gamestate.args.board[xcheck ][ycheck];
-                    if (trackcheck == '[]')
-                        //direction is good, empty square
-                        return; //acts like a "continue"
-                } else {
-                    trackcheck = this.scUtility.borderTracksDirections_free(xcheck, ycheck);
-                }
-
+                //check for empty square in this direction
+                if (trackcheck == '[]')
+                    //direction is good, empty square
+                    return; //acts like a "continue"
+                
+                
                 //180 degree rotation - if we are looking North from the selected, this will look south from the north track.
                 directionFromTrackcheck = this.nesw[(this.nesw.indexOf(direction)+2)%4];
 
@@ -373,8 +376,8 @@ define([
             xyStart = this.scUtility.extractXYD(this.game.scRouting.curRoute.startNodeID);
             xyEnd = this.scUtility.extractXYD(this.game.scRouting.curRoute.endNodeID);
             
-            xyStartSquareID = 'route_'+xyStart.x + '_'+xyStart.y;
-            xyEndSquareID = 'route_'+xyEnd.x + '_'+xyEnd.y;
+            xyStartSquareID = 'square_'+xyStart.x + '_'+xyStart.y;
+            xyEndSquareID = 'square_'+xyEnd.x + '_'+xyEnd.y;
             
             //save handlers to be removed after they click.
             this.onPlaceTrainHandlers.push(dojo.connect($(xyStartSquareID), 'onclick', this, 'onPlaceTrain' ));

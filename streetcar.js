@@ -130,7 +130,10 @@ function (dojo, declare) {
                      //do it this way so we can later destroy the click handlers.
                     for(x=1;x<=12;x++)
                         for(y=1;y<=12;y++)
+                        { 
                             this.scEventHandlers.onPlaceCardHandlers.push(dojo.connect($('square_'+x+'_'+y), 'onclick', this, 'onPlaceCard'));
+                        }
+                            
                             
                     break;
                 case "rollDice":
@@ -154,8 +157,6 @@ function (dojo, declare) {
                     this.updatePlayers(args.args.players);
                     this.updateTracks();
                     this.updateStops();
-                    
-                    this.showTrainDestinations(args.args.trainMoveNodeIDs);
                     
                     break;
 
@@ -311,10 +312,9 @@ function (dojo, declare) {
 
             trainXYD = this.scUtility.extractXYD(nodeID);
             
-            //if this is a border place those are denoted by route_, otherwise its a square_
-            tileID = this.scUtility.validCoordinates(trainXYD.y,trainXYD.x) ? 'square_'+trainXYD.x+"_"+trainXYD.y : 'route_'+trainXYD.x+"_"+trainXYD.y;
+            tileID = 'square_'+trainXYD.x+"_"+trainXYD.y;
             rotation = this.scUtility.getRotationFromDirection(traindirection);
-            console.log ('Params','linenum: '+linenum+'\nplayer_id: ' + player_id+'\ntileID:'+tileID+'\ndirection:'+traindirection+'\nrotation:'+rotation);
+            //console.log ('Params','linenum: '+linenum+'\nplayer_id: ' + player_id+'\ntileID:'+tileID+'\ndirection:'+traindirection+'\nrotation:'+rotation);
             
             dojo.destroy("train_"+player_id);
             dojo.place( this.format_block( 'jstpl_train', {
@@ -500,6 +500,7 @@ function (dojo, declare) {
         notif_selectedDie: function( notif )
         {
             console.log('notif_selectedDie', JSON.stringify(notif));
+            this.showTrainDestinations(notif.args.possibleTrainMoves);
         },
 
         //Have to put stubs here to pass game object (???don't know why).

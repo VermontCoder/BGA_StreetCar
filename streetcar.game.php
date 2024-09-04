@@ -144,14 +144,25 @@ class Streetcar extends Table
         $sql = "INSERT INTO board (board_x,board_y,directions_free) VALUES ";
         $sql_values = array();
 
-        for ($x = 1; $x <= 12; $x++) {
-            for ($y = 1; $y <= 12; $y++) {
-                $sql_values[] = "('$x','$y','[]')";
+       
+        for ($x = 0; $x <= 13; $x++) {
+            for ($y = 0; $y <= 13; $y++) 
+            {
+                if (scUtility::isUnplayable($x,$y,$this))
+                {
+                    $sql_values[] = "('$x','$y','X')";
+                }
+                else if (($x != 0) && ($y != 0) && ($x !=13) && ($y !=13))
+                {
+                    $sql_values[] = "('$x','$y','[]')";
+                }
             }
         }
+        $this->dump('unplayable: ',scUtility::$unplayableIDs);
         $sql .= implode(',', $sql_values);
         self::DbQuery($sql);
-        // add border
+        
+        // add border tracks.
         $sql = "INSERT INTO board (board_x,board_y,directions_free,card,rotation) VALUES ";
         $sql_values = array();
 
@@ -186,6 +197,7 @@ class Streetcar extends Table
 
         $sql .= implode(',', $sql_values);
         self::DbQuery($sql);
+
 
         self::reattributeColorsBasedOnPreferences($players, $gameinfos['player_colors']);
         self::reloadPlayersBasicInfos();
@@ -318,7 +330,7 @@ class Streetcar extends Table
      */
     function getRoute($player,$stopsLocations)
     {
-        $routeFinder = new scRouteFinder($this->cGraph,$this);
+        $routeFinder = new scRouteFinder($this->cGraph);
 
         $goalsAndLocations = [];
            
@@ -344,6 +356,8 @@ class Streetcar extends Table
         $this->cGraph = new scConnectivityGraph($this);
         $stops =  self::getStops();
         $players = self::getPlayers();
+
+        scUtility::isUnplayable(0,0,$this);
        
         return array(
             'players' => $players,
@@ -364,8 +378,7 @@ class Streetcar extends Table
     {
         $retArray =$this->getDataToClient();
 
-        //TO DO - return legit locations for train to move to.
-        $retArray['trainMoveNodeIDs'] = ['2_2_N'];
+        
         return $retArray;
     }
 
@@ -436,7 +449,6 @@ class Streetcar extends Table
 
         //goto next player
         $this->gamestate->nextState('nextPlayer');
-        
     }
 
     function placeTrain($linenum,$trainStartNodeID,$trainEndNodeID)
@@ -456,8 +468,6 @@ class Streetcar extends Table
         //save the two endpoints as string with comma separator.
         $trainEndNodeIDs = '';
         
-        // $this->dump('trainEndNode',$trainEndNodeID);
-        // $this->dump('endponts',$this->routeEndPoints[((int)$linenum)]);
         $nodes = $this->routeEndPoints[((int)$linenum)]['end'];
         if ($nodes[0][0] == $trainEndNodeID) { $trainEndNodeIDs= $trainEndNodeID.','.$nodes[0][1]; }
         if ($nodes[0][1] == $trainEndNodeID) { $trainEndNodeIDs = $trainEndNodeID.','.$nodes[0][0]; }
@@ -489,7 +499,6 @@ class Streetcar extends Table
         $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
         $diceUsed = (int)self::getUniqueValueFromDB($sql);
 
-        $this->dump('diceUsed',$diceUsed);
          // set dice for this turn
         $throw = scUtility::rollDice(3-$diceUsed);
         $sql = "UPDATE player SET dice = '" . json_encode(array_values($throw)) . "' WHERE player_id = " . $player_id . ";";
@@ -528,7 +537,7 @@ class Streetcar extends Table
             'player_name' =>self::getActivePlayerName(),
             'player_id' => $player_id,
             'die' => $die,
-            'possibleTrainMoves' => '0_0_N,2_1_W',
+            'possibleTrainMoves' => ['0_0_N','2_1_W'],
         ));
         
         self::setGameStateValue('curDie',$die);
@@ -594,7 +603,8 @@ class Streetcar extends Table
 
         $stackindex =  intval(self::getGameStateValue('stackindex'));
         $stack = self::getStack();
-        // $this->dump( "stack:", $stack ); 
+        
+
         for ($i = 0; $i < $numNewCards; $i++) 
         {
             $card = array_shift($stack); 

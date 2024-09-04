@@ -11,12 +11,10 @@ require_once('scRoute.php');
 class scRouteFinder
 {
     public $connectivityGraph;
-    private $game;
     
-    function __construct($connectivityGraph,$game) 
+    function __construct($connectivityGraph) 
     {
         $this->connectivityGraph = $connectivityGraph;
-        $this->game = $game;
     }
 
     /**

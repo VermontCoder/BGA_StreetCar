@@ -32,11 +32,6 @@
                 </div>
             </div>
         <!-- END board -->
-        <!-- BEGIN route -->
-            <div id="route_{X}_{Y}" class="route" style="left: {LEFT}px; top: {TOP}px;">
-            </div>
-        <!-- END route -->        
-    
     </div>
 </div>
 <script type="text/javascript">
