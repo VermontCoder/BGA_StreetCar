@@ -24,6 +24,9 @@ require_once('modules/php/scRouteFinder.php');
 require_once('modules/php/scRoute.php');
 require_once('modules/php/scUtility.php');
 
+const STACK_INDEX = "stackIndex";
+const CUR_DIE = "curDie"; //only used to undo die selection 
+const CUR_SELECTED_TRAIN_DESTINATIONS = "curSelectedTrainDestinations"; //used to remember possible destinations as a result of a die roll
 
 class Streetcar extends Table
 {
@@ -38,9 +41,7 @@ class Streetcar extends Table
         parent::__construct();
 
         self::initGameStateLabels(array(
-            "stackindex" => 10,
-            "curDie" => 11, //only used to undo die selection 
-
+             
             //    "my_first_global_variable" => 10,
             //    "my_second_global_variable" => 11,
             //      ...
@@ -70,8 +71,12 @@ class Streetcar extends Table
         // The number of colors defined here must correspond to the maximum number of players allowed for the gams
         $gameinfos = self::getGameinfos();
         $default_colors = $gameinfos['player_colors'];
-        self::setGameStateInitialValue('stackindex', 0);
-        self::setGameStateInitialValue('curDie',0);
+        
+        $this->globals->set(STACK_INDEX, 0);
+        $this->globals->set(CUR_DIE, null);
+        $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, null);
+
+        
 
         $allcards = array();
         for ($i = 0; $i < 21; $i++) {
@@ -245,7 +250,7 @@ class Streetcar extends Table
         $result['goals'] = $this->goals;
         $result['routeEndPoints'] = $this->routeEndPoints;
         $result['routes'] = $this->calcRoutes($result['players'][$current_player_id],$this->getStops());//these stops are stops located on the board.
-        
+        $result['curSelectedTrainDestinations'] = $this->globals->get(CUR_SELECTED_TRAIN_DESTINATIONS);
 
         //$this->dump('Stack: ',self::getStack());
         // $result['connectivityGraph'] = $this->cGraph->connectivityGraph;
@@ -510,6 +515,9 @@ class Streetcar extends Table
             'throw' => $throw,
         ));
 
+        //if this is after a dice roll, we need to clear out the previous selections for train destination.
+        $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, null);
+
         $this->gamestate->nextState('selectDie');
     }
 
@@ -533,14 +541,19 @@ class Streetcar extends Table
     
         self::DbQuery($sql);
 
+        //TO DO - get possible moves for this dice selection. For now, stub it out.
+
+        $possibleTrainMoves = ['0_0_N','2_1_W'];
+        $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, $possibleTrainMoves);
+
         self::notifyAllPlayers('selectedDie', clienttranslate('${player_name} selected die.'), array(
             'player_name' =>self::getActivePlayerName(),
             'player_id' => $player_id,
             'die' => $die,
-            'possibleTrainMoves' => ['0_0_N','2_1_W'],
+            'possibleTrainMoves' => $possibleTrainMoves,
         ));
         
-        self::setGameStateValue('curDie',$die);
+        $this->globals->set(CUR_DIE,(int)$die);
         $this->gamestate->nextState('moveTrain');
     }
 
@@ -553,10 +566,13 @@ class Streetcar extends Table
         $sql = "SELECT dice FROM player WHERE player_id = " . $player_id . ";";
         
         $dice= json_decode(self::getUniqueValueFromDB($sql));
-        $dice[] = intval(self::getGameStateValue('curDie'));;
+        $dice[] = intval($this->globals->get(CUR_DIE));
 
         $sql = "UPDATE player SET dice='".json_encode(array_values($dice))."', diceused= diceUsed-1 WHERE player_id = " . $player_id . ";";
         self::DbQuery($sql);
+
+        //clear out saved state for possible Train Moves
+        $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, null);
         
         $this->gamestate->nextState('selectDie');
     }
@@ -640,7 +656,7 @@ class Streetcar extends Table
         //check if we need to refill
         if ($numNewCards ==0) return $available_cards;
 
-        $stackindex =  intval(self::getGameStateValue('stackindex'));
+        $stackindex =  intval($this->globals->get(STACK_INDEX));
         $stack = self::getStack();
         
 
@@ -653,7 +669,7 @@ class Streetcar extends Table
         $stackindex += $numNewCards;
         $sql = "DELETE FROM `stack` WHERE id <=" . $stackindex;
         self::DbQuery($sql);
-        self::setGameStateValue('stackindex', $stackindex);
+        $this->globals->set(STACK_INDEX,$stackindex);
         
         return $available_cards;
             //switch player

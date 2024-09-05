@@ -60,9 +60,6 @@ function (dojo, declare) {
             this.scEventHandlers = new bgagame.scEventHandlers(this);
             
             
-            //routing - must come before placing trains.
-            // this.routes= gamedatas.routes;
-            // this.scRouting.curRoute = (this.routes != null) ? this.routes[0] : null;
             this.isShowRoute = false;
 
             // Setting up player boards
@@ -95,7 +92,13 @@ function (dojo, declare) {
                 $('stops_'+l.col+"_"+l.row).innerHTML=html;
             });
             
+            
+            //wire up show route button.
             dojo.query( '.goalcheck' ).connect( 'onclick', this, 'onToggleShowRoute' );
+
+            //if, after die roll, user refreshes, this will contain the possible destinations they can send the train to.
+            this.showTrainDestinations(gamedatas.curSelectedTrainDestinations);
+
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
@@ -440,6 +443,9 @@ function (dojo, declare) {
 
         showTrainDestinations(trainMoveNodeIDs)
         {
+            //First check if there are any to show
+            if (trainMoveNodeIDs==null) return;
+
             if (this.isCurrentPlayerActive())
             {
                 this.trainDestinations = [];
