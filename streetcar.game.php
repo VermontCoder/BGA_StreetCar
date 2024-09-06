@@ -141,10 +141,11 @@ class Streetcar extends Table
         foreach ($players as $player_id => $player) {
             $color = array_shift($default_colors);
             $linenum = $start[$cardindex];
+            $goalnum = $goalsIdx[$cardindex];
 
             //goals will appear in database as JSON encoded PHP array
-            $jGoals = "'".json_encode(array_values(["B","I"]))."'" ;
-            //$jGoals = "'".json_encode(array_values($this->$goals[$goalsIdx][$linenum-1]))."'" ;
+            //$jGoals = "'".json_encode(array_values(["B","I"]))."'" ;
+            $jGoals = "'".json_encode(array_values($this->goals[$goalnum][$linenum-1]))."'" ;
 
             $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$linenum,$jGoals,'[]',NULL,NULL, NULL,NULL,0)";
             $cardindex++;
@@ -259,7 +260,6 @@ class Streetcar extends Table
             $players[intval($player['id'])] = $player;
         }
 
-        $this->dump('P', $players[$current_player_id]);
         $result['players'] = $players;
         $result['initialStops'] = $this->initialStops; //This is from materials.inc
         $result['tracks'] = $this->tracks;
