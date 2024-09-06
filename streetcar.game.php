@@ -135,12 +135,17 @@ class Streetcar extends Table
 
         // Create players
         // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
-        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, available_cards, linenum, goals,trainposition, traindirection, endnodeids, dice, diceused) VALUES ";
+        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, available_cards, linenum, goals, goalsfinished, trainposition, traindirection, endnodeids, dice, diceused) VALUES ";
         $values = array();
         $cardindex = 0;
         foreach ($players as $player_id => $player) {
             $color = array_shift($default_colors);
-            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$start[$cardindex],$goals[$cardindex],NULL,NULL, NULL,NULL,0)";
+            $linenum = $start[$cardindex];
+
+            //goals will appear in database as JSON encoded PHP array
+            $jGoals = json_encode($goals[$cardindex][$linenum-1]);
+
+            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$linenum,$jGoals,'[]'NULL,NULL, NULL,NULL,0)";
             $cardindex++;
         }
         $sql .= implode(',', $values);
