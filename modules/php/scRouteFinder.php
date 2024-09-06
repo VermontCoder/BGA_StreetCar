@@ -103,12 +103,45 @@ class scRouteFinder
     }
 
     /**
-     * Finds all routes for a line, complete or incomplete (to one or two of the stops).
-     * @param array $routeEndPoints This is the routeEndPoints from the line, which is straight from game-> routeEndPoints
-     * @param array $stopGoals key: Goal letter, value: x_y_d id of tile or null if stop is not on a tile yet.
+     * @param array $player key: data field, value: data value  - FULL player information.
+     * @param $stops key: letter, value: location as x_y (null if not yet placed)
+     * @param returns key: Goal letter, value: x_y id of tile or null if stop is not on a tile yet.
      */
-    public function findRoutesForLine($routeEndPoints, $stopGoals, $game)
+    private function getGoalsAndLocations($player, $stopsLocations,$game)
     {
+        $goalsAndLocations = [];
+           
+        $playerLine = intval($player['linenum']);
+        $playerGoals = $game->goals[intval($player['goals'])-1][$playerLine-1];
+        
+        //iterate through the playerGoals and tag them with the current location of those goals
+        foreach ($playerGoals as $goal)
+        {
+            $goalsAndLocations[$goal] = $stopsLocations[$goal];
+        }
+
+        return $goalsAndLocations;
+    }
+    /**
+     * Finds all complete routes from a node to player's endpoints.
+     * *Assumes* the start node is on a complete route and $player has recorded endnodeids
+     */
+    public function findRoutesFromNode($nodeID,$player,$stopsLocations, $game)
+    {
+
+    }
+
+    /**
+     * Finds all routes for a line, complete or incomplete (to one or two of the stops).
+     * 
+     * @param array $player key: data field, value: data value  - FULL player information.
+     * @param array $stopLocations key: Goal letter, value: x_y id of tile or null if stop is not on a tile yet.
+     */
+    public function findRoutesForPlayer($player, $stopsLocations, $game)
+    {
+        $stopGoals = $this->getGoalsAndLocations($player,$stopsLocations,$game);
+        $routeEndPoints = $game->routeEndPoints[$player['linenum']];
+
         //This will calculate all possible combinations of routes from every possible start node to
         //all the stop Nodes, and from there to other stop nodes. And from there possible to the third stop nodes.
         //Finally those routes will be extended to the end nodes to see if they are possible.

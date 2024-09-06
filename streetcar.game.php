@@ -329,31 +329,25 @@ class Streetcar extends Table
      * IMPORTANT: This function requires $this->getCurrentPlayerID() which throws an error on game setup.
      * So do not call it then.
      * 
-     * @param array $stops Numerically indexed array of stop letters
-     * @param array $players Numerically index array of FULL player information.
-     * @return scRoute::scRoute Shortest route (in array, temporarily) 
+     * @param array $stops key: letter, value: location as x_y
+     * @param array $players key: data field, value: data value  - FULL player information.
+     * @return array scRoute::scRoute Shortest routes (in array, temporarily) 
      */
-    function getRoute($player,$stopsLocations)
+    function getRoutes($player,$stopsLocations)
+    {
+        $routeFinder = new scRouteFinder($this->cGraph);
+        
+        $routes = $routeFinder->findRoutesForPlayer($player,$stopsLocations,$this);
+        return scRoute::getShortestRoutes($routes);
+        
+    }
+
+    function getRoutesFromNode($nodeID,$player,$stopsLocations)
     {
         $routeFinder = new scRouteFinder($this->cGraph);
 
-        $goalsAndLocations = [];
-           
-        $playerLine = intval($player['linenum']);
-        $playerGoals = $this->goals[intval($player['goals'])-1][$playerLine-1];
-        
-        //iterate through the playerGoals and tag them with the current location of those goals
-        foreach ($playerGoals as $goal)
-        {
-            $goalsAndLocations[$goal] = $stopsLocations[$goal];
-        }
-        
-        $routes = $routeFinder->findRoutesForLine($this->routeEndPoints[$playerLine],$goalsAndLocations,$this);
-        // $routes = $routeFinder->findRoutesForLine($this->routeEndPoints[$playerLine],array('A' => null,'L'=>$stopsLocations['L'],'K'=>$stopsLocations['K']),$this);
-        //$this->dump('Routes',$routes);
-
+        $routes = $routeFinder->findRoutesFromNode($nodeID,$player,$stopsLocations,$this);
         return scRoute::getShortestRoutes($routes);
-        
     }
 
     function getDataToClient()
@@ -361,8 +355,6 @@ class Streetcar extends Table
         $this->cGraph = new scConnectivityGraph($this);
         $stops =  self::getStops();
         $players = self::getPlayers();
-
-        scUtility::isUnplayable(0,0,$this);
        
         return array(
             'players' => $players,
@@ -517,6 +509,7 @@ class Streetcar extends Table
 
         //if this is after a dice roll, we need to clear out the previous selections for train destination.
         $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, null);
+        $this->globals->set(CUR_DIE,null);
 
         $this->gamestate->nextState('selectDie');
     }
@@ -545,6 +538,7 @@ class Streetcar extends Table
 
         $possibleTrainMoves = ['0_0_N','2_1_W'];
         $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, $possibleTrainMoves);
+        $this->globals->set(CUR_DIE,(int)$die);
 
         self::notifyAllPlayers('selectedDie', clienttranslate('${player_name} selected die.'), array(
             'player_name' =>self::getActivePlayerName(),
@@ -588,6 +582,9 @@ class Streetcar extends Table
             'player_name' =>self::getActivePlayerName(),
         ));
 
+        //clear out saved state
+        $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, null);
+        $this->globals->set(CUR_DIE,null);
         //goto next player
         $this->gamestate->nextState('nextPlayer');
     }
@@ -636,7 +633,14 @@ class Streetcar extends Table
     function calcRoutes($player,$stops)
     {
         $stopsLocations = scUtility::getStopsLocations($stops);
-        $routes = $this->getRoute($player,$stopsLocations);
+        $routes = $this->getRoutes($player,$stopsLocations);
+        return $routes;    
+    }
+
+    function calcRoutesFromNode($nodeID,$player,$stops)
+    {
+        $stopsLocations = scUtility::getStopsLocations($stops);
+        $routes = $this->getRoutesFromNode($nodeID,$player,$stopsLocations);
         return $routes;    
     }
 
