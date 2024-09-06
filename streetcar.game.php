@@ -118,19 +118,19 @@ class Streetcar extends Table
             array_push($start, $i);
         }
         shuffle($start);
-        $goals = array();
+        $goalsIdx = array();
 
         //self::trace(">>>>>PLAYERSNAUMENBRNEEN" . self::getPlayersNumber());
         if (intval(count($players)) >= 4) {
             for ($i = 1; $i < 7; $i++) {
-                array_push($goals, $i);
+                array_push($goalsIdx, $i);
             }
         } else {
             for ($i = 7; $i < 13; $i++) {
-                array_push($goals, $i);
+                array_push($goalsIdx, $i);
             }
         }
-        shuffle($goals);
+        shuffle($goalsIdx);
 
 
         // Create players
@@ -143,9 +143,10 @@ class Streetcar extends Table
             $linenum = $start[$cardindex];
 
             //goals will appear in database as JSON encoded PHP array
-            $jGoals = json_encode($goals[$cardindex][$linenum-1]);
+            $jGoals = "'".json_encode(array_values(["B","I"]))."'" ;
+            //$jGoals = "'".json_encode(array_values($this->$goals[$goalsIdx][$linenum-1]))."'" ;
 
-            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$linenum,$jGoals,'[]'NULL,NULL, NULL,NULL,0)";
+            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$linenum,$jGoals,'[]',NULL,NULL, NULL,NULL,0)";
             $cardindex++;
         }
         $sql .= implode(',', $values);
@@ -248,13 +249,23 @@ class Streetcar extends Table
 
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
-        $sql = "SELECT player_id id, player_score score, goals, linenum, trainposition, traindirection, endnodeids, dice, diceused FROM player ";
-        $result['players'] = self::getCollectionFromDb($sql);
+
+        //Players needs to be massaged to have an ID key here. Why this wasn't done this way before eludes me.
+        $p = self::getPlayers();
+        //$this->dump('P', $p);
+        $players =[];
+        foreach ($p as $player)
+        {
+            $players[intval($player['id'])] = $player;
+        }
+
+        $this->dump('P', $players[$current_player_id]);
+        $result['players'] = $players;
         $result['initialStops'] = $this->initialStops; //This is from materials.inc
         $result['tracks'] = $this->tracks;
         $result['goals'] = $this->goals;
         $result['routeEndPoints'] = $this->routeEndPoints;
-        $result['routes'] = $this->calcRoutes($result['players'][$current_player_id],$this->getStops());//these stops are stops located on the board.
+        $result['routes'] = $this->calcRoutes($players[$current_player_id],$this->getStops());//these stops are stops located on the board.
         $result['curSelectedTrainDestinations'] = $this->globals->get(CUR_SELECTED_TRAIN_DESTINATIONS);
 
         //$this->dump('Stack: ',self::getStack());
@@ -289,8 +300,15 @@ class Streetcar extends Table
     //@return array
     function getPlayers()
     {
-        return self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, traindirection,goals,trainposition, endnodeids, dice, diceused
+        $players = self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, traindirection,goals,goalsfinished,trainposition, endnodeids, dice, diceused
                                            FROM player");
+        for($i=0;$i < count($players);$i++)
+        {
+            $players[$i]['goals'] = json_decode($players[$i]['goals']);
+           //$this->dump('player goals ', $player['goals']);
+            $player['goalsfinished'] = json_decode($players[$i]['goalsfinished']);
+        }
+        return $players;
     }
     function getBoardAsObjectList()
     {

@@ -337,8 +337,9 @@ function (dojo, declare) {
                 dojo.empty('track_'+player.id)
                 if(player.id==this.player_id){
                     dojo.style( 'start_'+player.id, 'background-position', (parseInt(player.linenum)-1)*-50+'px 0px');
-                    let html = ""
-                    this.gamedatas.goals[parseInt(player.goals)-1][parseInt(player.linenum)-1].forEach(goal => {
+                    let html = "";
+                    console.log('goals: '+player.goals);
+                    player.goals.forEach(goal => {
                         html += "<div class='goallocation' id='goallocation_"+goal+"'>"+goal+"</div>"
                         let location = this.gamedatas.initialStops.filter(l => l.code== goal)[0]
                         dojo.style( 'stops_'+location.col+"_"+location.row, 'border', 'solid 4px #FCDF00' );

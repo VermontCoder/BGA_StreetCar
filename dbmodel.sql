@@ -49,10 +49,11 @@ CREATE TABLE IF NOT EXISTS `stack` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+ALTER TABLE `player` ADD `goalsfinished` VARCHAR(255) NOT NULL;
 ALTER TABLE `player` ADD `available_cards` VARCHAR(255) NOT NULL;
 ALTER TABLE `player` ADD `linenum` smallint(5) unsigned NOT NULL;
-ALTER TABLE `player` ADD `goals` varchar(255) NOT NULL; 
-ALTER TABLE 'player' ADD `goalsfinished` varchar(255) NOT NULL; --empty string means no goals
+ALTER TABLE `player` ADD `goals` varchar(255) NOT NULL;
+
 ALTER TABLE `player` ADD `trainposition` VARCHAR(10) DEFAULT NULL;
 ALTER TABLE `player` ADD `traindirection` VARCHAR(1) DEFAULT NULL;
 ALTER TABLE `player` ADD `endnodeids` VARCHAR(16) DEFAULT NULL;
