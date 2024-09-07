@@ -364,32 +364,7 @@ class Streetcar extends Table
         //convert to integers
         return array_map('intval', self::getObjectListFromDB("SELECT card FROM stack", true));
     }
-
-    /**
-     * Gets the route as far as it can based on connected stops.
-     * IMPORTANT: This function requires $this->getCurrentPlayerID() which throws an error on game setup.
-     * So do not call it then.
-     * 
-     * @param array $stops key: letter, value: location as x_y
-     * @param array $players key: data field, value: data value  - FULL player information.
-     * @return array scRoute::scRoute Shortest routes (in array, temporarily) 
-     */
-    function getRoutes($player,$stopsLocations)
-    {
-        $routeFinder = new scRouteFinder($this->cGraph);
-        
-        $routes = $routeFinder->findRoutesForPlayer($player,$stopsLocations,$this);
-        return scRoute::getShortestRoutes($routes);
-        
-    }
-
-    function getRoutesFromNode($nodeID,$player,$stopsLocations)
-    {
-        $routeFinder = new scRouteFinder($this->cGraph);
-
-        $routes = $routeFinder->findRoutesFromNode($nodeID,$player,$stopsLocations,$this);
-        return scRoute::getShortestRoutes($routes);
-    }
+   
 
     function getDataToClient()
     {
@@ -697,18 +672,41 @@ class Streetcar extends Table
 
     //*********************************************** */
 
+    /**
+     * Gets the route as far as it can based on connected stops.
+     *  IMPORTANT: Do not call $this->getCurrentPlayerID() on game setup. Throws an error.
+     * So do not call it then.
+     * 
+     * @param array $stops from self::getStops()
+     * @param array $players key: data field, value: data value  - FULL player information.
+     * @return array scRoute::scRoute Shortest routes (in array) 
+     */
     function calcRoutes($player,$stops)
     {
         $stopsLocations = scUtility::getStopsLocations($stops);
-        $routes = $this->getRoutes($player,$stopsLocations);
-        return $routes;    
+
+        $routeFinder = new scRouteFinder($this->cGraph);
+        $routes = $routeFinder->findRoutesForPlayer($player,$stopsLocations,$this);
+        return scRoute::getShortestRoutes($routes);
     }
 
+    /**
+     * Gets the route from a node as far as it can based on connected stops.
+     * IMPORTANT: Do not call $this->getCurrentPlayerID() on game setup. Throws an error.
+     * So do not call it then.
+     * 
+     * @param string $nodeID starting node.
+     * @param array $stops from self::getStops()
+     * @param array $player FULL player information.
+     * @return array scRoute::scRoute Shortest routes (in array) 
+     */
     function calcRoutesFromNode($nodeID,$player,$stops)
     {
         $stopsLocations = scUtility::getStopsLocations($stops);
-        $routes = $this->getRoutesFromNode($nodeID,$player,$stopsLocations);
-        return $routes;    
+        $routeFinder = new scRouteFinder($this->cGraph);
+
+        $routes = $routeFinder->findRoutesFromNode($nodeID,$player,$stopsLocations,$this);
+        return scRoute::getShortestRoutes($routes);
     }
 
     function updateAndRefillAvailableCards($available_cards)

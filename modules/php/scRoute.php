@@ -56,11 +56,6 @@ class scRoute
         return $retRoutes;
     }
 
-    public function getRouteNodes()
-    {
-        return $this->routeNodes;
-    }
-
     /**
      * @return int
      */
@@ -117,5 +112,27 @@ class scRoute
         $mergedRoute->routeNodes[$this->endNodeID.'_'.$this->routeID] = $otherRoute->startNodeID.'_'.$otherRoute->routeID;
         return $mergedRoute;
 
+    }
+
+    public static function getRouteNodeID($x, $y, $d, $routeNum)
+    {
+        return $x.'_'.'_'.$y.'_'.$d.'_'.$routeNum;
+    }
+
+    public static function getDataFromRouteNodeID($nodeID)
+    {
+        $data= explode('_',$nodeID);
+        $retData = [];
+        $retData['x'] = $data[0];
+        $retData['y'] = $data[1];
+        $retData['d'] = $data[2];
+        $retData['routeID'] = $data[3];
+        return $retData;
+    }
+
+    public static function XYDR2XYD($routeNodeID)
+    {
+        $data = scRoute::getDataFromRouteNodeID($routeNodeID);
+        return  $data['x'].'_'.$data['y'].'_'.$data['d'];
     }
 }
