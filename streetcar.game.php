@@ -23,7 +23,9 @@ require_once('modules/php/scConnectivityGraph.php');
 require_once('modules/php/scRouteFinder.php');
 require_once('modules/php/scRoute.php');
 require_once('modules/php/scUtility.php');
+require_once('modules/php/scTrainDestinationsSolver.php');
 
+//globals names
 const STACK_INDEX = "stackIndex";
 const CUR_DIE = "curDie"; //only used to undo die selection 
 const CUR_SELECTED_TRAIN_DESTINATIONS = "curSelectedTrainDestinations"; //used to remember possible destinations as a result of a die roll
@@ -257,8 +259,21 @@ class Streetcar extends Table
         $result['tracks'] = $this->tracks;
         $result['goals'] = $this->goals;
         $result['routeEndPoints'] = $this->routeEndPoints;
-        $result['routes'] = $this->calcRoutes($players[$current_player_id],$this->getStops());//these stops are stops located on the board.
-        $result['curSelectedTrainDestinations'] = $this->globals->get(CUR_SELECTED_TRAIN_DESTINATIONS);
+
+        $curPlayer = $players[$current_player_id];
+        $trainposition = $curPlayer['trainposition'];
+
+        if($trainposition==null)
+        {
+            $result['routes'] = $this->calcRoutes($curPlayer,$this->getStops());//these stops are stops located on the board.
+        }
+        else
+        {
+            $result['routes'] =$this->calcRoutesFromNode( $trainposition, $players[$current_player_id],$this->getStops());//these stops are stops located on the board.
+        }
+
+        //only relevant when choosing the train start location (one time).
+        $result['curSelectedTrainDestinations'] = $this->globals->get(CUR_SELECTED_TRAIN_DESTINATIONS); 
 
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
         return $result;
@@ -409,18 +424,16 @@ class Streetcar extends Table
     {
         // Active next player
         $player_id = self::activeNextPlayer();
-        $players = self::getPlayers();
-        foreach ($players as $player) {
-            if ($player["id"] == $player_id) {
-                if ($player['trainposition'] == NULL) 
-                {
-                    $this->gamestate->nextState('placeTrack');
-                } 
-                else {
-                    $this->gamestate->nextState('rollDice');
-                }
-            }
+        $players = self::getPlayersWithIDKey();
+
+        if ($players[$player_id]['trainposition'] == NULL) 
+        {
+            $this->gamestate->nextState('placeTrack');
+        } 
+        else {
+            $this->gamestate->nextState('rollDice');
         }
+            
     }
 
    
@@ -432,6 +445,21 @@ class Streetcar extends Table
         Each time a player is doing some game action, one of the methods below is called.
         (note: each method below must match an input method in streetcar.action.php)
     */
+
+    /**
+     * Actually send placed track to database and replenish hand
+     * @param integer $r1 rotation of first placed track
+     * @param integer $x1 x Coord of first placed track
+     * @param integer $y1 y Coord of first placed track
+     * @param integer $c1 cardid of first placed track
+     * @param string $directions_free1 sides of placed track that have a track emerging from them. NWSE.
+     * @param integer $r2 rotation of 2nd placed track
+     * @param integer $x2 x Coord of 2nd placed track
+     * @param integer $y2 y Coord of 2nd placed track
+     * @param integer $c2 cardid of 2nd placed track
+     * @param string $directions_free2 sides of 2nd placed track that have a track emerging from them. NWSE.
+     * @param string $available_cards what cards are remaining after the placement of these cards.
+     */
     function placeTracks($r1, $x1, $y1, $c1, $directions_free1,$r2, $x2, $y2, $c2, $directions_free2, $available_cards)
     {
         $this->checkAction( 'placeTrack' );
@@ -462,7 +490,16 @@ class Streetcar extends Table
 
         foreach($players as $player)
         {
-            $routes = $this->calcRoutes($player,$stops);
+            $routes = null;
+            if($player['trainposition']==null)
+            {
+                $routes = $this->calcRoutes($player,$stops);//these stops are stops located on the board.
+            }
+            else
+            {
+                $routes =$this->calcRoutesFromNode( $player['trainposition'], $player,$stops);//these stops are stops located on the board.
+            }
+            
             self::notifyPlayer($player['id'],'updateRoute','',
             array(
                 'player_id' =>$player['id'],
@@ -544,8 +581,10 @@ class Streetcar extends Table
     {
         $this->checkAction( 'selectDie' );
         $player_id = self::getActivePlayerID();
-        $sql = "SELECT dice FROM player WHERE player_id = " . $player_id . ";";
-        $dice= json_decode(self::getUniqueValueFromDB($sql));
+        $players = $this->getPlayersWithIDKey();
+        $player = $players[$player_id];
+
+        $dice= json_decode($player['dice']);
        
         if ($dice[(int)$dieIdx] == (int)$die)
         {
@@ -561,8 +600,10 @@ class Streetcar extends Table
         self::DbQuery($sql);
 
         //TO DO - get possible moves for this dice selection. For now, stub it out.
-
-        $possibleTrainMoves = ['0_0_N','2_1_W'];
+        $trainDestinationsSolver = new scTrainDestinationsSolver($this);
+        $possibleTrainMoves = $trainDestinationsSolver->getTrainMoves($player,$die);
+        
+        //$possibleTrainMoves = ['0_0_N','2_1_W'];
         $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, $possibleTrainMoves);
         $this->globals->set(CUR_DIE,(int)$die);
 

@@ -144,7 +144,7 @@ function (dojo, declare) {
                     console.log('rollDice');
 
                      //remove click ability on all the board squares - if this is still here.
-                    this.onPlaceCardHandlers.forEach( dojo.disconnect);
+                    this.scEventHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
                     
                     this.updatePlayers(args.args.players);
                     this.updateTracks();

@@ -51,7 +51,7 @@ var jstpl_player_board='<div class="boardblock">\
             <div id="completedMsg_${id}" class="completed_msg">Completed!</div>\
             </div>\
             <div id="goal_${id}" class="goalsholder"></div>\
-            <div id="checktrack_${id}" class="goalcheck" >Show Route</div>\
+            <div id="checktrack_${id}" class="goalcheck" >Shortest Route</div>\
             <div id="track_${id}" class="trackholder"></div>\
             </div>';
             
