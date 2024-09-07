@@ -122,11 +122,11 @@ class Streetcar extends Table
 
         //self::trace(">>>>>PLAYERSNAUMENBRNEEN" . self::getPlayersNumber());
         if (intval(count($players)) >= 4) {
-            for ($i = 1; $i < 7; $i++) {
+            for ($i = 0; $i < 6; $i++) {
                 array_push($goalsIdx, $i);
             }
         } else {
-            for ($i = 7; $i < 13; $i++) {
+            for ($i = 6; $i < 12; $i++) {
                 array_push($goalsIdx, $i);
             }
         }
@@ -170,7 +170,7 @@ class Streetcar extends Table
                 }
             }
         }
-        $this->dump('unplayable: ',scUtility::$unplayableIDs);
+       
         $sql .= implode(',', $sql_values);
         self::DbQuery($sql);
         
@@ -251,15 +251,7 @@ class Streetcar extends Table
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
 
-        //Players needs to be massaged to have an ID key here. Why this wasn't done this way before eludes me.
-        $p = self::getPlayers();
-        //$this->dump('P', $p);
-        $players =[];
-        foreach ($p as $player)
-        {
-            $players[intval($player['id'])] = $player;
-        }
-
+        $players = $this->getPlayersWithIDKey();
         $result['players'] = $players;
         $result['initialStops'] = $this->initialStops; //This is from materials.inc
         $result['tracks'] = $this->tracks;
@@ -268,9 +260,6 @@ class Streetcar extends Table
         $result['routes'] = $this->calcRoutes($players[$current_player_id],$this->getStops());//these stops are stops located on the board.
         $result['curSelectedTrainDestinations'] = $this->globals->get(CUR_SELECTED_TRAIN_DESTINATIONS);
 
-        //$this->dump('Stack: ',self::getStack());
-        // $result['connectivityGraph'] = $this->cGraph->connectivityGraph;
-        //$this->cGraph->test();
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
         return $result;
     }
@@ -310,6 +299,20 @@ class Streetcar extends Table
         }
         return $players;
     }
+
+    function getPlayersWithIDKey()
+    {
+        //Players needs to be massaged to have an ID key. Why this wasn't done this way before eludes me.
+        $p = self::getPlayers();
+        
+        $players =[];
+        foreach ($p as $player)
+        {
+            $players[intval($player['id'])] = $player;
+        }
+        return $players;
+    }
+
     function getBoardAsObjectList()
     {
         return self::getObjectListFromDB("SELECT board_x x, board_y y, directions_free, card, rotation, stop 

@@ -123,6 +123,7 @@ function (dojo, declare) {
                     this.selectedTrack = -1;
                     this.isFirstSelection = true;
                     this.firstPlacementData = {};
+                    //this.scRouting = new bgagame.scRouting(this,args.args.routes);
 
                     this.updatePlayers(args.args.players);
                     this.updateTracks();
@@ -137,10 +138,14 @@ function (dojo, declare) {
                             this.scEventHandlers.onPlaceCardHandlers.push(dojo.connect($('square_'+x+'_'+y), 'onclick', this, 'onPlaceCard'));
                         }
                             
-                            
+                    
                     break;
                 case "rollDice":
                     console.log('rollDice');
+
+                     //remove click ability on all the board squares - if this is still here.
+                    this.onPlaceCardHandlers.forEach( dojo.disconnect);
+                    
                     this.updatePlayers(args.args.players);
                     this.updateTracks();
                     this.updateStops();

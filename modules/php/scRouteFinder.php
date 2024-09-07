@@ -123,10 +123,154 @@ class scRouteFinder
     /**
      * Finds all complete routes from a node to player's endpoints.
      * *Assumes* the start node is on a complete route and $player has recorded endnodeids
+     * This function is called during the train moving phase.
      */
     public function findRoutesFromNode($nodeID,$player,$stopsLocations, $game)
     {
+        $stopGoals = $this->getGoalsAndLocations($player,$stopsLocations,$game);
 
+        //This will calculate all possible combinations of routes from nodeID to
+        //all the stop Nodes, and from there to other stop nodes. And from there possible to the third stop nodes.
+        //Finally those routes will be extended to the player's end nodes to see if they are possible.
+        $routeSet1 = [];
+
+        if (count($stopGoals)>=1)
+        {
+            //Any of the stop goals could be the next stop on shortest route.
+            foreach($stopGoals as $stopLetter => $stopLocation)
+            {
+                if($stopGoals[$stopLetter]==null) continue;
+                $routesToFirstStop = $this->routesFromNodeToStop($nodeID, $stopLetter, $stopLocation);
+                foreach($routesToFirstStop as $route)
+                {
+                    if (!$route->isEmpty())
+                    {
+                        $routeSet1[] = $route;
+                    }
+                }
+            }
+        }
+        else
+        {
+            //No stops between nodeID and end points.
+            $retRouteSet = [];
+            $endNodes = explode(',',$player['endnodeids']);
+            foreach($endNodes as $endNodeID)
+            {
+                $newRoute = $this->findShortestRoute($nodeID,$endNodeID);
+                if(! $newRoute->isEmpty())
+                {
+                    $newRoute->isComplete = true;
+                    $retRouteSet[] = $newRoute;
+                }
+            }
+            return $retRouteSet;
+        }
+
+        $routeSet2 = [];
+
+        if (count($stopGoals)>=2)
+        {
+            //run through previously calculated routes
+            foreach($routeSet1 as $route)
+            {   
+                //only work with routes that actually connect to one of the stop goals
+                if (isset($route->stopGoals[0]))
+                {
+                    $startNodeID = $route->endNodeID;
+
+                    //route to next goal
+                    $remainingGoals = $stopGoals;
+                    $removeLetter = $route->stopGoals[0];
+                    unset($remainingGoals[$removeLetter]);
+                    
+                    //from this stop, we could go to either of the remaining stops, or the only next stop (if only two)
+                    foreach($remainingGoals as $stopLetter => $stopLocation)
+                    {   
+                        if($stopGoals[$stopLetter]==null) continue;
+                        $newRoutes = $this->routesFromNodeToStop($startNodeID, $stopLetter,$stopLocation);
+                        foreach($newRoutes as $newRoute)
+                        {
+                            if(! $newRoute->isEmpty())
+                            {
+                                $routeSet2[] = $route->merge($newRoute);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            //No 2nd stop required so just use the the routes we found before.
+            $routeSet2 = &$routeSet1;
+        }
+
+        $routeSet3 = [];
+         //route the remaining routes that have two stops in them to the remaining third goal.
+        if (count($stopGoals)==3)
+        {
+            //run through previously calculated routes - only routes that have gone through two stops will make it here
+            foreach($routeSet2 as $route)
+            {
+                //find goal remaining for this route
+                $remainingGoal = $stopGoals;
+                $removeLetter1 = $route->stopGoals[0];
+                $removeLetter2 = $route->stopGoals[1];
+                unset($remainingGoal[$removeLetter1]);
+                unset($remainingGoal[$removeLetter2]);
+
+                //convert $remainingGoal array of one to the stopLetter and stopLocation
+                $stopLetter = key($remainingGoal);
+                $stopLocation = reset($remainingGoal);
+
+                if($stopGoals[$stopLetter]==null) continue;
+
+                $startNodeID = $route->endNodeID;
+                $newRoutes = $this->routesFromNodeToStop($startNodeID, $stopLetter,$stopLocation);
+                foreach($newRoutes as $newRoute)
+                {
+                    if(! $newRoute->isEmpty())
+                    {
+                        $routeSet3[] = $route->merge($newRoute);
+                    }
+                }
+            }
+        }
+        else
+        {
+            //No 3rd stop required so just use the the routes we found before.
+            $routeSet3 = &$routeSet2;
+        }
+
+        $routeSet4=[];
+        //route to endPoints.
+        foreach($routeSet3 as $route)
+        {
+            //only work with routes which have achieved all the goals
+            if(count($route->stopGoals) == count($stopGoals))
+            {
+                $startNodeID = $route->endNodeID;
+                
+                $endNodes = explode(',',$player['endnodeids']);
+                foreach($endNodes as $endNodeID)
+                {
+                    $newRoute = $this->findShortestRoute($startNodeID,$endNodeID);
+                    if(! $newRoute->isEmpty())
+                    {
+                        $newRoute->isComplete = true;
+                        $routeSet4[] = $route->merge($newRoute);
+                    }
+                }
+                
+            }
+        }
+
+         //return the routeset that has covered the most goals
+         if(count($routeSet4) > 0) return $routeSet4;
+         if(count($routeSet3) > 0) return $routeSet3;
+         if(count($routeSet2) > 0) return $routeSet2;
+         return $routeSet1;
     }
 
     /**

@@ -369,7 +369,6 @@ define([
             this.game.addActionButton('reset_button', _('Reset'), () => this.onReset());
             $('pagemaintitletext').innerHTML = _('Select train starting location.');
 
-            //dojo.disconnect( this.onPlaceCardHandler );
             //remove click ability on all the board squares
             this.onPlaceCardHandlers.forEach( dojo.disconnect);
 

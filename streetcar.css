@@ -130,6 +130,7 @@
 .selectable_train_start_location
 {
   border: 4px solid #398904;
+  z-index: 1000;
 }
 .selectable_train_destination_location
 {
@@ -163,7 +164,7 @@
   background-image: url("img/die.png");
   border: 4px solid black;
   border-radius: 10%;
-  margin: 10x;
+  margin: 10px;
   cursor: pointer;
   /* margin: 2px; */
 }
