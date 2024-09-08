@@ -545,10 +545,6 @@ class Streetcar extends Table
             'throw' => $throw,
         ));
 
-        //if this is after a dice roll, we need to clear out the previous selections for train destination.
-        $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, null);
-        $this->globals->set(CUR_DIE,null);
-
         $this->gamestate->nextState('selectDie');
     }
 
@@ -656,6 +652,10 @@ class Streetcar extends Table
         //TODO - check for win condition!!!!
 
         ///
+        
+        //We're done with the selection and the die.
+        $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, null);
+        $this->globals->set(CUR_DIE,null);
 
         $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
         $diceUsed= (int)self::getUniqueValueFromDB($sql);

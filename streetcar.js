@@ -145,6 +145,8 @@ function (dojo, declare) {
 
                      //remove click ability on all the board squares - if this is still here.
                     this.scEventHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
+
+                    
                     
                     this.updatePlayers(args.args.players);
                     this.updateTracks();
