@@ -21,14 +21,6 @@ class scTrainDestinationsSolver
     {
         $curTrainNodeID = $player['trainposition'];
         $stops = $this->game->getStops();
-        $routes = $this->game->calcRoutesFromNode($curTrainNodeID,$player,$stops);
-
-        if ($routes==null)
-        {
-            throw new Exception('Cannot find route for train to endpoint!');
-        }
-
-        $curRoute = $routes[0];
 
         //TESTING
         $die = 1;
@@ -38,7 +30,7 @@ class scTrainDestinationsSolver
             case 0: //move ahead 2
                 break;
             case 1: //move ahead 1
-                return $this -> moveAheadOne($curRoute,$stops);
+                return $this -> moveAheadOne($curTrainNodeID,$player,$stops);
                 break;
             case 2: //do nothing
                 break;
@@ -51,16 +43,34 @@ class scTrainDestinationsSolver
     }
 
     /**
-     * @param scRoute $curRoute
+     * @param 
      */
-    private function moveAheadOne($curRoute,$stops)
+    private function moveAheadOne($curTrainNodeID,$player,$stops)
     {
-        $stopslocations = scUtility::getStopsLocations(($stops));
-        $routStart = $curRoute->startNodeID.'_'.$curRoute->routeID;
+        $retNodes =[];
+        $retRoutes = [];
 
-        $nextNodeID = $curRoute->routeNodes[$routStart];
+        //get adjacent connected nodes
+        $connectedNodes = $this->game->cGraph->getChildNodes($curTrainNodeID);
 
-        return [scRoute::XYDR2XYD($nextNodeID)];
+        foreach($connectedNodes as $connectedNode)
+        {
+            //find if there are route(s) from this node to the end. If so, this is a possible way to go.
+            $routes = $this->game->calcRoutesFromNode($connectedNode,$player,$stops);
+            
+            $this->game->dump('CONNECTED NODE: ', $connectedNode);
+            if ($routes==null) continue; //no routes found.
+            
+            foreach($routes as $route)
+            {
+                if ($route->isComplete)
+                {
+                    $retNodes[] = $route->startNodeID;
+                    $retRoutes[] = $route;
+                }
+            }
 
+        }
+        return $retNodes;
     }
 }

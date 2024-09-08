@@ -139,7 +139,15 @@ class scConnectivityGraph
     return false;
   }
 
-  function test() {
+  /**
+   * @return array nodes Connected to this node.
+   */
+  public function getChildNodes($nodeID)
+  {
+    return $this->connectivityGraph[$nodeID];
+  }
+
+  public function test() {
     $this->game->dump('Dump: ',$this->connectivityGraph);
   }
   

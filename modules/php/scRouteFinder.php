@@ -124,6 +124,8 @@ class scRouteFinder
      * Finds all complete routes from a node to player's endpoints.
      * *Assumes* the start node is on a complete route and $player has recorded endnodeids
      * This function is called during the train moving phase.
+     * 
+     * @return array will be empty array if no route was found. Otherwise, an array of scRoutes.
      */
     public function findRoutesFromNode($nodeID,$player,$stopsLocations, $game)
     {
