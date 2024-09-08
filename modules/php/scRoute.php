@@ -114,6 +114,41 @@ class scRoute
 
     }
 
+    /**
+     * Gets both the stop on the route, if present, and records a lastStopNodeID to be inserted into the database if this stop or a terminal node is passed through.
+     * @return array 'stop' => stop letter on route, null if none, 'lastStopNodeID' => if there was a stop or terminal node on the route, it is recorded here, otherwise null
+     */
+    public function getStopOnRoute($stoplocations)
+    {
+        $retArray = [ 'stop' => null, 'lastStopNodeID' =>null];
+        $startNodeID = $this->startNodeID.'_'.$this->routeID;
+        $curNode = $startNodeID;
+        while($curNode != null)
+        {
+            $curNodeXY = scUtility::key2xy($curNode);
+
+            //check if this node is a stop
+            foreach($stoplocations as $stopletter => $stoplocation)
+            {
+                if ($stoplocation != null && $curNodeXY['x']==$stoplocation['x'] && $curNodeXY['y']==$stoplocation['y'])
+                {
+                    $retArray['stop'] = $stopletter;
+                    $retArray['lastStopNodeID'] = $curNode;
+                }
+            }
+
+            //check for terminal node
+            if (scUtility::isTerminalNode($curNode))
+            {
+                $retArray['lastStopNodeID'] = $curNode;
+            }
+
+            $curNode = $this->routeNodes[$curNode];
+        }
+
+        return $retArray;
+    }
+
     public static function getRouteNodeID($x, $y, $d, $routeNum)
     {
         return $x.'_'.'_'.$y.'_'.$d.'_'.$routeNum;

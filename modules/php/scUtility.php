@@ -155,4 +155,11 @@ class scUtility
           }
         }
   }
+
+  public static function isTerminalNode($nodeID)
+  {
+    $xy = scUtility::key2xy($nodeID);
+    return ($xy['x']==0 || $xy['y']==0 || $xy['x'] == 13 || $xy['y']==13);
+  }
 }
+

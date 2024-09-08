@@ -11,10 +11,35 @@ require_once('scRouteFinder.php');
 class scTrainDestinationsSolver
 {
     private $game;
+    private $cGraph;
+    private $scRouteFinder;
 
     function __construct($game) 
     {
         $this->game = $game;
+    }
+
+    
+    /**
+     * Takes care of database updating for moving the train to a particular node.
+     * @return [scRoute, string] route for train to get to destinationNode. A direction string - NESW.
+     */
+    public function moveTrainToDestination($destinationNode, $player, $stoplocations)
+    {
+        $this->cGraph = new scConnectivityGraph($this);
+        $this->scRouteFinder = new scRouteFinder($this->cGraph);
+        //Step 1 - find routes to destination.
+        $route = $this->scRouteFinder->findShortestRoute($player['trainposition'],$destinationNode);
+        //Step 1a - ONLY in the case of a two space move, we must choose the route which has a stop on it. For the others, any route will do.
+        //Step 2 - Note any stops or terminal nodes.
+
+
+        //Step 2a - If a stop is on the route, check to see if it fulfills a goal. If so, modify database accordingly.
+        //Step 2b - If a stop or terminal is noted on the route, record the nodeID in the "lastStopNodeID" column for the player.
+        //Step 3 - run a route calc from the $destinationNode to the end using calcRoutesFrom Node. Use the next node in this route to determine new direction (more than one, just pick first).
+        //step 4 - return route and traindirection.
+
+
     }
 
     public function getTrainMoves($player,$die)
@@ -48,7 +73,6 @@ class scTrainDestinationsSolver
     private function moveAheadOne($curTrainNodeID,$player,$stops)
     {
         $retNodes =[];
-        $retRoutes = [];
 
         //get adjacent connected nodes
         $connectedNodes = $this->game->cGraph->getChildNodes($curTrainNodeID);
@@ -58,7 +82,7 @@ class scTrainDestinationsSolver
             //find if there are route(s) from this node to the end. If so, this is a possible way to go.
             $routes = $this->game->calcRoutesFromNode($connectedNode,$player,$stops);
             
-            $this->game->dump('CONNECTED NODE: ', $connectedNode);
+            //$this->game->dump('CONNECTED NODE: ', $connectedNode);
             if ($routes==null) continue; //no routes found.
             
             foreach($routes as $route)
@@ -66,7 +90,6 @@ class scTrainDestinationsSolver
                 if ($route->isComplete)
                 {
                     $retNodes[] = $route->startNodeID;
-                    $retRoutes[] = $route;
                 }
             }
 
