@@ -309,7 +309,7 @@ class Streetcar extends Table
         {
             $players[$i]['goals'] = json_decode($players[$i]['goals']);
            //$this->dump('player goals ', $player['goals']);
-            $player['goalsfinished'] = json_decode($players[$i]['goalsfinished']);
+            $players[$i]['goalsfinished'] = json_decode($players[$i]['goalsfinished']);
         }
         return $players;
     }
@@ -631,12 +631,13 @@ class Streetcar extends Table
         $this->checkAction(('selectTrainDestination'));
         $player_id = self::getActivePlayerID();
 
-        //what line number is this?
-        $sql = "SELECT linenum FROM player WHERE player_id = " . $player_id . ";";
-        $linenum= self::getUniqueValueFromDB($sql);
+        $player = self::getPlayersWithIDKey()[$player_id];
+        $stops = self::getStops();
 
-        //worry about direction later
-        $direction = 'N';
+        $trainDestinationsSolver = new scTrainDestinationsSolver($this);
+        $routeAndDirection = $trainDestinationsSolver->moveTrainToDestination($destinationNode,$player,$stops);
+        
+        $direction = $routeAndDirection['direction'];
         $sql = "UPDATE player set trainposition='".$destinationNode."', traindirection='".$direction."' WHERE player_id = ".$player_id . ";";
         self::DbQuery($sql);
 
@@ -645,7 +646,8 @@ class Streetcar extends Table
             'player_id' => $player_id,
             'nodeID' => $destinationNode,
             'traindirection' => $direction,
-            'linenum' => $linenum
+            'linenum' => $player['linenum'],
+            'route' => $routeAndDirection['route'],
         ));
 
         //TODO - check for win condition!!!!

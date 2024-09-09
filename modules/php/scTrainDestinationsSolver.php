@@ -24,20 +24,48 @@ class scTrainDestinationsSolver
      * Takes care of database updating for moving the train to a particular node.
      * @return [scRoute, string] route for train to get to destinationNode. A direction string - NESW.
      */
-    public function moveTrainToDestination($destinationNode, $player, $stoplocations)
+    public function moveTrainToDestination($destinationNode, $player, $stops)
     {
-        $this->cGraph = new scConnectivityGraph($this);
+        $this->cGraph = new scConnectivityGraph($this->game);
         $this->scRouteFinder = new scRouteFinder($this->cGraph);
+
+        $stopsLocations = scUtility::getStopsLocations($stops);
+
         //Step 1 - find routes to destination.
         $route = $this->scRouteFinder->findShortestRoute($player['trainposition'],$destinationNode);
+        $this->game->dump('route:', $route);
+
         //Step 1a - ONLY in the case of a two space move, we must choose the route which has a stop on it. For the others, any route will do.
         //Step 2 - Note any stops or terminal nodes.
+        $stopOnRoute = $route->getStopOnRoute($stopsLocations);
 
+         //Step 2a - If a stop is on the route, check to see if it fulfills a goal. If so, modify database accordingly.
+        $sql = '';
+        
+        if ($stopOnRoute['stop'] != null && in_array($stopOnRoute['stop'],$player['goals']))
+        {
+            $newGoals= array_diff( $player['goals'], [$stopOnRoute['stop']] );//deletes stop from goals
+            $newGoalsFinished = $player['goalsfinished'];
+            $lastStopNodeID = $stopOnRoute['laststopnodeid'];
 
-        //Step 2a - If a stop is on the route, check to see if it fulfills a goal. If so, modify database accordingly.
+            $sql="UPDATE `player` SET goals='".json_encode($newGoals)."', goalsfinished='".json_encode($newGoalsFinished)."', laststopnodeid='".$lastStopNodeID."' where player_id=".$player['id'];
+        }
+
         //Step 2b - If a stop or terminal is noted on the route, record the nodeID in the "lastStopNodeID" column for the player.
+        if($sql == '' && $stopOnRoute['laststopnodeid'] != null)
+        {
+            $sql = "UPDATE `player` SET laststopnodeid='".$lastStopNodeID."' where player_id=".$player['id'];
+        }
+
+        if ($sql != null) $this->game->DbQuery($sql);
+        
+
+       
+        
         //Step 3 - run a route calc from the $destinationNode to the end using calcRoutesFrom Node. Use the next node in this route to determine new direction (more than one, just pick first).
         //step 4 - return route and traindirection.
+
+        return ['route'=> $route,'direction'=>'N'];
 
 
     }
