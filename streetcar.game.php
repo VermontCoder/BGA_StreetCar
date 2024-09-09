@@ -122,7 +122,6 @@ class Streetcar extends Table
         shuffle($start);
         $goalsIdx = array();
 
-        //self::trace(">>>>>PLAYERSNAUMENBRNEEN" . self::getPlayersNumber());
         if (intval(count($players)) >= 4) {
             for ($i = 0; $i < 6; $i++) {
                 array_push($goalsIdx, $i);
@@ -304,7 +303,7 @@ class Streetcar extends Table
     //@return array
     function getPlayers()
     {
-        $players = self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, traindirection,goals,goalsfinished,trainposition, endnodeids, dice, diceused
+        $players = self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, traindirection,goals,goalsfinished,trainposition, endnodeids, laststopnodeid, dice, diceused
                                            FROM player");
         for($i=0;$i < count($players);$i++)
         {
@@ -512,7 +511,7 @@ class Streetcar extends Table
         //$this->dump('nodes',$nodes);
       
 
-        $sql = "UPDATE `player` SET trainposition='".$trainStartNodeID."', traindirection='".$traindirection."', endnodeids='".$trainEndNodeIDs."' where player_id=".$player_id;
+        $sql = "UPDATE `player` SET trainposition='".$trainStartNodeID."', traindirection='".$traindirection."', endnodeids='".$trainEndNodeIDs."', laststopnodeid='".$trainStartNodeID."' where player_id=".$player_id;
         self::DbQuery($sql);
 
         self::notifyAllPlayers('placedTrain', clienttranslate('${player_name} placed a train.'), array(
