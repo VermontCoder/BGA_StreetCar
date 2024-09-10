@@ -56,11 +56,9 @@ function (dojo, declare) {
             this.nesw = ["N","E","S","W"];
             this.scLines =  new bgagame.scLines();
             this.scUtility = new bgagame.scUtility();
-            this.scRouting = new bgagame.scRouting(this,gamedatas.routes);
             this.scEventHandlers = new bgagame.scEventHandlers(this);
+            this.scRouting = new bgagame.scRouting(this,gamedatas.routes);
             
-            
-            this.isShowRoute = false;
 
             // Setting up player boards
             for( var player_id in gamedatas.players )
@@ -521,6 +519,8 @@ function (dojo, declare) {
         notif_moveTrain : function( notif )
         {
             console.log('notif_moveTrain', JSON.stringify(notif));
+            this.curRoute = notif.args.routes[0];
+            this.scRouting.showRoute();
 
             this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.nodeID, notif.args.traindirection);
         },

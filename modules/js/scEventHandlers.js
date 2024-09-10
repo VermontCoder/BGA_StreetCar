@@ -13,6 +13,7 @@ define([
             this.onPlaceCardHandlers = [];
             this.onPlaceTrainHandlers = [];
             this.onSetTrainDestinationHandlers = [];
+            this.isShowRoute = false;
         },
 
 
@@ -434,8 +435,8 @@ define([
                 this.game.showMessage( _("No stations connect with goal stops."), 'info'); 
                 return;
             }
-            this.game.isShowRoute = this.game.isShowRoute ? false : true;
-            $(evt.currentTarget.id).innerHTML = this.game.isShowRoute ? 'Hide Route' : 'Show Route';
+            this.isShowRoute = this.isShowRoute ? false : true;
+            $(evt.currentTarget.id).innerHTML = this.isShowRoute ? 'Hide Route' : 'Shortest Route';
             scRouting.showRoute();
         },
          /*********************************************************************************** */

@@ -10,6 +10,7 @@ return declare("bgagame.scRouting", null,
             this.game = game;
             this.scUtility = game.scUtility;
             this.scLines = game.scLines;
+            this.scEventHandlers = game.scEventHandlers;
             
             this.updateRoutes(routes);
         },
@@ -28,7 +29,7 @@ return declare("bgagame.scRouting", null,
             console.log(JSON.stringify(this.curRoute));
 
             //if we are not showing the route, we are done.
-            if (!this.game.isShowRoute) return;
+            if (!this.scEventHandlers.isShowRoute) return;
             
             //no route to show.
             if (this.curRoute == null) return;

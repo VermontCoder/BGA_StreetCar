@@ -635,28 +635,26 @@ class Streetcar extends Table
         $stops = self::getStops();
 
         $trainDestinationsSolver = new scTrainDestinationsSolver($this);
-        $routeAndDirection = $trainDestinationsSolver->moveTrainToDestination($destinationNode,$player,$stops);
-        
-        $direction = $routeAndDirection['direction'];
-        $sql = "UPDATE player set trainposition='".$destinationNode."', traindirection='".$direction."' WHERE player_id = ".$player_id . ";";
-        self::DbQuery($sql);
+        $routesAndDirection = $trainDestinationsSolver->moveTrainToDestination($destinationNode,$player,$stops);
 
         self::notifyAllPlayers('moveTrain', clienttranslate('${player_name} has moved their train.'), array(
             'player_name' =>self::getActivePlayerName(),
             'player_id' => $player_id,
             'nodeID' => $destinationNode,
-            'traindirection' => $direction,
+            'traindirection' => $routesAndDirection['direction'],
             'linenum' => $player['linenum'],
-            'route' => $routeAndDirection['route'],
+            'routes' => $routesAndDirection['routes'],
         ));
 
-        //TODO - check for win condition!!!!
+       
+        $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, null);
+        $this->globals->set(CUR_DIE,null);
+
+         //TODO - check for win condition!!!!
 
         ///
         
         //We're done with the selection and the die.
-        $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, null);
-        $this->globals->set(CUR_DIE,null);
 
         $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
         $diceUsed= (int)self::getUniqueValueFromDB($sql);

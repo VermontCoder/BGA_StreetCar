@@ -123,7 +123,7 @@ class scRoute
         $retArray = [ 'stop' => null, 'lastStopNodeID' =>null];
         $startNodeID = $this->startNodeID.'_'.$this->routeID;
         $curNode = $startNodeID;
-        while($curNode != null)
+        while(true)
         {
             $curNodeXY = scUtility::key2xy($curNode);
 
@@ -133,7 +133,7 @@ class scRoute
                 if ($stoplocation != null && $curNodeXY['x']==$stoplocation['x'] && $curNodeXY['y']==$stoplocation['y'])
                 {
                     $retArray['stop'] = $stopletter;
-                    $retArray['lastStopNodeID'] = $curNode;
+                    $retArray['lastStopNodeID'] = scRoute::XYDR2XYD($curNode);
                 }
             }
 
@@ -142,6 +142,9 @@ class scRoute
             {
                 $retArray['lastStopNodeID'] = $curNode;
             }
+
+            //have we reached the end of the route?
+            if (!isset($this->routeNodes[$curNode])) break;
 
             $curNode = $this->routeNodes[$curNode];
         }
