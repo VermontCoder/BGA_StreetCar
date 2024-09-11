@@ -66,8 +66,9 @@ class scTrainDestinationsSolver
 
         //This is a temporary direction - the user will select the direction in next state.
         $xyd = scUtility::nodeID2xyd($destinationNode);
+        $this->game->dump('node', $destinationNode);
         $direction =scUtility::get180($xyd['d']);
-
+        $this->game->dump('direction', $direction);
         $sql .= "traindirection='".$direction."' WHERE player_id = ".$player['id'] . ";";
 
         $this->game->DbQuery($sql);

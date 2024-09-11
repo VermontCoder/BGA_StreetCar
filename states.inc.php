@@ -111,6 +111,17 @@ $machinestates = array(
         "transitions" => array("rollDice" => 12, "selectDie"=> 13, "nextPlayer"=> 11, "gameEnd" => 99)
     ),
 
+    15 => array(
+        "name" => "selectDirection",
+        "description" => clienttranslate('${actplayer} selects the direction for their train.'),
+        "descriptionmyturn" => clienttranslate('Select the tile for your train to point to.'),
+
+        "type" => "activeplayer",
+        "args" => "argSelectDirection",
+        "possibleactions" => array('selectTrainDirection'),
+        "transitions" => array("rollDice" => 12, "nextPlayer"=> 11)
+    ),
+
     /*
     Examples:
     

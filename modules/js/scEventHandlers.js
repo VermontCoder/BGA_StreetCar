@@ -12,7 +12,7 @@ define([
             this.nesw = this.game.nesw;
             this.onPlaceCardHandlers = [];
             this.onPlaceTrainHandlers = [];
-            this.onSetTrainDestinationHandlers = [];
+            this.onSelectedNodeHandlers = [];
             this.isShowRoute = false;
         },
 
@@ -494,8 +494,8 @@ define([
             //determine which destinationNode was clicked on
             
             //remove highlighting & clickability
-            dojo.query(".selectable_train_destination_location").removeClass('selectable_train_destination_location');
-            this.onSetTrainDestinationHandlers.forEach(dojo.disconnect);
+            dojo.query(".selectable_tile").removeClass('selectable_tile');
+            this.onSelectedNodeHandlers.forEach(dojo.disconnect);
             
             this.game.ajaxcall( "/streetcar/streetcar/selectTrainDestination.html",{'destinationNode':destinationNode}, this.game, function( result ) {} );
         },
@@ -503,8 +503,8 @@ define([
         onChooseDifferentDie()
         {
             //remove highlighting & clickability
-            dojo.query(".selectable_train_destination_location").removeClass('selectable_train_destination_location');
-            this.onSetTrainDestinationHandlers.forEach(dojo.disconnect);
+            dojo.query(".selectable_tile").removeClass('selectable_tile');
+            this.onSelectedNodeHandlers.forEach(dojo.disconnect);
             
             this.game.ajaxcall( "/streetcar/streetcar/chooseDifferentDie.html",{}, this.game, function( result ) {} );
         }

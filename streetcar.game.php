@@ -28,7 +28,8 @@ require_once('modules/php/scTrainDestinationsSolver.php');
 //globals names
 const STACK_INDEX = "stackIndex";
 const CUR_DIE = "curDie"; //only used to undo die selection 
-const CUR_SELECTED_TRAIN_DESTINATIONS = "curSelectedTrainDestinations"; //used to remember possible destinations as a result of a die roll
+const CUR_TRAIN_DESTINATIONS_SELECTION = "curTrainDestinationsSelection"; //used to remember possible destinations as a result of a die roll
+const CUR_TRAIN_DIRECTIONS_SELECTION = "curTrainDirectionsSelection";
 
 class Streetcar extends Table
 {
@@ -76,7 +77,7 @@ class Streetcar extends Table
         
         $this->globals->set(STACK_INDEX, 0);
         $this->globals->set(CUR_DIE, null);
-        $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, null);
+        $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
 
         
 
@@ -272,7 +273,9 @@ class Streetcar extends Table
         }
 
         //only relevant when choosing the train start location (one time).
-        $result['curSelectedTrainDestinations'] = $this->globals->get(CUR_SELECTED_TRAIN_DESTINATIONS); 
+        $result[CUR_TRAIN_DESTINATIONS_SELECTION] = $this->globals->get(CUR_TRAIN_DESTINATIONS_SELECTION);
+        
+        $result[CUR_TRAIN_DIRECTIONS_SELECTION] = $this->globals->get(CUR_TRAIN_DIRECTIONS_SELECTION); 
 
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
         return $result;
@@ -387,11 +390,13 @@ class Streetcar extends Table
     }
 
     function argMoveTrain()
-    {
-        $retArray =$this->getDataToClient();
+    {   
+        return $this->getDataToClient();
+    }
 
-        
-        return $retArray;
+    function argSelectDirection()
+    {
+        return $this->getDataToClient();
     }
 
     function stNextPlayer()
@@ -574,7 +579,7 @@ class Streetcar extends Table
         $possibleTrainMoves = $trainDestinationsSolver->getTrainMoves($player,$die);
         
         //$possibleTrainMoves = ['0_0_N','2_1_W'];
-        $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, $possibleTrainMoves);
+        $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, $possibleTrainMoves);
         $this->globals->set(CUR_DIE,(int)$die);
 
         self::notifyAllPlayers('selectedDie', clienttranslate('${player_name} selected die.'), array(
@@ -603,7 +608,7 @@ class Streetcar extends Table
         self::DbQuery($sql);
 
         //clear out saved state for possible Train Moves
-        $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, null);
+        $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
         
         $this->gamestate->nextState('selectDie');
     }
@@ -620,7 +625,7 @@ class Streetcar extends Table
         ));
 
         //clear out saved state
-        $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, null);
+        $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
         $this->globals->set(CUR_DIE,null);
         //goto next player
         $this->gamestate->nextState('nextPlayer');
@@ -648,7 +653,7 @@ class Streetcar extends Table
         ));
 
        
-        $this->globals->set(CUR_SELECTED_TRAIN_DESTINATIONS, null);
+        $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
         $this->globals->set(CUR_DIE,null);
 
          //TODO - check for win condition!!!!

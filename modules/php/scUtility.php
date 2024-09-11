@@ -73,7 +73,7 @@ class scUtility
   public static function nodeID2xyd($nodeID)
   {
       $split = explode ("_", $nodeID);
-      return array('x' => intval($split[0]), 'y'=>intval($split[1]), 'd'=> intval($split[2]));
+      return array('x' => intval($split[0]), 'y'=>intval($split[1]), 'd'=> $split[2]);
   }
 
   /**

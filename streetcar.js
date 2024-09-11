@@ -95,7 +95,11 @@ function (dojo, declare) {
             dojo.query( '.goalcheck' ).connect( 'onclick', this, 'onToggleShowRoute' );
 
             //if, after die roll, user refreshes, this will contain the possible destinations they can send the train to.
-            this.showTrainDestinations(gamedatas.curSelectedTrainDestinations);
+            this.showTrainDestinations(gamedatas.curTrainDestinationsSelection);
+
+            //if, after die roll, user refreshes, this will contain the possible directions the train can be oriented to.
+            //this.showTrainDirections(gamedatas.curTrainDirectionsSelection);
+
 
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
@@ -144,8 +148,6 @@ function (dojo, declare) {
                      //remove click ability on all the board squares - if this is still here.
                     this.scEventHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
 
-                    
-                    
                     this.updatePlayers(args.args.players);
                     this.updateTracks();
                     this.updateStops();
@@ -162,6 +164,14 @@ function (dojo, declare) {
                     break;
                 case "moveTrain":
                     console.log('moveTrain');
+                    this.updatePlayers(args.args.players);
+                    this.updateTracks();
+                    this.updateStops();
+                    
+                    break;
+                
+                case "selectDirection":
+                    console.log('selectDirection');
                     this.updatePlayers(args.args.players);
                     this.updateTracks();
                     this.updateStops();
@@ -223,6 +233,7 @@ function (dojo, declare) {
             console.log( 'onUpdateActionButtons: '+stateName );
             if (!$('extra_actions'))
             { 
+                
                 dojo.place("<div id='extra_actions' class='extra_actions'></div>",'generalactions');
                 // j = this.format_block(jstpl_dice, {});
                 // alert(JSON.stringify(j));
@@ -323,7 +334,7 @@ function (dojo, declare) {
             tileID = 'square_'+trainXYD.x+"_"+trainXYD.y;
             rotation = this.scUtility.getRotationFromDirection(traindirection);
             //console.log ('Params','linenum: '+linenum+'\nplayer_id: ' + player_id+'\ntileID:'+tileID+'\ndirection:'+traindirection+'\nrotation:'+rotation);
-            
+            console.log(traindirection+'_'+player_id);
             dojo.destroy("train_"+player_id);
             dojo.place( this.format_block( 'jstpl_train', {
                 id: player_id,
@@ -527,24 +538,29 @@ function (dojo, declare) {
             }
         },
 
-        showTrainDestinations(trainMoveNodeIDs)
+        showSelectableTiles(nodeIDs,clickMethod)
         {
             //First check if there are any to show
-            if (trainMoveNodeIDs==null) return;
+            if (nodeIDs==null) return;
 
             if (this.isCurrentPlayerActive())
             {
-                this.trainDestinations = [];
-                trainMoveNodeIDs.forEach(nodeID => {
+                this.selectedNodes = [];
+                nodeIDs.forEach(nodeID => {
                     xydNode = this.scUtility.extractXYD(nodeID);
-                    this.trainDestinations.push(xydNode); //save direction info.
+                    this.selectedNodes.push(xydNode); //save direction info.
                     boardID = ('square_'+xydNode.x+'_'+xydNode.y).toString(); //string conversion needed, don't know why.
                     
-                    handler = dojo.connect($(boardID),'onclick', this, 'onSelectTrainDestination');
-                    this.scEventHandlers.onSetTrainDestinationHandlers.push(handler);
-                    dojo.addClass(boardID,'selectable_train_destination_location');
+                    handler = dojo.connect($(boardID),'onclick', this, clickMethod);
+                    this.scEventHandlers.onSelectedNodeHandlers.push(handler);
+                    dojo.addClass(boardID,'selectable_tile');
                 }); 
             }
+        },
+
+        showTrainDestinations(trainMoveNodeIDs)
+        {
+            this.showSelectableTiles(trainMoveNodeIDs, 'onSelectTrainDestination');
         },
         
         
@@ -655,7 +671,7 @@ function (dojo, declare) {
 
         onSelectTrainDestination(evt)
         {
-            this.scEventHandlers.onSelectTrainDestination(evt, this.trainDestinations);
+            this.scEventHandlers.onSelectTrainDestination(evt, this.selectedNodes);
         },
 
         // getTrainRotation(trainPositionNodeID)
