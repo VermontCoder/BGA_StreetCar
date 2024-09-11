@@ -644,6 +644,7 @@ class Streetcar extends Table
             'traindirection' => $routesAndDirection['direction'],
             'linenum' => $player['linenum'],
             'routes' => $routesAndDirection['routes'],
+            'moveRoute' => $routesAndDirection['moveRoute']
         ));
 
        

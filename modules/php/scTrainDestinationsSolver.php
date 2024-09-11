@@ -33,17 +33,16 @@ class scTrainDestinationsSolver
         //Step 0 - set up basic sql statment
 
         $sql = "UPDATE player set trainposition='".$destinationNode."',";
-        //Step 1 - find routes to destination.
-        $route = $this->scRouteFinder->findShortestRoute($player['trainposition'],$destinationNode);
-        $this->game->dump('route:', $route);
+
+        //Step 1 - find route to destination.
+        $moveRoute = $this->scRouteFinder->findShortestRoute($player['trainposition'],$destinationNode);
+        //$this->game->dump('route:', $route);
 
         //Step 1a - ONLY in the case of a two space move, we must choose the route which has a stop on it. For the others, any route will do.
         //Step 2 - Note any stops or terminal nodes.
-        $stopOnRoute = $route->getStopOnRoute($stopsLocations);
+        $stopOnRoute = $moveRoute->getStopOnRoute($stopsLocations);
 
          //Step 2a - If a stop is on the route, check to see if it fulfills a goal. If so, modify database accordingly.
-        
-
         $lastStopNodeID = $stopOnRoute['lastStopNodeID'];
         
         if ($stopOnRoute['stop'] != null && in_array($stopOnRoute['stop'],$player['goals']))
@@ -61,10 +60,13 @@ class scTrainDestinationsSolver
             $sql .= "laststopnodeid='".$lastStopNodeID."', ";
         }
         
-        //Step 3 - run a route calc from the $destinationNode to the end using calcRoutesFrom Node. Use the next node in this route to determine new direction (more than one, just pick first).
+        //Step 3 - run a route calc from the $destinationNode to the end using calcRoutesFrom Node. This is our new curRoute.
 
         $routes = $this->game->calcRoutesFromNode( $destinationNode, $player,$stops);
-        $direction = 'N';
+
+        //This is a temporary direction - the user will select the direction in next state.
+        $xyd = scUtility::nodeID2xyd($destinationNode);
+        $direction =scUtility::get180($xyd['d']);
 
         $sql .= "traindirection='".$direction."' WHERE player_id = ".$player['id'] . ";";
 
@@ -72,9 +74,7 @@ class scTrainDestinationsSolver
 
         //step 4 - return routes and traindirection.
 
-        return ['routes'=> $routes,'direction'=>$direction];
-
-
+        return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'direction'=>$direction];
     }
 
     public function getTrainMoves($player,$die)

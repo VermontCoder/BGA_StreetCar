@@ -333,47 +333,127 @@ function (dojo, declare) {
 
         },
 
+        showPlayerBoard(player)
+        {
+            if(player.id != this.player_id) 
+            {
+                if (player.trainposition == null)
+                {
+                    //none of this player's information should be shown. 
+                    return;
+                }
+            }
+            
+             //show linenum
+            dojo.style( 'start_'+player.id, 'background-position', (parseInt(player.linenum)-1)*-50+'px 0px');
+            dojo.style('start_'+player.id,'display','inline-block');
+
+            if (player.trainposition != null)
+            {
+                dojo.style('completedMsg_'+player.id,'display','inline-block');
+                dojo.addClass('start_'+player.id,'linenum_completed');
+            }
+           
+            let html = "";
+
+            //show completed goals
+            player.goalsfinished.forEach(goalfinished =>{
+                html += "<div class='goallocation goalreached' id='goallocation_"+goalfinished+"'>"+goalfinished+"</div>"
+            });
+
+            //show goals
+            player.goals.forEach(goal => 
+            {
+                html += "<div class='goallocation' id='goallocation_"+goal+"'>"+goal+"</div>";
+            });
+
+            $('goal_'+player.id).innerHTML=html;
+
+            let available_cards = JSON.parse(player["available_cards"])
+        
+            available_cards.forEach((s,c) => {
+                dojo.place( this.format_block( 'jstpl_track_player', {
+                    id: s+"_"+player.id+"_"+c,
+                    offsetx:-parseInt(s)*100,
+                } ) , 'track_'+player.id);    
+            });
+
+            //do some things for the viewing player
+            if (player.id == this.player_id)
+            {
+                //show the "shortest route" button
+                dojo.style('checktrack_'+player.id,'display','block');
+
+                 //Highlight goals on board 
+                player.goals.forEach(goal => {
+                    let location = this.gamedatas.initialStops.filter(l => l.code== goal)[0]
+                    dojo.style( 'stops_'+location.col+"_"+location.row, 'border', 'solid 4px #FCDF00' );
+                });
+
+                // if (!(this.scRouting.curRoute==null) && this.scRouting.curRoute.isComplete)
+                // {
+                //         dojo.style('completedMsg_'+player.id,'display','inline-block');
+                //         dojo.addClass('start_'+player.id,'linenum_completed');
+                // }
+
+                if(player.trainposition==null)
+                {
+                    //allow selection of train pieces for placement
+                    dojo.query( '.playertrack' ).connect( 'onclick', this, 'onSelectCard');
+                }
+            }
+        },
         updatePlayers: function(players){
             //update player boards
             //delete previous tracks on player board
             dojo.query('.playertrack').orphan();
             
             players.forEach(player => {
-                dojo.empty('track_'+player.id)
-                if(player.id==this.player_id){
-                    dojo.style( 'start_'+player.id, 'background-position', (parseInt(player.linenum)-1)*-50+'px 0px');
-                    let html = "";
-                    console.log('goals: '+player.goals);
-                    player.goals.forEach(goal => {
-                        html += "<div class='goallocation' id='goallocation_"+goal+"'>"+goal+"</div>"
-                        let location = this.gamedatas.initialStops.filter(l => l.code== goal)[0]
-                        dojo.style( 'stops_'+location.col+"_"+location.row, 'border', 'solid 4px #FCDF00' );
+                //dojo.empty('track_'+player.id)
 
-                    });
+                this.showPlayerBoard(player);
+                // if(player.id==this.player_id)
+                // {
+                    
+                    
+                //     //Highlight goals on board and display them in the playerboard
+                //     player.goals.forEach(goal => {
+                //         html += "<div class='goallocation' id='goallocation_"+goal+"'>"+goal+"</div>"
+                //         let location = this.gamedatas.initialStops.filter(l => l.code== goal)[0]
+                //         dojo.style( 'stops_'+location.col+"_"+location.row, 'border', 'solid 4px #FCDF00' );
 
-                    dojo.style('checktrack_'+player.id,'display','block');
-                    if (!(this.scRouting.curRoute==null) && this.scRouting.curRoute.isComplete)
-                    {
-                        dojo.style('completedMsg_'+player.id,'display','inline-block');
-                        dojo.addClass('start_'+player.id,'linenum_completed');
-                    }
+                //     });
+
+                //     player.goalsfinished.forEach(goalfinished =>{
+                //         html += "<div class='goallocation goalreached' id='goallocation_"+goalfinished+"'>"+goalfinished+"</div>"
+                //     });
+                //     $('goal_'+player.id).innerHTML=html;
 
                     
-                    $('goal_'+player.id).innerHTML=html
-                    let available_cards = JSON.parse(player["available_cards"])
+                //     if (!(this.scRouting.curRoute==null) && this.scRouting.curRoute.isComplete)
+                //     {
+                //         dojo.style('completedMsg_'+player.id,'display','inline-block');
+                //         dojo.addClass('start_'+player.id,'linenum_completed');
+                //     }
+
+                //     dojo.style('checktrack_'+player.id,'display','block');
+                   
+                //     let available_cards = JSON.parse(player["available_cards"])
                 
-                    available_cards.forEach((s,c) => {
-                        dojo.place( this.format_block( 'jstpl_track_player', {
-                            id: s+"_"+player.id+"_"+c,
-                            offsetx:-parseInt(s)*100,
-                        } ) , 'track_'+player.id);    
-                    });
-                } else {
-                    dojo.destroy('start_'+player.id)
-                }
+                //     available_cards.forEach((s,c) => {
+                //         dojo.place( this.format_block( 'jstpl_track_player', {
+                //             id: s+"_"+player.id+"_"+c,
+                //             offsetx:-parseInt(s)*100,
+                //         } ) , 'track_'+player.id);    
+                //     });
+                // } 
+                // else 
+                // {
+                //     dojo.destroy('start_'+player.id)
+                // }
             });
             
-            dojo.query( '.playertrack' ).connect( 'onclick', this, 'onSelectCard');
+            
         },
         
         
@@ -519,8 +599,14 @@ function (dojo, declare) {
         notif_moveTrain : function( notif )
         {
             console.log('notif_moveTrain', JSON.stringify(notif));
-            this.curRoute = notif.args.routes[0];
-            this.scRouting.showRoute();
+            if (this.isCurrentPlayerActive())
+            {
+                this.scRouting.curRoute = notif.args.routes[0];
+
+                //DEBUG
+                this.scRouting.curRoute = notif.args.moveRoute;
+                this.scRouting.showRoute();
+            }
 
             this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.nodeID, notif.args.traindirection);
         },

@@ -121,7 +121,7 @@
   height: 51px;
   background-image: url("img/start.png");
   margin: 2px;
-  display: inline-block;
+  display: none;
 }
 .linenum_completed
 {
