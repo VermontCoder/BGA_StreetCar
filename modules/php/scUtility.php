@@ -41,6 +41,7 @@ class scUtility
    * @param string $direction NESW
    * @param integer $startTileX
    * @param integer $startTileY
+   * @return array x and y as keys, their values as values.
    */
   public static function getCoordsOfTileInDirection($direction, $startTileX, $startTileY)
   {
@@ -54,7 +55,8 @@ class scUtility
   }
 
   /**
-   * Get xy from key
+   * Get xy from key\
+   * @return array x and y as keys, their values as values.
    */
   public static function key2xy($key)
   {
@@ -64,12 +66,16 @@ class scUtility
 
   /**
    * Key from xy
+   * @return string key
    */
   public static function xy2key($x,$y)
   {
     return $x.'_'.$y;
   }
 
+  /**
+   * @return array x y and d as keys, their values as values.
+   */
   public static function nodeID2xyd($nodeID)
   {
       $split = explode ("_", $nodeID);
@@ -130,7 +136,7 @@ class scUtility
     }
 
     if ($x < 0 || $x >13 || $y < 0 || $y > 13) return true;
-    $game->dump('unplayable: ',scUtility::$unplayableIDs);
+    //$game->dump('unplayable: ',scUtility::$unplayableIDs);
 
     return isset(scUtility::$unplayableIDs[scUtility::xy2key($x,$y)]);
   }

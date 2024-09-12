@@ -58,7 +58,7 @@ return declare("bgagame.scUtility", null, {
          * Returns True if tile coords are on the board, not the border.
          * @param {Int} row 
          * @param {Int} col 
-         * @returns 
+         * @returns bool 
          */
         validCoordinates(row, col)
         {

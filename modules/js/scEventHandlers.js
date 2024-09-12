@@ -11,7 +11,6 @@ define([
             this.scUtility = this.game.scUtility;
             this.nesw = this.game.nesw;
             this.onPlaceCardHandlers = [];
-            this.onPlaceTrainHandlers = [];
             this.onSelectedNodeHandlers = [];
             this.isShowRoute = false;
         },
@@ -373,18 +372,7 @@ define([
             //remove click ability on all the board squares
             this.onPlaceCardHandlers.forEach( dojo.disconnect);
 
-            xyStart = this.scUtility.extractXYD(this.game.scRouting.curRoute.startNodeID);
-            xyEnd = this.scUtility.extractXYD(this.game.scRouting.curRoute.endNodeID);
-            
-            xyStartSquareID = 'square_'+xyStart.x + '_'+xyStart.y;
-            xyEndSquareID = 'square_'+xyEnd.x + '_'+xyEnd.y;
-            
-            //save handlers to be removed after they click.
-            this.onPlaceTrainHandlers.push(dojo.connect($(xyStartSquareID), 'onclick', this, 'onPlaceTrain' ));
-            this.onPlaceTrainHandlers.push(dojo.connect($(xyEndSquareID), 'onclick', this, 'onPlaceTrain' ));
-            
-            dojo.addClass(xyStartSquareID, 'selectable_train_start_location');
-            dojo.addClass(xyEndSquareID, 'selectable_train_start_location');
+            game.showSelectableTiles([this.game.scRouting.curRoute.startNodeID,this.game.scRouting.curRoute.endNodeID], (evt) => this.onPlaceTrain(evt));
         },
 
         /**
@@ -410,11 +398,9 @@ define([
                 }
             }
 
-            //alert(JSON.stringify(trainStartNodeID));
-            //break down selection UI
-            dojo.disconnect(this.onPlaceTrainHandlers[0]);
-            dojo.disconnect(this.onPlaceTrainHandlers[1]);
-            dojo.query(".selectable_train_start_location").removeClass('selectable_train_start_location');
+           //remove highlighting & clickability
+           dojo.query(".selectable_tile").removeClass('selectable_tile');
+           this.onSelectedNodeHandlers.forEach(dojo.disconnect);
 
             players = this.game.gamedatas.gamestate.args.players;
             linenum = parseInt(players.filter(p =>p.id==this.game.player_id)[0]['linenum']);

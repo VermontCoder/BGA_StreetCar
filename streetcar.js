@@ -346,25 +346,43 @@ function (dojo, declare) {
 
         showPlayerBoard(player)
         {
-            if(player.id != this.player_id) 
+            if(player.id == this.player_id) //active player
+            {
+                 //show the "shortest route" button
+                 dojo.style('checktrack_'+player.id,'display','block');
+
+                 //Highlight goals on board 
+                player.goals.forEach(goal => {
+                    let location = this.gamedatas.initialStops.filter(l => l.code== goal)[0]
+                    dojo.style( 'stops_'+location.col+"_"+location.row, 'border', 'solid 4px #FCDF00' );
+                });
+
+                if (!(this.scRouting.curRoute==null) && this.scRouting.curRoute.isComplete)
+                {
+                        dojo.style('completedMsg_'+player.id,'display','inline-block');
+                        dojo.addClass('start_'+player.id,'linenum_completed');
+                } 
+            }
+            else //non-active players
             {
                 if (player.trainposition == null)
-                {
-                    //none of this player's information should be shown. 
-                    return;
-                }
+                    {
+                        //none of this player's information should be shown. 
+                        return;
+                    }
+    
+                    //This player has completed their route.
+                    dojo.style('completedMsg_'+player.id,'display','inline-block');
+                    dojo.addClass('start_'+player.id,'linenum_completed');
             }
             
-             //show linenum
+
+            //All players
+
+            //show linenum
             dojo.style( 'start_'+player.id, 'background-position', (parseInt(player.linenum)-1)*-50+'px 0px');
             dojo.style('start_'+player.id,'display','inline-block');
 
-            if (player.trainposition != null)
-            {
-                dojo.style('completedMsg_'+player.id,'display','inline-block');
-                dojo.addClass('start_'+player.id,'linenum_completed');
-            }
-           
             let html = "";
 
             //show completed goals
@@ -388,82 +406,25 @@ function (dojo, declare) {
                     offsetx:-parseInt(s)*100,
                 } ) , 'track_'+player.id);    
             });
-
-            //do some things for the viewing player
-            if (player.id == this.player_id)
-            {
-                //show the "shortest route" button
-                dojo.style('checktrack_'+player.id,'display','block');
-
-                 //Highlight goals on board 
-                player.goals.forEach(goal => {
-                    let location = this.gamedatas.initialStops.filter(l => l.code== goal)[0]
-                    dojo.style( 'stops_'+location.col+"_"+location.row, 'border', 'solid 4px #FCDF00' );
-                });
-
-                // if (!(this.scRouting.curRoute==null) && this.scRouting.curRoute.isComplete)
-                // {
-                //         dojo.style('completedMsg_'+player.id,'display','inline-block');
-                //         dojo.addClass('start_'+player.id,'linenum_completed');
-                // }
-
-                if(player.trainposition==null)
-                {
-                    //allow selection of train pieces for placement
-                    dojo.query( '.playertrack' ).connect( 'onclick', this, 'onSelectCard');
-                }
-            }
         },
         updatePlayers: function(players){
             //update player boards
             //delete previous tracks on player board
             dojo.query('.playertrack').orphan();
             
+            curPlayer = null;
             players.forEach(player => {
                 //dojo.empty('track_'+player.id)
-
+                if(player.id == this.player_id) curPlayer = player;
                 this.showPlayerBoard(player);
-                // if(player.id==this.player_id)
-                // {
-                    
-                    
-                //     //Highlight goals on board and display them in the playerboard
-                //     player.goals.forEach(goal => {
-                //         html += "<div class='goallocation' id='goallocation_"+goal+"'>"+goal+"</div>"
-                //         let location = this.gamedatas.initialStops.filter(l => l.code== goal)[0]
-                //         dojo.style( 'stops_'+location.col+"_"+location.row, 'border', 'solid 4px #FCDF00' );
-
-                //     });
-
-                //     player.goalsfinished.forEach(goalfinished =>{
-                //         html += "<div class='goallocation goalreached' id='goallocation_"+goalfinished+"'>"+goalfinished+"</div>"
-                //     });
-                //     $('goal_'+player.id).innerHTML=html;
-
-                    
-                //     if (!(this.scRouting.curRoute==null) && this.scRouting.curRoute.isComplete)
-                //     {
-                //         dojo.style('completedMsg_'+player.id,'display','inline-block');
-                //         dojo.addClass('start_'+player.id,'linenum_completed');
-                //     }
-
-                //     dojo.style('checktrack_'+player.id,'display','block');
-                   
-                //     let available_cards = JSON.parse(player["available_cards"])
-                
-                //     available_cards.forEach((s,c) => {
-                //         dojo.place( this.format_block( 'jstpl_track_player', {
-                //             id: s+"_"+player.id+"_"+c,
-                //             offsetx:-parseInt(s)*100,
-                //         } ) , 'track_'+player.id);    
-                //     });
-                // } 
-                // else 
-                // {
-                //     dojo.destroy('start_'+player.id)
-                // }
             });
             
+            //do this here after all playerboards are set up.
+            if(curPlayer.trainposition==null)
+            {
+                //allow selection of train pieces for placement
+                dojo.query( '.playertrack' ).connect( 'onclick', this, 'onSelectCard');
+            }  
             
         },
         
