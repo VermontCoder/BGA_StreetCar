@@ -47,11 +47,11 @@ class scTrainDestinationsSolver
         
         if ($stopOnRoute['stop'] != null && in_array($stopOnRoute['stop'],$player['goals']))
         {
-            $newGoals= array_diff( $player['goals'], [$stopOnRoute['stop']] );//deletes stop from goals
-            $newGoalsFinished = $player['goalsfinished'];
-            $newGoalsFinished[] = $stopOnRoute['stop'];
+            //as $player will be used again later, modify $player
+            $player['goals']= array_diff( $player['goals'], [$stopOnRoute['stop']] );//deletes stop from goals
+            $player['goalsfinished'][] = $stopOnRoute['stop']; //and adds it to goalsfinished
             
-            $sql .="goals='".json_encode(array_values($newGoals))."', goalsfinished='".json_encode(array_values($newGoalsFinished))."', ";
+            $sql .="goals='".json_encode(array_values($player['goals']))."', goalsfinished='".json_encode(array_values($player['goalsfinished']))."', ";
         }
 
         //Step 2b - If a stop or terminal is noted on the route, record the nodeID in the "lastStopNodeID" column for the player.
@@ -64,52 +64,25 @@ class scTrainDestinationsSolver
 
         $routes = $this->game->calcRoutesFromNode( $destinationNode, $player,$stops);
 
-        //This is a temporary direction - the user will select the direction in next state.
-        $xyd = scUtility::nodeID2xyd($destinationNode);
-        $direction =scUtility::get180($xyd['d']);
+        //This might be a temporary direction - the user will select the direction in next state, if more than one.
+        $possibleDirections = $this -> getPossibleDirectionsOfRouteFromNode($destinationNode, $player, $stops);
+        $direction = count($possibleDirections) == 0 ? 'N' : $possibleDirections[0]; //there will be no directions if the route is complete.
+
         $sql .= "traindirection='".$direction."' WHERE player_id = ".$player['id'] . ";";
 
         $this->game->DbQuery($sql);
 
         //step 4 - return routes and traindirection.
 
-        return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'direction'=>$direction];
+        return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'possibleDirections'=>$possibleDirections,'direction'=>$direction];
     }
 
-    public function getTrainMoves($player,$die)
+    /** Helper function for above */
+    private function getPossibleDirectionsOfRouteFromNode($nodeID, $player, $stops)
     {
-        $curTrainNodeID = $player['trainposition'];
-        $stops = $this->game->getStops();
+        $possibleDirections = [];
 
-        //TESTING
-        $die = 1;
-
-        switch(intval($die))
-        {
-            case 0: //move ahead 2
-                break;
-            case 1: //move ahead 1
-                return $this -> moveAheadOne($curTrainNodeID,$player,$stops);
-                break;
-            case 2: //do nothing
-                break;
-            case 3: //proceed to next station
-                break;
-            case 4 || 5: //go back to previous station.
-                break;
-        }
-        //return ['2_2_S','10_3_E'];
-    }
-
-    /**
-     * @param 
-     */
-    private function moveAheadOne($curTrainNodeID,$player,$stops)
-    {
-        $retNodes =[];
-
-        //get adjacent connected nodes
-        $connectedNodes = $this->game->cGraph->getChildNodes($curTrainNodeID);
+        $connectedNodes = $this->game->cGraph->getChildNodes($nodeID);
 
         foreach($connectedNodes as $connectedNode)
         {
@@ -123,11 +96,81 @@ class scTrainDestinationsSolver
             {
                 if ($route->isComplete)
                 {
-                    $retNodes[] = $route->startNodeID;
+                    //this node lies in a possible direction
+                    //but to point at this node from the originating node, we need to 180 the node direction (entering from the south, the direction is north from the originating node.)
+                    $xyd = scUtility::nodeID2xyd($connectedNode);
+                    $possibleDirections[] = scUtility::get180($xyd['d']);
+                    break;
                 }
             }
 
         }
-        return $retNodes;
+
+        return $possibleDirections;
+    }
+
+    /**
+     * Based on current player position, get the possible moves for the train.
+     */
+    public function getTrainMoves($player,$die)
+    {
+        $curTrainNodeID = $player['trainposition'];
+        $stops = $this->game->getStops();
+
+        //TESTING
+        $die = 1;
+
+        switch(intval($die))
+        {
+            case 0: //move ahead 2
+                break;
+            case 1: //move ahead 1
+                return $this -> moveAheadOne($curTrainNodeID,$player);
+                break;
+            case 2: //do nothing
+                break;
+            case 3: //proceed to next station
+                break;
+            case 4 || 5: //go back to previous station.
+                break;
+        }
+        //return ['2_2_S','10_3_E'];
+    }
+
+    /**
+     * Moving ahead one, no choice, player moves forward in the direction of train facing.
+     */
+    private function moveAheadOne($curTrainNodeID,$player)
+    {
+        $xyd= scUtility::nodeID2xyd($curTrainNodeID);
+        $xyDestination = scUtility::getCoordsOfTileInDirection($player['traindirection'],$xyd['x'],$xyd['y']);
+
+        //Train will be entering new node from the side opposite the train direction (train moving North enters from the south,etc.)
+        $d = scUtility::get180($player['traindirection']);
+
+        return [scUtility::xyd2NodeID($xyDestination['x'],$xyDestination['y'],$d)];
+        // $retNodes =[];
+
+        // //get adjacent connected nodes
+        // $connectedNodes = $this->game->cGraph->getChildNodes($curTrainNodeID);
+
+        // foreach($connectedNodes as $connectedNode)
+        // {
+        //     //find if there are route(s) from this node to the end. If so, this is a possible way to go.
+        //     $routes = $this->game->calcRoutesFromNode($connectedNode,$player,$stops);
+            
+        //     //$this->game->dump('CONNECTED NODE: ', $connectedNode);
+        //     if ($routes==null) continue; //no routes found.
+            
+        //     foreach($routes as $route)
+        //     {
+        //         if ($route->isComplete)
+        //         {
+        //             $retNodes[] = $route->startNodeID;
+        //         }
+        //     }
+
+        // }
+        // return $retNodes;
     }
 }

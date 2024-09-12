@@ -82,6 +82,11 @@ class scUtility
       return array('x' => intval($split[0]), 'y'=>intval($split[1]), 'd'=> $split[2]);
   }
 
+  public static function xyd2NodeID($x, $y, $d)
+  {
+    return $x.'_'.$y.'_'.$d;
+  }
+
   /**
    * returns locations of stops if they have been assigned to a tile.
    * @param array $stops x =>y=> stop array of all tiles. - from BOARD.
