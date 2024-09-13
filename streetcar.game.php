@@ -29,7 +29,7 @@ require_once('modules/php/scTrainDestinationsSolver.php');
 const STACK_INDEX = "stackIndex";
 const CUR_DIE = "curDie"; //only used to undo die selection 
 const CUR_TRAIN_DESTINATIONS_SELECTION = "curTrainDestinationsSelection"; //used to remember possible destinations as a result of a die roll
-const CUR_TRAIN_DIRECTIONS_SELECTION = "curTrainDirectionsSelection";
+const CUR_TRAIN_FACING_TILES_SELECTION = "curTrainFacingTilesSelection";
 
 class Streetcar extends Table
 {
@@ -78,6 +78,7 @@ class Streetcar extends Table
         $this->globals->set(STACK_INDEX, 0);
         $this->globals->set(CUR_DIE, null);
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
+        $this->globals->set(CUR_TRAIN_FACING_TILES_SELECTION, null);
 
         
 
@@ -274,8 +275,8 @@ class Streetcar extends Table
 
         //only relevant when choosing the train start location (one time).
         $result[CUR_TRAIN_DESTINATIONS_SELECTION] = $this->globals->get(CUR_TRAIN_DESTINATIONS_SELECTION);
-        
-        $result[CUR_TRAIN_DIRECTIONS_SELECTION] = $this->globals->get(CUR_TRAIN_DIRECTIONS_SELECTION); 
+    
+        $result[CUR_TRAIN_FACING_TILES_SELECTION] = $this->globals->get(CUR_TRAIN_FACING_TILES_SELECTION); 
 
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
         return $result;
@@ -626,6 +627,7 @@ class Streetcar extends Table
 
         //clear out saved state
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
+        $this->globals->set(CUR_TRAIN_FACING_TILES_SELECTION, null);
         $this->globals->set(CUR_DIE,null);
         //goto next player
         $this->gamestate->nextState('nextPlayer');
@@ -649,21 +651,29 @@ class Streetcar extends Table
             'traindirection' => $routesAndDirection['direction'],
             'linenum' => $player['linenum'],
             'routes' => $routesAndDirection['routes'],
-            'moveRoute' => $routesAndDirection['moveRoute']
+            'moveRoute' => $routesAndDirection['moveRoute'],
         ));
 
-       
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
         $this->globals->set(CUR_DIE,null);
 
          //TODO - check for win condition!!!!
 
         ///
-        
-        //We're done with the selection and the die.
 
-        $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
-        $diceUsed= (int)self::getUniqueValueFromDB($sql);
+        //check if we need to offer the user a choice of directions
+
+        if (count($routesAndDirection['possibleDirections'])>1)
+        {
+            $this->globals->set(CUR_TRAIN_FACING_TILES_SELECTION, $routesAndDirection['possibleTileFacingsSelection']);
+            //$this->gamestate->nextState('selectDirection');
+            return;
+        }
+
+         //We're done with the selection and the die.
+
+         $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
+         $diceUsed= (int)self::getUniqueValueFromDB($sql);
 
         if ($diceUsed == 3)
         {

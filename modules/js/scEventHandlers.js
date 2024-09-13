@@ -486,6 +486,11 @@ define([
             this.game.ajaxcall( "/streetcar/streetcar/selectTrainDestination.html",{'destinationNode':destinationNode}, this.game, function( result ) {} );
         },
 
+        onSelectTrainDirection(evt, trainPosition)
+        {
+            
+        },
+
         onChooseDifferentDie()
         {
             //remove highlighting & clickability

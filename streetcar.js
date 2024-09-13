@@ -98,7 +98,7 @@ function (dojo, declare) {
             this.showTrainDestinations(gamedatas.curTrainDestinationsSelection);
 
             //if, after die roll, user refreshes, this will contain the possible directions the train can be oriented to.
-            //this.showTrainDirections(gamedatas.curTrainDirectionsSelection);
+            this.showTrainDirections(gamedatas.curTrainDirectionsSelection);
 
 
             // Setup game notifications to handle (see "setupNotifications" method below)
@@ -176,6 +176,7 @@ function (dojo, declare) {
                     this.updateTracks();
                     this.updateStops();
                     
+                    this.showPossibleDirections(args.args.possibleDirections)
                     break;
 
             /* Example:
@@ -524,6 +525,12 @@ function (dojo, declare) {
             this.showSelectableTiles(trainMoveNodeIDs, 'onSelectTrainDestination');
         },
         
+        showTrainDirections(possibleDirections)
+        {
+            if (possibleDirections==null) return; //Not a time to show directions.
+
+
+        },
         
         setupNotifications: function()
         {
@@ -534,6 +541,7 @@ function (dojo, declare) {
             dojo.subscribe( 'rolledDice', this, 'notif_rolledDice');
             dojo.subscribe( 'selectedDie', this, 'notif_selectedDie');
             dojo.subscribe( 'moveTrain', this, 'notif_moveTrain');
+            dojo.subscribe( 'selectDirection', this, 'notif_selectDirection');
             //this.notifqueue.setSynchronous( 'placedTrack', 500 );
         },  
         
@@ -580,12 +588,25 @@ function (dojo, declare) {
             {
                 this.scRouting.curRoute = notif.args.routes[0];
 
-                //DEBUG
-                this.scRouting.curRoute = notif.args.moveRoute;
+                //TO DO animate train moving using this.scRouting.curRoute = notif.args.moveRoute;
+                //this.scRouting.curRoute = notif.args.moveRoute;
                 this.scRouting.showRoute();
             }
 
             this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.nodeID, notif.args.traindirection);
+        },
+
+        notif_selectDirection : function ( notif )
+        {
+            console.log('notif_selectDirection', JSON.stringify(notif));
+
+            if (this.isCurrentPlayerActive())
+            {
+                this.scRouting.curRoute = notif.args.routes[0];
+                this.scRouting.showRoute();
+            }
+
+            //actually rotate the train.
         },
 
         //Have to put stubs here to pass game object (???don't know why).
@@ -634,6 +655,11 @@ function (dojo, declare) {
         {
             this.scEventHandlers.onSelectTrainDestination(evt, this.selectedNodes);
         },
+
+        onSelectTrainDirection(evt, trainposition)
+        {
+            this.scEventHandlers.onSelectTrainDestination(evt, trainposition);
+        }
 
         // getTrainRotation(trainPositionNodeID)
         // {   

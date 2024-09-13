@@ -45,13 +45,31 @@ class scUtility
    */
   public static function getCoordsOfTileInDirection($direction, $startTileX, $startTileY)
   {
-        switch($direction)
-        {
-            case "N": return array('x'=>$startTileX,'y'=>$startTileY-1);
-            case "E": return array('x'=>$startTileX+1,'y'=>$startTileY);
-            case "S": return array('x'=>$startTileX,'y'=>$startTileY+1);
-            case "W": return array('x'=>$startTileX-1,'y'=>$startTileY);;
-        }  
+    switch($direction)
+    {
+        case "N": return array('x'=>$startTileX,'y'=>$startTileY-1);
+        case "E": return array('x'=>$startTileX+1,'y'=>$startTileY);
+        case "S": return array('x'=>$startTileX,'y'=>$startTileY+1);
+        case "W": return array('x'=>$startTileX-1,'y'=>$startTileY);;
+    }  
+  }
+/** 
+  * @param integer $startTileX
+  * @param integer $startTileY
+  * @param integer $endTileX
+  * @param integer $endTileY
+  * @return string direction - NESW.
+  */
+  public static function getDirectionOfTileFromCoords($startTileX, $startTileY, $endTileX, $endTileY)
+  {
+    foreach(scUtility::$NESW as $direction)
+    {
+      $candidateCoords = scUtility::getCoordsOfTileInDirection($direction, $startTileX, $startTileY);
+      if ($candidateCoords['x'] == $endTileX && $candidateCoords['y']==$endTileY)
+      {
+        return $direction;
+      }
+    }
   }
 
   /**
