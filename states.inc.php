@@ -118,7 +118,7 @@ $machinestates = array(
 
         "type" => "activeplayer",
         "args" => "argSelectDirection",
-        "possibleactions" => array('selectTrainDirection'),
+        "possibleactions" => array('selectTrainDirection','doneWithTurn'),
         "transitions" => array("rollDice" => 12, "nextPlayer"=> 11)
     ),
 

@@ -673,18 +673,37 @@ class Streetcar extends Table
         }
 
          //We're done with the selection and the die.
+        $this->determineNextStateFromDice($player_id);
+    }
 
-         $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
-         $diceUsed= (int)self::getUniqueValueFromDB($sql);
+    public function selectTrainDirection($direction)
+    {
+        $this->checkAction(('selectTrainDirection'));
+        
+        $player_id = self::getActivePlayerID();
+        $player = self::getPlayersWithIDKey()[$player_id];
+        
+        $this->globals->set(CUR_TRAIN_FACINGS_TILE_SELECTION, null);
 
-        if ($diceUsed == 3)
-        {
-            $this->doneWithTurn();
-        }
-        else
-        {
-            $this->gamestate->nextState('rollDice');
-        }
+        $sql = "UPDATE player SET traindirection='".$direction."' WHERE player_id = ".$player['id'] . ";";
+        self::DbQuery($sql);
+
+        $this->determineNextStateFromDice($player_id);
+    }
+
+    public function determineNextStateFromDice($player_id)
+    {
+        $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
+        $diceUsed= (int)self::getUniqueValueFromDB($sql);
+
+       if ($diceUsed == 3)
+       {
+           $this->doneWithTurn();
+       }
+       else
+       {
+           $this->gamestate->nextState('rollDice');
+       }
     }
 
     //*********************************************** */

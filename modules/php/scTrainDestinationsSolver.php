@@ -92,10 +92,7 @@ class scTrainDestinationsSolver
         return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'curTrainFacingsTilesSelection'=>$curTrainFacingsTilesSelection,'direction'=>$direction];
     }
 
-    public function selectTrainDirection($directionNode, $player)
-    {
-
-    }
+    
     /** Helper function for above */
     private function getPossibleDirectionsOfRouteFromNode($nodeID, $player, $stops)
     {

@@ -99,6 +99,13 @@ class action_streetcar extends APP_GameAction
     self::ajaxResponse();
   }
 
+  public function selectTrainDirection()
+  {
+    $direction = self::getArg("direction",AT_alphanum, true);
+    $this->game->selectTrainDirection($direction);
+    self::ajaxResponse();
+  }
+
 /* DEPRECATED */
 
 

@@ -659,6 +659,7 @@ function (dojo, declare) {
         {
             activePlayer = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.getActivePlayerId())[0];
             trainposition = activePlayer.trainposition;
+            console.log('trainpos: ', trainposition);
             this.scEventHandlers.onSelectTrainDirection(evt, trainposition);
         }
 

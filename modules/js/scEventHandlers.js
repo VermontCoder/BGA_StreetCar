@@ -489,11 +489,10 @@ define([
         onSelectTrainDirection(evt, trainPosition)
         {
             xyTarget = this.scUtility.extractXY(evt.currentTarget.id);
+            xyStart = this.scUtility.extractXYD(trainPosition)
 
             //based on train direction and clicked tile, determine the direction
-            direction = this.scUtility.getDirectionOfTileFromCoords(trainPosition.x, trainPosition.y, xyTarget.x,xyTarget.y);
-
-
+            direction = this.scUtility.getDirectionOfTileFromCoords(xyStart.x, xyStart.y, xyTarget.x,xyTarget.y);
 
             //remove highlighting & clickability
             dojo.query(".selectable_tile").removeClass('selectable_tile');
