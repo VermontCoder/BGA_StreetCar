@@ -89,7 +89,7 @@ class scTrainDestinationsSolver
 
         //step 5 - return routes and traindirection.
 
-        return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'curTrainFacingsTilesSelection'=>$curTrainFacingsTilesSelection,'direction'=>$direction];
+        return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'curTrainFacingsTileSelection'=>$curTrainFacingsTilesSelection,'direction'=>$direction];
     }
 
     
@@ -166,28 +166,5 @@ class scTrainDestinationsSolver
         $d = scUtility::get180($player['traindirection']);
 
         return [scUtility::xyd2NodeID($xyDestination['x'],$xyDestination['y'],$d)];
-        // $retNodes =[];
-
-        // //get adjacent connected nodes
-        // $connectedNodes = $this->game->cGraph->getChildNodes($curTrainNodeID);
-
-        // foreach($connectedNodes as $connectedNode)
-        // {
-        //     //find if there are route(s) from this node to the end. If so, this is a possible way to go.
-        //     $routes = $this->game->calcRoutesFromNode($connectedNode,$player,$stops);
-            
-        //     //$this->game->dump('CONNECTED NODE: ', $connectedNode);
-        //     if ($routes==null) continue; //no routes found.
-            
-        //     foreach($routes as $route)
-        //     {
-        //         if ($route->isComplete)
-        //         {
-        //             $retNodes[] = $route->startNodeID;
-        //         }
-        //     }
-
-        // }
-        // return $retNodes;
     }
 }

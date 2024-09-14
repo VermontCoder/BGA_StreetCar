@@ -527,7 +527,11 @@ function (dojo, declare) {
 
         showPossibleDirections(nodeIDs)
         {
-           this.showSelectableTiles(nodeIDs, 'onSelectTrainDirection')
+            //only show if there is more than one thing to choose from.
+            if (nodeIDs != null && nodeIDs.length > 1)
+            {
+                this.showSelectableTiles(nodeIDs, 'onSelectTrainDirection');
+            }
         },
         
         setupNotifications: function()
@@ -592,20 +596,27 @@ function (dojo, declare) {
             }
 
             this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.nodeID, notif.args.traindirection);
+           
             this.showPossibleDirections(notif.args.curTrainFacingsTileSelection);
+            
         },
 
         notif_selectDirection : function ( notif )
         {
             console.log('notif_selectDirection', JSON.stringify(notif));
 
-            if (this.isCurrentPlayerActive())
-            {
-                this.scRouting.curRoute = notif.args.routes[0];
-                this.scRouting.showRoute();
-            }
+            // if (this.isCurrentPlayerActive())
+            // {
+            //     this.scRouting.curRoute = notif.args.routes[0];
+            //     this.scRouting.showRoute();
+            // }
 
             //actually rotate the train.
+            rotation = this.scUtility.getRotationFromDirection(notif.args.traindirection);
+
+            //necessary to put this on another thread, otherwise change of state nixes it.
+            setTimeout(() => this.rotateTo('train_'+notif.args.player_id, rotation),100);
+            
         },
 
         //Have to put stubs here to pass game object (???don't know why).

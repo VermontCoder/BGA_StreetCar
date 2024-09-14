@@ -688,6 +688,14 @@ class Streetcar extends Table
         $sql = "UPDATE player SET traindirection='".$direction."' WHERE player_id = ".$player['id'] . ";";
         self::DbQuery($sql);
 
+        self::notifyAllPlayers('selectDirection', clienttranslate('${player_name} has choosen a direction to face their train.'), array(
+            'player_name' =>self::getActivePlayerName(),
+            'player_id' => $player_id,
+            'traindirection' => $direction,
+            'linenum' => $player['linenum'],
+            //'routes' => $routesAndDirection['routes'],
+        ));
+
         $this->determineNextStateFromDice($player_id);
     }
 
