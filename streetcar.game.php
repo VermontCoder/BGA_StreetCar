@@ -29,7 +29,7 @@ require_once('modules/php/scTrainDestinationsSolver.php');
 const STACK_INDEX = "stackIndex";
 const CUR_DIE = "curDie"; //only used to undo die selection 
 const CUR_TRAIN_DESTINATIONS_SELECTION = "curTrainDestinationsSelection"; //used to remember possible destinations as a result of a die roll
-const CUR_TRAIN_FACING_TILES_SELECTION = "curTrainFacingTilesSelection";
+const CUR_TRAIN_FACINGS_TILE_SELECTION = "curTrainFacingsTileSelection";
 
 class Streetcar extends Table
 {
@@ -78,7 +78,7 @@ class Streetcar extends Table
         $this->globals->set(STACK_INDEX, 0);
         $this->globals->set(CUR_DIE, null);
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
-        $this->globals->set(CUR_TRAIN_FACING_TILES_SELECTION, null);
+        $this->globals->set(CUR_TRAIN_FACINGS_TILE_SELECTION, null);
 
         
 
@@ -276,7 +276,7 @@ class Streetcar extends Table
         //only relevant when choosing the train start location (one time).
         $result[CUR_TRAIN_DESTINATIONS_SELECTION] = $this->globals->get(CUR_TRAIN_DESTINATIONS_SELECTION);
     
-        $result[CUR_TRAIN_FACING_TILES_SELECTION] = $this->globals->get(CUR_TRAIN_FACING_TILES_SELECTION); 
+        $result[CUR_TRAIN_FACINGS_TILE_SELECTION] = $this->globals->get(CUR_TRAIN_FACINGS_TILE_SELECTION); 
 
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
         return $result;
@@ -397,8 +397,9 @@ class Streetcar extends Table
 
     function argSelectDirection()
     {
-        return $this->getDataToClient();
-    }
+        $retArray = $this->getDataToClient();
+        return $retArray;
+    }   
 
     function stNextPlayer()
     {
@@ -627,7 +628,7 @@ class Streetcar extends Table
 
         //clear out saved state
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
-        $this->globals->set(CUR_TRAIN_FACING_TILES_SELECTION, null);
+        $this->globals->set(CUR_TRAIN_FACINGS_TILE_SELECTION, null);
         $this->globals->set(CUR_DIE,null);
         //goto next player
         $this->gamestate->nextState('nextPlayer');
@@ -652,6 +653,7 @@ class Streetcar extends Table
             'linenum' => $player['linenum'],
             'routes' => $routesAndDirection['routes'],
             'moveRoute' => $routesAndDirection['moveRoute'],
+            CUR_TRAIN_FACINGS_TILE_SELECTION => $routesAndDirection[CUR_TRAIN_FACINGS_TILE_SELECTION],
         ));
 
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
@@ -663,10 +665,10 @@ class Streetcar extends Table
 
         //check if we need to offer the user a choice of directions
 
-        if (count($routesAndDirection['possibleDirections'])>1)
+        if (count($routesAndDirection[CUR_TRAIN_FACINGS_TILE_SELECTION])>1)
         {
-            $this->globals->set(CUR_TRAIN_FACING_TILES_SELECTION, $routesAndDirection['possibleTileFacingsSelection']);
-            //$this->gamestate->nextState('selectDirection');
+            $this->globals->set(CUR_TRAIN_FACINGS_TILE_SELECTION, $routesAndDirection[CUR_TRAIN_FACINGS_TILE_SELECTION]);
+            $this->gamestate->nextState('selectDirection');
             return;
         }
 

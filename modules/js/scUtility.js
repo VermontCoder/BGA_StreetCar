@@ -105,6 +105,23 @@ return declare("bgagame.scUtility", null, {
             };
         },
 
+        /** 
+        * @param integer $startTileX
+        * @param integer $startTileY
+        * @param integer $endTileX
+        * @param integer $endTileY
+        * @return string direction - NESW.
+        */
+        getDirectionOfTileFromCoords(startTileX, startTileY, endTileX, endTileY)
+        {
+            xDelta = startTileX-endTileX;
+            yDelta = startTileY-endTileY;
+
+            if (xDelta == 1) return "W";
+            if (xDelta == -1) return "E";
+            if (yDelta == 1) return "N";
+            if (yDelta == -1) return "S";
+        },
 
     });
 });

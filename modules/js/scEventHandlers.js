@@ -488,7 +488,18 @@ define([
 
         onSelectTrainDirection(evt, trainPosition)
         {
+            xyTarget = this.scUtility.extractXY(evt.currentTarget.id);
+
+            //based on train direction and clicked tile, determine the direction
+            direction = this.scUtility.getDirectionOfTileFromCoords(trainPosition.x, trainPosition.y, xyTarget.x,xyTarget.y);
+
+
+
+            //remove highlighting & clickability
+            dojo.query(".selectable_tile").removeClass('selectable_tile');
+            this.onSelectedNodeHandlers.forEach(dojo.disconnect);
             
+            this.game.ajaxcall( "/streetcar/streetcar/selectTrainDirection.html",{'direction':direction}, this.game, function( result ) {} );
         },
 
         onChooseDifferentDie()

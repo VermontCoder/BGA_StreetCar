@@ -64,19 +64,22 @@ class scTrainDestinationsSolver
         $routes = $this->game->calcRoutesFromNode( $destinationNode, $player,$stops);
 
         //Step 4 - Find direction of train. This might be a temporary direction - the user will select the direction in next state, if more than one direction is possible.
-        $possibleTileFacingsSelection = $this -> getPossibleDirectionsOfRouteFromNode($destinationNode, $player, $stops);
+        $curTrainFacingsTilesSelection = $this -> getPossibleDirectionsOfRouteFromNode($destinationNode, $player, $stops);
 
         $direction = '';
-        if (count($possibleTileFacingsSelection) == 0 )
+        if (count($curTrainFacingsTilesSelection) == 0 )
         {
             //This would be the direction if the train has finished! calculate this from the x or y = 0 or 13.
             $direction = 'N';
         }
         else
         {
-            //face the train toward one of the returned tiles.
+            //default face the train toward shortest route. If there is more than one route, the player can choose a different one in the next state.
+
+            $startNodeOfRoute = $routes[0] -> startNodeID.'_'.$routes[0] -> routeID;
+            $nextNodeOfRoute = $routes[0] ->routeNodes[$startNodeOfRoute];
             $xydStart = scUtility::nodeID2xyd($destinationNode);
-            $xydEnd = scUtility::nodeID2xyd($possibleTileFacingsSelection[0]);
+            $xydEnd = scUtility::nodeID2xyd($nextNodeOfRoute);
             $direction = scUtility::getDirectionOfTileFromCoords($xydStart['x'],$xydStart['y'],$xydEnd['x'],$xydEnd['y']);
         }
 
@@ -86,7 +89,7 @@ class scTrainDestinationsSolver
 
         //step 5 - return routes and traindirection.
 
-        return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'possibleTileFacingsSelection'=>$possibleTileFacingsSelection,'direction'=>$direction];
+        return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'curTrainFacingsTilesSelection'=>$curTrainFacingsTilesSelection,'direction'=>$direction];
     }
 
     public function selectTrainDirection($directionNode, $player)

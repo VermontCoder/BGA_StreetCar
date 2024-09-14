@@ -98,7 +98,7 @@ function (dojo, declare) {
             this.showTrainDestinations(gamedatas.curTrainDestinationsSelection);
 
             //if, after die roll, user refreshes, this will contain the possible directions the train can be oriented to.
-            this.showTrainDirections(gamedatas.curTrainDirectionsSelection);
+            this.showPossibleDirections(gamedatas.curTrainFacingsTileSelection);
 
 
             // Setup game notifications to handle (see "setupNotifications" method below)
@@ -176,7 +176,6 @@ function (dojo, declare) {
                     this.updateTracks();
                     this.updateStops();
                     
-                    this.showPossibleDirections(args.args.possibleDirections)
                     break;
 
             /* Example:
@@ -525,11 +524,10 @@ function (dojo, declare) {
             this.showSelectableTiles(trainMoveNodeIDs, 'onSelectTrainDestination');
         },
         
-        showTrainDirections(possibleDirections)
+
+        showPossibleDirections(nodeIDs)
         {
-            if (possibleDirections==null) return; //Not a time to show directions.
-
-
+           this.showSelectableTiles(nodeIDs, 'onSelectTrainDirection')
         },
         
         setupNotifications: function()
@@ -594,6 +592,7 @@ function (dojo, declare) {
             }
 
             this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.nodeID, notif.args.traindirection);
+            this.showPossibleDirections(notif.args.curTrainFacingsTileSelection);
         },
 
         notif_selectDirection : function ( notif )
@@ -656,9 +655,11 @@ function (dojo, declare) {
             this.scEventHandlers.onSelectTrainDestination(evt, this.selectedNodes);
         },
 
-        onSelectTrainDirection(evt, trainposition)
+        onSelectTrainDirection(evt)
         {
-            this.scEventHandlers.onSelectTrainDestination(evt, trainposition);
+            activePlayer = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.getActivePlayerId())[0];
+            trainposition = activePlayer.trainposition;
+            this.scEventHandlers.onSelectTrainDirection(evt, trainposition);
         }
 
         // getTrainRotation(trainPositionNodeID)
