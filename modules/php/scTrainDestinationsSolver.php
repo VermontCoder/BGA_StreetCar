@@ -157,7 +157,7 @@ class scTrainDestinationsSolver
     /**
      * Moving ahead one, no choice, player moves forward in the direction of train facing.
      */
-    private function moveAheadOne($curTrainNodeID,$player)
+    public function moveAheadOne($curTrainNodeID,$player)
     {
         $xyd= scUtility::nodeID2xyd($curTrainNodeID);
         $xyDestination = scUtility::getCoordsOfTileInDirection($player['traindirection'],$xyd['x'],$xyd['y']);

@@ -681,19 +681,35 @@ class Streetcar extends Table
         $this->checkAction(('selectTrainDirection'));
         
         $player_id = self::getActivePlayerID();
-        $player = self::getPlayersWithIDKey()[$player_id];
-        
+        $sql = "UPDATE player SET traindirection='".$direction."' WHERE player_id = ".$player_id . ";";
+        self::DbQuery($sql);
+
         $this->globals->set(CUR_TRAIN_FACINGS_TILE_SELECTION, null);
 
-        $sql = "UPDATE player SET traindirection='".$direction."' WHERE player_id = ".$player['id'] . ";";
-        self::DbQuery($sql);
+        $player = self::getPlayersWithIDKey()[$player_id];
+        $stops = self::getStops();
+
+        //find the route from the new direction.
+        //This might not be shortest route! 
+        $trainDestinationsSolver = new scTrainDestinationsSolver($this);
+
+        //normally moveAheadOne is called for die rolls which expects an array of locations which it is possible to move.
+        //So the return here is an array of one. We extract it.
+        $nodeInDirection = $trainDestinationsSolver -> moveAheadOne($player['trainposition'],$player)[0];
+
+        $routes = $this->calcRoutesFromNode($nodeInDirection,$player,$stops);
+        
+        foreach($routes as $route)
+        {
+            $route->newStartNode($player['trainposition']);
+        }
 
         self::notifyAllPlayers('selectDirection', clienttranslate('${player_name} has choosen a direction to face their train.'), array(
             'player_name' =>self::getActivePlayerName(),
             'player_id' => $player_id,
             'traindirection' => $direction,
             'linenum' => $player['linenum'],
-            //'routes' => $routesAndDirection['routes'],
+            'routes' => $routes,
         ));
 
         $this->determineNextStateFromDice($player_id);

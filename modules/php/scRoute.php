@@ -83,6 +83,17 @@ class scRoute
     }
 
     /**
+     * If route calculations are done from an adjacent routeID, as if the train had moved one square on that route,
+     * we need to bring the route back one square to the originating square. This becomes the new start node.
+     * 
+     * NOTE: The resulting route could be invalid if the new start node is not on a route or connected to the current startnode.
+     */
+    public function newStartNode($newStartNode)
+    {
+        $this->insertRouteNode($newStartNode, $this->startNodeID);
+        $this->startNodeID = $newStartNode;
+    }
+    /**
      * Modifies the current route by appending the $otherRoute.
      * Will throw an error if the last nodeID of this route does not match the first of the merged.
      * 

@@ -605,11 +605,11 @@ function (dojo, declare) {
         {
             console.log('notif_selectDirection', JSON.stringify(notif));
 
-            // if (this.isCurrentPlayerActive())
-            // {
-            //     this.scRouting.curRoute = notif.args.routes[0];
-            //     this.scRouting.showRoute();
-            // }
+            if (this.isCurrentPlayerActive())
+            {
+                this.scRouting.curRoute = notif.args.routes[0];
+                this.scRouting.showRoute();
+            }
 
             //actually rotate the train.
             rotation = this.scUtility.getRotationFromDirection(notif.args.traindirection);
