@@ -615,7 +615,7 @@ function (dojo, declare) {
             rotation = this.scUtility.getRotationFromDirection(notif.args.traindirection);
 
             //necessary to put this on another thread, otherwise change of state nixes it.
-            setTimeout(() => this.rotateTo('train_'+notif.args.player_id, rotation),100);
+            setTimeout(() => this.rotateTo('train_'+notif.args.player_id, rotation),1000);
             
         },
 
@@ -670,6 +670,7 @@ function (dojo, declare) {
         {
             activePlayer = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.getActivePlayerId())[0];
             trainposition = activePlayer.trainposition;
+            curDirection = activePlayer.traindirection;
             console.log('trainpos: ', trainposition);
             this.scEventHandlers.onSelectTrainDirection(evt, trainposition);
         }

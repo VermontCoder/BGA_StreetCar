@@ -135,18 +135,21 @@ class scTrainDestinationsSolver
         $stops = $this->game->getStops();
 
         //TESTING
-        $die = 1;
+        $die = 0;
 
         switch(intval($die))
         {
             case 0: //move ahead 2
+                return $this -> moveAheadTwo($curTrainNodeID,$player,$stops);
                 break;
             case 1: //move ahead 1
                 return $this -> moveAheadOne($curTrainNodeID,$player);
                 break;
             case 2: //do nothing
+                return [$curTrainNodeID];
                 break;
             case 3: //proceed to next station
+                return $this -> moveToNextStation($curTrainNodeID,$player,$stops);
                 break;
             case 4 || 5: //go back to previous station.
                 break;
@@ -166,5 +169,23 @@ class scTrainDestinationsSolver
         $d = scUtility::get180($player['traindirection']);
 
         return [scUtility::xyd2NodeID($xyDestination['x'],$xyDestination['y'],$d)];
+    }
+
+    public function moveAheadTwo($curTrainNodeID,$player,$stops)
+    {
+       $nextNodeID = $this->moveAheadOne($curTrainNodeID,$player)[0];
+
+       //oddly enough, this method also works here! This isn't actually directions, but nodes which lie in the next directions.
+       return $this->getPossibleDirectionsOfRouteFromNode($nextNodeID, $player, $stops);
+    }
+
+    public function moveToNextStation($curTrainNodeID,$player,$stops)
+    {
+        //step 1 - copy connectivity graph
+        //step 2 - Alter connectivity graph to end at terminals or stops
+        //step 3 - run shortest path to all stops and terminals.
+        //step 3a - remove altered connectivity graph.
+        //step 4 - From all stops and terminals accessable, run from node to end.
+        //step 5 - the routes that complete are from the stops
     }
 }

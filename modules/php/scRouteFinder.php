@@ -111,7 +111,7 @@ class scRouteFinder
     {
         $goalsAndLocations = [];
         
-        $game->dump('GOALS:', $player['goals']);
+        //$game->dump('GOALS:', $player['goals']);
         //iterate through the playerGoals and tag them with the current location of those goals
         foreach ($player['goals'] as $goal)
         {
