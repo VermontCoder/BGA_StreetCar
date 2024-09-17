@@ -77,6 +77,15 @@ class scRouteFinder
                 $curNodeID = $nodesPointingBack[$curNodeID];
             }
         }
+
+        //special case - $start and endNode are the same
+        //routenodes is a single member pointing to null.
+        
+        if ($route->startNodeID == $route->endNodeID)
+        {
+            $route->insertRouteNode($route->startNodeID, null);
+        }
+
         return $route;
     }
 

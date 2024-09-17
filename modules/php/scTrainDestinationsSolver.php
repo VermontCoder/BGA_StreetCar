@@ -135,7 +135,7 @@ class scTrainDestinationsSolver
         $stops = $this->game->getStops();
 
         //TESTING
-        $die = 0;
+        $die = 3;
 
         switch(intval($die))
         {
@@ -181,11 +181,89 @@ class scTrainDestinationsSolver
 
     public function moveToNextStation($curTrainNodeID,$player,$stops)
     {
-        //step 1 - copy connectivity graph
-        //step 2 - Alter connectivity graph to end at terminals or stops
+
+        //step 0 - get the next node on the train's path
+        $originNode = $this->moveAheadOne($curTrainNodeID,$player)[0];
+
+        //step 1 - make a copy of connectivity graph
+        $connectivityGraphCopy = new scConnectivityGraph($this->game);
+
+        //step 2a - compile list of possible next station nodes
+        $stationNodes = [];
+        $stopsLocations = scUtility::getStopsLocations($stops);
+        foreach($stopsLocations as $stopLocation)
+        {
+            if ($stopLocation != null)
+            {
+                //add all 4 nodes at this location to stop list
+                foreach(scUtility::$NESW as $direction)
+                {
+                    $stationNodes[] = scUtility::xyd2NodeID($stopLocation['x'],$stopLocation['y'],$direction);
+                }
+            }
+        }
+        
+        $terminalIDs = scUtility::getTerminalIDs($this->game);
+        foreach($terminalIDs as $ID => $irrelevant)
+        {
+            //add all 4 nodes at this terminal to stop list
+            foreach(scUtility::$NESW as $direction)
+            {
+                $stationNodes[] = $ID.'_'.$direction;
+            }
+            
+        }
+
+        //$this->game->dump('Station Nodes', $stationNodes);
+        //step 2b - Alter connectivity graph to end at terminals or stops
+        foreach($connectivityGraphCopy->connectivityGraph as $node => $children)
+        {
+            $this->game->dump('NODEs', $node);
+            if (in_array($node, $stationNodes))
+            {
+                //terminate this node here.
+                $this->game->dump('NULL NODE', $node);
+                $connectivityGraphCopy->connectivityGraph[$node] = [];
+            }
+        }
+
+        //$this->game->dump('CGRAPH', $connectivityGraphCopy ->connectivityGraph);
         //step 3 - run shortest path to all stops and terminals.
-        //step 3a - remove altered connectivity graph.
+        $routesToStations =[];
+        $routeFinder = new scRouteFinder($connectivityGraphCopy);
+        foreach($stationNodes as $stationNode)
+        {
+            $route = $routeFinder->findShortestRoute($originNode,$stationNode);
+            if (!$route->isEmpty())
+            {
+                $routesToStations[] = $route;
+            }
+
+        }
+
+        $this->game->dump("ROUTES", $routesToStations);
+        //$this->game->dump('CGRAPH', $this->game->cGraph->connectivityGraph);
         //step 4 - From all stops and terminals accessable, run from node to end.
-        //step 5 - the routes that complete are from the stops
+        
+        $cGraph = new scConnectivityGraph($this->game); // create a non-altered connectivity graph
+        $routeFinder = new scRouteFinder($cGraph);
+
+        $destinationNodes = [];
+        foreach($routesToStations as $route)
+        {
+            //endNodes of these routes are candidates for next destination
+            $candidateRoutes = $routeFinder->findRoutesFromNode($route->endNodeID,$player,$stopsLocations, $this->game);
+
+            //while the findRoutesFromNode returns multiple routes, if there are any complete routes, only complete routes will be returned.
+            //Thus, we only need to check the first route.
+            if ($candidateRoutes[0]->isComplete)
+            {
+                $destinationNodes[] = $route->endNodeID;
+            }
+        }
+
+        $this->game->dump("destinations: ", $destinationNodes);
+        //step 5 - the routes that complete are locations available
+        return $destinationNodes;
     }
 }

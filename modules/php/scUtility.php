@@ -4,7 +4,8 @@
 class scUtility
 {
   public static $NESW = ['N','E','S','W'];
-  public static $unplayableIDs = [];
+  private static $unplayableIDs = [];
+  private static $terminalIDs=[];
   
   /**
    * @param string $direction NSEW
@@ -149,6 +150,7 @@ class scUtility
    * @param integer $x
    * @param integer $y
    * @param mixed $game this from game.php
+   * @return bool
    */
   public static function isUnplayable($x, $y, $game)
   {
@@ -164,26 +166,45 @@ class scUtility
     return isset(scUtility::$unplayableIDs[scUtility::xy2key($x,$y)]);
   }
 
-  //** Creates a key => true list where the key is $x.'_'.$y for unplayable locations */
-  private static function initializeUnplayableIDs($game)
+  /**
+   * Gets list of terminal nodes
+   *  @param mixed $game this from game.php
+   * @return array a list of terminal ids x_y => true;
+   */
+
+  public static function getTerminalIDs($game)
   {
-    //use the game->routeEndPoints to construct this list from edge tiles that don't have an endpoint.
-    $playableIDs = [];
+    //so we don't recalculate over and over, just figure this out once.
+    if (count(scUtility::$terminalIDs) == 0)
+    {
+      scUtility::initializeTerminalIDs($game);
+    }
+
+    return scUtility::$terminalIDs;
+  }
+
+  private static function initializeTerminalIDs($game)
+  {
     foreach($game->routeEndPoints as $startAndEndPoints)
       foreach($startAndEndPoints as $listsOfEndPoints)
         foreach($listsOfEndPoints as $listOfEndPoints)
           foreach($listOfEndPoints as $endPoint)
           {
             $xy = scUtility::key2xy($endPoint);
-            $playableIDs[scUtility::xy2key($xy['x'],$xy['y'])]=true;
+            scUtility::$terminalIDs[scUtility::xy2key($xy['x'],$xy['y'])]=true;
           }
+  }
+  //** Creates a key => true list where the key is $x.'_'.$y for unplayable locations */
+  private static function initializeUnplayableIDs($game)
+  { 
+    $terminalIDs= scUtility::getTerminalIDs($game);
 
     for($x=0; $x <= 13; $x++)
         for($y=0;$y <= 13; $y++)
         {
           if($x==0 || $y==0 || $x == 13 || $y==13)
           {
-            if (!isset($playableIDs[scUtility::xy2key($x,$y)]))
+            if (!isset($terminalIDs[scUtility::xy2key($x,$y)]))
             {
               scUtility::$unplayableIDs[scUtility::xy2key($x,$y)]=true;
             }
