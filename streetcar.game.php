@@ -271,15 +271,14 @@ class Streetcar extends Table
         else
         {
             $result['routes'] =$this-> calcRoutesFromTrainPositionAndDirection($curPlayer,$this->getStops());
-            //$result['routes'] =$this->calcRoutesFromNode( $trainposition, $players[$current_player_id],$this->getStops());//these stops are stops located on the board.
         }
 
         //only relevant when choosing the train start location (one time).
         $result[CUR_TRAIN_DESTINATIONS_SELECTION] = $this->globals->get(CUR_TRAIN_DESTINATIONS_SELECTION);
     
+        //only relevant when choosing train facing.
         $result[CUR_TRAIN_FACINGS_TILE_SELECTION] = $this->globals->get(CUR_TRAIN_FACINGS_TILE_SELECTION); 
 
-        // TODO: Gather all information about current game situation (visible by player $current_player_id).
         return $result;
     }
 
@@ -313,8 +312,8 @@ class Streetcar extends Table
         for($i=0;$i < count($players);$i++)
         {
             $players[$i]['goals'] = json_decode($players[$i]['goals']);
-           //$this->dump('player goals ', $player['goals']);
             $players[$i]['goalsfinished'] = json_decode($players[$i]['goalsfinished']);
+            $players[$i]['endnodeids'] = json_decode($players[$i]['endnodeids']);
         }
         return $players;
     }
@@ -512,15 +511,15 @@ class Streetcar extends Table
         $trainEndNodeIDs = '';
         
         $nodes = $this->routeEndPoints[((int)$linenum)]['end'];
-        if ($nodes[0][0] == $trainEndNodeID) { $trainEndNodeIDs= $trainEndNodeID.','.$nodes[0][1]; }
-        if ($nodes[0][1] == $trainEndNodeID) { $trainEndNodeIDs = $trainEndNodeID.','.$nodes[0][0]; }
-        if ($nodes[1][0] == $trainEndNodeID) { $trainEndNodeIDs = $trainEndNodeID.','.$nodes[1][1]; }
-        if ($nodes[1][1] == $trainEndNodeID) { $trainEndNodeIDs = $trainEndNodeID.','.$nodes[1][0]; }
+        if ($nodes[0][0] == $trainEndNodeID) { $trainEndNodeIDs= [$trainEndNodeID,$nodes[0][1]]; }
+        if ($nodes[0][1] == $trainEndNodeID) { $trainEndNodeIDs = [$trainEndNodeID,$nodes[0][0]]; }
+        if ($nodes[1][0] == $trainEndNodeID) { $trainEndNodeIDs = [$trainEndNodeID,$nodes[1][1]]; }
+        if ($nodes[1][1] == $trainEndNodeID) { $trainEndNodeIDs = [$trainEndNodeID,$nodes[1][0]]; }
 
         //$this->dump('nodes',$nodes);
       
 
-        $sql = "UPDATE `player` SET trainposition='".$trainStartNodeID."', traindirection='".$traindirection."', endnodeids='".$trainEndNodeIDs."', laststopnodeid='".$trainStartNodeID."' where player_id=".$player_id;
+        $sql = "UPDATE `player` SET trainposition='".$trainStartNodeID."', traindirection='".$traindirection."', endnodeids='".json_encode(array_values($trainEndNodeIDs))."', laststopnodeid='".$trainStartNodeID."' where player_id=".$player_id;
         self::DbQuery($sql);
 
         self::notifyAllPlayers('placedTrain', clienttranslate('${player_name} placed a train.'), array(
@@ -660,9 +659,23 @@ class Streetcar extends Table
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
         $this->globals->set(CUR_DIE,null);
 
-         //TODO - check for win condition!!!!
+        //check for win condition!!!!
 
-        ///
+        if (in_array($destinationNode, $player['endnodeids']))
+        {
+            //game is over
+            $this->notifyAllPlayers( "endOfGame",
+    			clienttranslate( '${player_name} wins the game!' ),
+    			array(
+    					"player_name" => $this->getActivePlayerName(),
+    					"player_id" => $player_id,
+    					"score_delta" => 1,
+    			)
+   			);
+
+            $this->gamestate->nextState('gameEnd');
+            return;
+        }
 
         //check if we need to offer the user a choice of directions
 
@@ -822,9 +835,6 @@ class Streetcar extends Table
         $this->globals->set(STACK_INDEX,$stackindex);
         
         return $available_cards;
-            //switch player
-            // $this->activeNextPlayer();
-        
     }
 
     function addStop($x,$y)

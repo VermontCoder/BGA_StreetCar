@@ -544,6 +544,8 @@ function (dojo, declare) {
             dojo.subscribe( 'selectedDie', this, 'notif_selectedDie');
             dojo.subscribe( 'moveTrain', this, 'notif_moveTrain');
             dojo.subscribe( 'selectDirection', this, 'notif_selectDirection');
+            dojo.subscribe( 'endOfGame', this, 'notif_endOfGame');
+            this.notifqueue.setSynchronous( 'endOfGame', 1500 );
             //this.notifqueue.setSynchronous( 'placedTrack', 500 );
         },  
         
@@ -588,16 +590,17 @@ function (dojo, declare) {
             console.log('notif_moveTrain', JSON.stringify(notif));
             if (this.isCurrentPlayerActive())
             {
-                this.scRouting.curRoute = notif.args.routes[0];
+                this.scRouting.curRoute = (notif.args.routes==null) ? null : notif.args.routes[0];
 
                 //TO DO animate train moving using this.scRouting.curRoute = notif.args.moveRoute;
                 //this.scRouting.curRoute = notif.args.moveRoute;
                 this.scRouting.showRoute();
+                this.showPossibleDirections(notif.args.curTrainFacingsTileSelection);
             }
 
             this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.nodeID, notif.args.traindirection);
            
-            this.showPossibleDirections(notif.args.curTrainFacingsTileSelection);
+            
             
         },
 
@@ -618,6 +621,15 @@ function (dojo, declare) {
             setTimeout(() => this.rotateTo('train_'+notif.args.player_id, rotation),1000);
             
         },
+
+        notif_endOfGame: function( notif )
+	    {
+	        console.log( '**** Notification : finalScore' );
+	        console.log( notif );
+	      
+                // Update score
+                this.scoreCtrl[ notif.args.player_id ].incValue( notif.args.score_delta );
+	    },
 
         //Have to put stubs here to pass game object (???don't know why).
         onSelectCard(evt)

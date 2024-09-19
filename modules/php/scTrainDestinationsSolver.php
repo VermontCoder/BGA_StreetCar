@@ -59,21 +59,29 @@ class scTrainDestinationsSolver
             $sql .= "laststopnodeid='".$lastStopNodeID."', ";
         }
         
-        //Step 3 - run a route calc from the $destinationNode to the end using calcRoutesFrom Node. This is our new curRoute.
-
-        $routes = $this->game->calcRoutesFromNode( $destinationNode, $player,$stops);
-
-        //Step 4 - Find direction of train. This might be a temporary direction - the user will select the direction in next state, if more than one direction is possible.
-        $curTrainFacingsTilesSelection = $this -> getPossibleDirectionsOfRouteFromNode($destinationNode, $player, $stops);
-
-        $direction = '';
-        if (count($curTrainFacingsTilesSelection) == 0 )
+        //Step 3 - check if we've reached end destination
+        if (in_array($destinationNode, $player['endnodeids']))
         {
-            //This would be the direction if the train has finished! calculate this from the x or y = 0 or 13.
-            $direction = 'N';
+            $routes = null; //no further route
+            $curTrainFacingsTilesSelection = null; //no need to select facing
+
+            $trainLoc = scUtility::key2xy($$destinationNode);
+
+            $direction = '';
+            if ($trainLoc['x'] == 0 ) { $direction = 'W';}
+            if ($trainLoc['y'] == 0 ) { $direction = 'N';}
+            if ($trainLoc['x'] == 13 ) { $direction = 'E';}
+            if ($trainLoc['y'] == 13 ) { $direction = 'S';}
+
         }
         else
         {
+            //Step 3a - run a route calc from the $destinationNode to the end using calcRoutesFrom Node. This is our new curRoute.
+            $routes = $this->game->calcRoutesFromNode( $destinationNode, $player,$stops);
+
+            //Step 4 - Find direction of train. This might be a temporary direction - the user will select the direction in next state, if more than one direction is possible.
+            $curTrainFacingsTilesSelection = $this -> getPossibleDirectionsOfRouteFromNode($destinationNode, $player, $stops);
+       
             //default face the train toward shortest route. If there is more than one route, the player can choose a different one in the next state.
 
             $startNodeOfRoute = $routes[0] -> startNodeID.'_'.$routes[0] -> routeID;
@@ -112,10 +120,7 @@ class scTrainDestinationsSolver
             {
                 if ($route->isComplete)
                 {
-                    //this node lies in a possible direction
-                    //but to point at this node from the originating node, we need to 180 the node direction (entering from the south, the direction is north from the originating node.)
-                    // $xyd = scUtility::nodeID2xyd($connectedNode);
-                    // $possibleTileFacingsSelection[] = $connectedNode;
+                    //this node lies in a possible direction 
                     $possibleTileFacingsSelection[] = $connectedNode;
                     break;
                 }
@@ -222,7 +227,7 @@ class scTrainDestinationsSolver
             if (in_array($node, $stationNodes))
             {
                 //terminate this node here.
-                $this->game->dump('NULL NODE', $node);
+                //$this->game->dump('NULL NODE', $node);
                 $connectivityGraphCopy->connectivityGraph[$node] = [];
             }
         }
@@ -241,7 +246,7 @@ class scTrainDestinationsSolver
 
         }
 
-        $this->game->dump("ROUTES", $routesToStations);
+        //$this->game->dump("ROUTES", $routesToStations);
         //$this->game->dump('CGRAPH', $this->game->cGraph->connectivityGraph);
         //step 4 - From all stops and terminals accessable, run from node to end.
         
@@ -256,7 +261,7 @@ class scTrainDestinationsSolver
 
             //while the findRoutesFromNode returns multiple routes, if there are any complete routes, only complete routes will be returned.
             //Thus, we only need to check the first route.
-            if ($candidateRoutes[0]->isComplete)
+            if ($candidateRoutes != null && count($candidateRoutes)>0 && $candidateRoutes[0]->isComplete)
             {
                 $destinationNodes[] = $route->endNodeID;
             }

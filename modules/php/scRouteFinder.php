@@ -165,8 +165,7 @@ class scRouteFinder
         {
             //No stops between nodeID and end points.
             $retRouteSet = [];
-            $endNodes = explode(',',$player['endnodeids']);
-            foreach($endNodes as $endNodeID)
+            foreach($player['endnodeids'] as $endNodeID)
             {
                 $newRoute = $this->findShortestRoute($nodeID,$endNodeID);
                 if(! $newRoute->isEmpty())
@@ -263,8 +262,7 @@ class scRouteFinder
             {
                 $startNodeID = $route->endNodeID;
                 
-                $endNodes = explode(',',$player['endnodeids']);
-                foreach($endNodes as $endNodeID)
+                foreach($player['endnodeids'] as $endNodeID)
                 {
                     $newRoute = $this->findShortestRoute($startNodeID,$endNodeID);
                     if(! $newRoute->isEmpty())
