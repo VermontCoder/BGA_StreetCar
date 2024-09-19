@@ -57,10 +57,7 @@ ALTER TABLE `player` ADD `goalsfinished` VARCHAR(255) NOT NULL;
 
 ALTER TABLE `player` ADD `trainposition` VARCHAR(10) DEFAULT NULL;
 ALTER TABLE `player` ADD `traindirection` VARCHAR(1) DEFAULT NULL;
-ALTER TABLE `player` ADD `endnodeids` VARCHAR(16) DEFAULT NULL;
+ALTER TABLE `player` ADD `endnodeids` VARCHAR(32) DEFAULT NULL;
 ALTER TABLE `player` ADD `laststopnodeid` VARCHAR(16) DEFAULT NULL;
 ALTER TABLE `player` ADD `dice` VARCHAR(255) DEFAULT NULL;
 ALTER TABLE `player` ADD `diceused` smallint(5) unsigned NOT NULL;
-
-
-

@@ -65,7 +65,7 @@ class scTrainDestinationsSolver
             $routes = null; //no further route
             $curTrainFacingsTilesSelection = null; //no need to select facing
 
-            $trainLoc = scUtility::key2xy($$destinationNode);
+            $trainLoc = scUtility::key2xy($destinationNode);
 
             $direction = '';
             if ($trainLoc['x'] == 0 ) { $direction = 'W';}
@@ -73,6 +73,8 @@ class scTrainDestinationsSolver
             if ($trainLoc['x'] == 13 ) { $direction = 'E';}
             if ($trainLoc['y'] == 13 ) { $direction = 'S';}
 
+            //record victory in database.
+            $sql .= "player_score=1, ";
         }
         else
         {
