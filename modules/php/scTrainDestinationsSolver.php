@@ -255,18 +255,45 @@ class scTrainDestinationsSolver
         $cGraph = new scConnectivityGraph($this->game); // create a non-altered connectivity graph
         $routeFinder = new scRouteFinder($cGraph);
 
-        $destinationNodes = [];
+        
+        $candidateNodes = []; //This is an array of the form $x_$y => [$d => length of route to end] - reasoning explained below.
+
         foreach($routesToStations as $route)
         {
             //endNodes of these routes are candidates for next destination
             $candidateRoutes = $routeFinder->findRoutesFromNode($route->endNodeID,$player,$stopsLocations, $this->game);
+            $candidateRoutes = scRoute::getShortestRoutes($candidateRoutes);
 
-            //while the findRoutesFromNode returns multiple routes, if there are any complete routes, only complete routes will be returned.
+            //while the findRoutesFromNode returns multiple routes, if there are any complete routes, only complete shortest routes will be returned.
             //Thus, we only need to check the first route.
             if ($candidateRoutes != null && count($candidateRoutes)>0 && $candidateRoutes[0]->isComplete)
             {
-                $destinationNodes[] = $route->endNodeID;
+                //*IF* the given tile (x_y) is already a candidate, we must choose between the NESW nodes to return.
+                //This will be node with the shortest route to the end.
+                $endNodeXYD = scUtility::nodeID2xyd($route->endNodeID);
+                $xyKey = scUtility::xy2key($endNodeXYD['x'],$endNodeXYD['y']);
+                if (isset($candidateNodes[$xyKey]))
+                {
+                    //one of the nodes at this xy is already a $destinationnode
+                    //if this new node has a shorter route, replace the old node with this one (which will have a different d).
+                    if ($candidateRoutes[0]->getLength() < reset($candidateNodes[$xyKey]))
+                    {
+                        $candidateNodes[$xyKey] = [$endNodeXYD['d'] => $candidateRoutes[0]->getLength()];
+                    }
+                }
+                else
+                {
+                    $candidateNodes[$xyKey] = [$endNodeXYD['d'] => $candidateRoutes[0]->getLength()];
+                }
+                
             }
+        }
+
+        //create destination nodes list
+        $destinationNodes = [];
+        foreach($candidateNodes as $xyKey => $dPlusLen )
+        {
+            $destinationNodes[] = $xyKey.'_'.array_key_first($dPlusLen);
         }
 
         $this->game->dump("destinations: ", $destinationNodes);
