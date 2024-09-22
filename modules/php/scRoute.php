@@ -30,6 +30,15 @@ class scRoute
         scRoute::$curRouteID++;
     }
 
+    /**
+     * Remove RouteID from route nodes
+     */
+    public static function truncRouteID($nodeID)
+    {
+        $data = scRoute::getDataFromRouteNodeID($nodeID);
+        return $data['x'].'_'.$data['y'].'_'.$data['d'];
+    }
+
     public static function getShortestRoutes($routes)
     {
         if ($routes== null || count($routes)==0) return null;
@@ -134,7 +143,7 @@ class scRoute
         $retArray = [ 'stop' => null, 'lastStopNodeID' =>null];
         $startNodeID = $this->startNodeID.'_'.$this->routeID;
         $curNode = $startNodeID;
-        while(true)
+        while($curNode != null)
         {
             $curNodeXY = scUtility::key2xy($curNode);
 
@@ -149,15 +158,19 @@ class scRoute
             }
 
             //check for terminal node
-            if (scUtility::isTerminalNode($curNode))
+            if (scUtility::isTerminalNode(scRoute::XYDR2XYD($curNode)))
             {
-                $retArray['lastStopNodeID'] = $curNode;
+                $retArray['lastStopNodeID'] = scRoute::XYDR2XYD($curNode);
             }
 
-            //have we reached the end of the route?
-            if (!isset($this->routeNodes[$curNode])) break;
-
-            $curNode = $this->routeNodes[$curNode];
+            if (isset($this->routeNodes[$curNode]) )
+            {
+                $curNode = $this->routeNodes[$curNode];
+            }
+            else
+            {
+                $curNode = null;
+            }
         }
 
         return $retArray;

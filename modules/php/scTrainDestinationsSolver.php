@@ -19,47 +19,59 @@ class scTrainDestinationsSolver
         $this->game = $game;
     }
 
-    
+
+   
     /**
-     * Takes care of database updating for moving the train to a particular node.
-     * @return [scRoutes, string] route for train to get to destinationNode. A direction string - NESW.
+     * Takes care of database updating and routing instructions for front end for moving the train to a particular node.
+     * Typically next step after player selects destination from "getTrainMoves" below.
+     * @return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'curTrainFacingsTileSelection'=>$curTrainFacingsTilesSelection,'direction'=>$direction]
+     *          'moveRoute - route for train to get to destinationNode. 
+     *          'routes' - new routes to show from train to end node.
+     *          'curTrainFacingsTileSelection' - Set of tiles to for the user to choose from toward which they can face the train
+     *          'direction' - Direction train is to point - A direction string - NESW.
      */
-    public function moveTrainToDestination($destinationNode, $player, $stops, $doNotRecordStops=false)
+    public function moveTrainToDestination($destinationNode, $player, $stops)
     {
         $this->cGraph = new scConnectivityGraph($this->game);
         $this->scRouteFinder = new scRouteFinder($this->cGraph);
 
-        $stopsLocations = scUtility::getStopsLocations($stops);
         //Step 0 - set up basic sql statment
-
         $sql = "UPDATE player set trainposition='".$destinationNode."',";
+        $moveRoute = null;
 
-        //Step 1 - find route to destination.
-        $moveRoute = $this->scRouteFinder->findShortestRoute($player['trainposition'],$destinationNode);
-        //$this->game->dump('route:', $route);
-
-        //Step 2 - Note any stops or terminal nodes.
-        $stopOnRoute = $moveRoute->getStopOnRoute($stopsLocations);
-
-         //Step 2a - If a stop is on the route, check to see if it fulfills a goal. If so, modify database accordingly.
-        $lastStopNodeID = $stopOnRoute['lastStopNodeID'];
-        
-        if ($stopOnRoute['stop'] != null && in_array($stopOnRoute['stop'],$player['goals']))
+        if ($destinationNode != $player['trainposition']) //i.e. train actually moved.
         {
-            //as $player will be used again later, modify $player
-            $player['goals']= array_diff( $player['goals'], [$stopOnRoute['stop']] );//deletes stop from goals
-            $player['goalsfinished'][] = $stopOnRoute['stop']; //and adds it to goalsfinished
+            //account for stops and record last stop.
+            $stopsLocations = scUtility::getStopsLocations($stops);
+
+            //Step 1 - find route to destination.
+            $moveRoute = $this->scRouteFinder->findShortestRoute($player['trainposition'],$destinationNode);
+            //$this->game->dump('route:', $route);
+
+            //Step 2 - Note any stops or terminal nodes.
+            $stopOnRoute = $moveRoute->getStopOnRoute($stopsLocations);
+
+            //Step 2a - If a stop is on the route, check to see if it fulfills a goal. If so, modify database accordingly.
+            $lastStopNodeID = $stopOnRoute['lastStopNodeID'];
+            $this->game->dump('laststopnodeID:', $lastStopNodeID);
             
-            $sql .="goals='".json_encode(array_values($player['goals']))."', goalsfinished='".json_encode(array_values($player['goalsfinished']))."', ";
-        }
+            if ($stopOnRoute['stop'] != null && in_array($stopOnRoute['stop'],$player['goals']))
+            {
+                //as $player will be used again later, modify $player
+                $player['goals']= array_diff( $player['goals'], [$stopOnRoute['stop']] );//deletes stop from goals
+                $player['goalsfinished'][] = $stopOnRoute['stop']; //and adds it to goalsfinished
+                
+                $sql .="goals='".json_encode(array_values($player['goals']))."', goalsfinished='".json_encode(array_values($player['goalsfinished']))."', ";
+            }
 
-        //Step 2b - If a stop or terminal is noted on the route, record the nodeID in the "lastStopNodeID" column for the player.
-        if( $lastStopNodeID != null)
-        {
-            $sql .= "laststopnodeid='".$lastStopNodeID."', ";
+            //Step 2b - If a stop or terminal is noted on the route, record the nodeID in the "lastStopNodeID" column for the player.
+            if( $lastStopNodeID != null)
+            {
+                $sql .= "laststopnodeid='".$lastStopNodeID."', ";
+            }
         }
         
-        //Step 3 - check if we've reached end destination
+        //Step 3 - check if player won!
         if (in_array($destinationNode, $player['endnodeids']))
         {
             $routes = null; //no further route
@@ -83,14 +95,9 @@ class scTrainDestinationsSolver
 
             //Step 4 - Find direction of train. This might be a temporary direction - the user will select the direction in next state, if more than one direction is possible.
             $curTrainFacingsTilesSelection = $this -> getPossibleDirectionsOfRouteFromNode($destinationNode, $player, $stops);
-       
+        
             //default face the train toward shortest route. If there is more than one route, the player can choose a different one in the next state.
-
-            $startNodeOfRoute = $routes[0] -> startNodeID.'_'.$routes[0] -> routeID;
-            $nextNodeOfRoute = $routes[0] ->routeNodes[$startNodeOfRoute];
-            $xydStart = scUtility::nodeID2xyd($destinationNode);
-            $xydEnd = scUtility::nodeID2xyd($nextNodeOfRoute);
-            $direction = scUtility::getDirectionOfTileFromCoords($xydStart['x'],$xydStart['y'],$xydEnd['x'],$xydEnd['y']);
+            $direction = $this->getDefaultDirection($destinationNode, $routes[0]);
         }
 
         $sql .= "traindirection='".$direction."' WHERE player_id = ".$player['id'] . ";";
@@ -102,8 +109,67 @@ class scTrainDestinationsSolver
         return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'curTrainFacingsTileSelection'=>$curTrainFacingsTilesSelection,'direction'=>$direction];
     }
 
+    /**
+     * This is the same purpose as the moveTrainToDestination above, but for moving back to previous stop
+     * Things work differently here - much simpler for everything but the move route, which requires special handling. 
+     * But the return info is the same:
+     * 
+     * @return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'curTrainFacingsTileSelection'=>$curTrainFacingsTilesSelection,'direction'=>$direction]
+     *          'moveRoute - route for train to get to destinationNode. 
+     *          'routes' - new routes to show from train to end node.
+     *          'curTrainFacingsTileSelection' - Set of tiles to for the user to choose from toward which they can face the train
+     *          'direction' - Direction train is to point - A direction string - NESW.
+     */
+    public function moveTrainToDestinationPrevStop($destinationNode, $player, $stops)
+    {
+
+        if ($destinationNode== $player['trainposition'])
+        {
+            $moveRoute = null;
+        }
+        else
+        {
+            //To calculate moveroute, we do a route calc from the *previous stop* to the *current player position*
+            //Then we flip the parent child relationship to reverse the route!
+            //This means that this route will *not* be connectively valid, but for displaying the train moving back, it will be fine
+            // as that only uses the x and y (no d).
+            $routeFromStop = $this->scRouteFinder->findShortestRoute($destinationNode, $player['trainposition']);
+            $moveRoute = new scRoute($player['trainposition'], $destinationNode );
+
+            $curRouteNodeID = $routeFromStop -> startNodeID.'_'.$routeFromStop -> routeID;
+
+            //flip route
+            while ($curRouteNodeID != null)
+            {
+                $start = scRoute::truncRouteID($routeFromStop -> routeNodes[$curRouteNodeID]);
+                $target = scRoute::truncRouteID($curRouteNodeID);
+                $moveRoute->insertRouteNode($start, $target);
+                $curRouteNodeID = $routeFromStop -> routeNodes[$curRouteNodeID];
+            }
+        }
+
+        $routes = $this->game->calcRoutesFromNode( $destinationNode, $player,$stops);
+        $curTrainFacingsTilesSelection = $this -> getPossibleDirectionsOfRouteFromNode($destinationNode, $player, $stops);
+        $direction = $this->getDefaultDirection($destinationNode, $routes[0]);
+
+         //Modify database
+        $sql = "UPDATE player set trainposition='".$destinationNode."',";
+        $sql .= "traindirection='".$direction."' WHERE player_id = ".$player['id'] . ";";
+
+        return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'curTrainFacingsTileSelection'=>$curTrainFacingsTilesSelection,'direction'=>$direction];
+    }
+
+    /** Helper function for above functions */
+    private function getDefaultDirection($destinationNode, $route)
+    {
+        $startNodeOfRoute = $route -> startNodeID.'_'.$route -> routeID;
+        $nextNodeOfRoute = $route ->routeNodes[$startNodeOfRoute];
+        $xydStart = scUtility::nodeID2xyd($destinationNode);
+        $xydEnd = scUtility::nodeID2xyd($nextNodeOfRoute);
+        return scUtility::getDirectionOfTileFromCoords($xydStart['x'],$xydStart['y'],$xydEnd['x'],$xydEnd['y']);
+    }
     
-    /** Helper function for above */
+    /** Helper function for above functions */
     private function getPossibleDirectionsOfRouteFromNode($nodeID, $player, $stops)
     {
         $possibleTileFacingsSelection = [];
@@ -142,23 +208,24 @@ class scTrainDestinationsSolver
         $stops = $this->game->getStops();
 
         //TESTING
-        $die = 3;
+        //$die = 3;
 
         switch(intval($die))
         {
-            case 0: //move ahead 2
+            case 1: //move ahead 2
                 return $this -> moveAheadTwo($curTrainNodeID,$player,$stops);
                 break;
-            case 1: //move ahead 1
+            case 2: //move ahead 1
                 return $this -> moveAheadOne($curTrainNodeID,$player);
                 break;
-            case 2: //do nothing
+            case 3: //do nothing
                 return [$curTrainNodeID];
                 break;
-            case 3: //proceed to next station
+            case 4: //proceed to next station
                 return $this -> moveToNextStation($curTrainNodeID,$player,$stops);
                 break;
-            case 4 || 5: //go back to previous station.
+            case 5 || 6: //go back to previous station.
+                return $this -> moveToPreviousStation($player);
                 break;
         }
         //return ['2_2_S','10_3_E'];
@@ -299,5 +366,10 @@ class scTrainDestinationsSolver
         $this->game->dump("destinations: ", $destinationNodes);
         //step 5 - the routes that complete are locations available
         return $destinationNodes;
+    }
+
+    public function moveToPreviousStation($player)
+    {
+        return [$player['laststopnodeid']];
     }
 }
