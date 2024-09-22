@@ -72,7 +72,7 @@ class scUtility
       }
     }
   }
-
+  
   /**
    * Get xy from key\
    * @return array x and y as keys, their values as values.

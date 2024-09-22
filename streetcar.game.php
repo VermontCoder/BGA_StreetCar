@@ -434,20 +434,30 @@ class Streetcar extends Table
      * @param integer $y1 y Coord of first placed track
      * @param integer $c1 cardid of first placed track
      * @param string $directions_free1 sides of placed track that have a track emerging from them. NWSE.
+     * @param string $availableCards1 what cards are remaining after the placement of these cards.
+     * @param integer $availableCardsOwner1 which player's deck are we looking at?
      * @param integer $r2 rotation of 2nd placed track
      * @param integer $x2 x Coord of 2nd placed track
      * @param integer $y2 y Coord of 2nd placed track
      * @param integer $c2 cardid of 2nd placed track
      * @param string $directions_free2 sides of 2nd placed track that have a track emerging from them. NWSE.
-     * @param string $available_cards what cards are remaining after the placement of these cards.
+     * @param string $availableCards2 what cards are remaining after the placement of these cards.
+     * @param integer $availableCardsOwner2 which player's deck are we looking at?
      */
-    function placeTracks($r1, $x1, $y1, $c1, $directions_free1,$r2, $x2, $y2, $c2, $directions_free2, $available_cards)
+    function placeTracks($r1, $x1, $y1, $c1, $directions_free1, $availableCards1, $availableCardsOwner1, $r2, $x2, $y2, $c2, $directions_free2, $availableCards2, $availableCardsOwner2)
     {
         $this->checkAction( 'placeTrack' );
         //available cards comes in as a comma delimited string of numbers. Convert to array
-        $available_cards = array_map('intval',explode(',',$available_cards));
+        $availableCards1 = array_map('intval',explode(',',$availableCards1));
+        $availableCards2 = array_map('intval',explode(',',$availableCards2));
         
-        $this->updateAndRefillAvailableCards($available_cards);
+        $this->updateAndRefillAvailableCards($availableCards1, $availableCardsOwner1);
+
+        //only update 2nd set of cards if the cards of two different players have been altered.
+        if ($availableCardsOwner1 != $availableCardsOwner2)
+        {
+            $this->updateAndRefillAvailableCards($availableCards2, $availableCardsOwner2);
+        }
 
         $stopToAdd = $this->addStop($x1,$y1);
         $this->insertPiece($x1,$y1,$r1,$c1, $directions_free1,$stopToAdd);
@@ -803,28 +813,9 @@ class Streetcar extends Table
         return scRoute::getShortestRoutes($routes);
     }
 
-    function updateAndRefillAvailableCards($available_cards)
+    function updateAndRefillAvailableCards($available_cards, $player_id)
     {
-        $player_id = self::getActivePlayerId();
-        
-        $newHand = $this->refillHand($available_cards);
-        $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($newHand)) . "' WHERE player_id = " . $player_id . ";";
-        self::DbQuery($sql);      
-    }
-
-    function refillHand($available_cards)
-    {
-        $numNewCards = 5 - count($available_cards);
-
-        //check if we need to refill
-        if ($numNewCards ==0) return $available_cards;
-
-        $stackindex =  intval($this->globals->get(STACK_INDEX));
-        $stack = self::getStack();
-        
-
-        for ($i = 0; $i < $numNewCards; $i++) 
-        {
+        $newHand = $this->refillHand($available_cards 
             $card = array_shift($stack); 
             $available_cards[] = $card;
         }

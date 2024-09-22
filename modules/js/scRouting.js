@@ -34,7 +34,6 @@ return declare("bgagame.scRouting", null,
             //no route to show.
             if (this.curRoute == null) return;
 
-            
             let route = this.curRoute.routeNodes; //will be null if there is no route.
             
             //console.debug(JSON.stringify(route));

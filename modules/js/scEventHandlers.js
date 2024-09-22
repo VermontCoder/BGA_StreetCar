@@ -25,15 +25,14 @@ define([
             this.game = game; //HAVE TO REASSIGN THIS???
             dojo.stopEvent( evt );
             dojo.destroy('place_card_action_button'); //cannot place an unplaced track.
-            var coords = evt.currentTarget.id.split('_');
             dojo.query( '.playertrack' ).removeClass('trackselected')
             
             // destroy previous selected track
             dojo.destroy(this.scUtility.getPlacedTrackId(this.game.isFirstSelection));
-            if(coords[2]==this.game.player_id){
-                this.game.selectedTrack = parseInt(coords[1]);
-                dojo.addClass( evt.currentTarget.id, 'trackselected' );
-            }
+            
+            this.game.selectedTrack = this.scUtility.createSelectedTrackDataObj(evt.currentTarget.id);
+            dojo.addClass( evt.currentTarget.id, 'trackselected' );
+            
         },
 
         onPlaceCard( evt, game )
@@ -45,7 +44,7 @@ define([
             
             if( this.game.checkAction( 'placeTrack' ))
             {
-                if(this.game.selectedTrack==-1){
+                if(this.game.selectedTrack==null){
                     this.game.showMessage( _("Select track part you want to place."), 'error');	
                     return;
                 }
@@ -68,25 +67,27 @@ define([
                 }
 
                 let isStop = this.game.gamedatas.initialStops.filter(l => l.row==this.game.posy && l.col==this.game.posx).length>0
-                if(!isStop) 
-                {
-                    dojo.destroy(this.scUtility.getPlacedTrackId(this.game.isFirstSelection));
-                    dojo.place( this.game.format_block( 'jstpl_track', {
-                        id: this.scUtility.getPlacedTrackId(this.game.isFirstSelection),
-                        offsetx:-100* this.game.selectedTrack,
-                        rotate:this.game.rotation
-                    } ) , "square_"+this.game.posx+"_"+this.game.posy);
-
-                    badDirections = this.fitCardOnBoard();
-                    this.showPlaceCardActionButton(badDirections);
-                    
-                    this.rotationClickHandler = dojo.connect($(this.scUtility.getPlacedTrackId(this.game.isFirstSelection)), 'onclick', this, 'onRotateCard' );
-                }
-                else
+                if(isStop) 
                 {
                     this.game.showMessage( _("Cannot put track on stop."), 'error');
-                    dojo.destroy('place_card_action_button'); //deletes place track button.
-                }   
+                    dojo.destroy('place_card_action_button'); //deletes place track button
+                    return;
+                }
+
+                //card can be legally placed
+
+                // destroy selected track - will be replaced by actual card on the board
+                dojo.destroy(this.scUtility.getPlacedTrackId(this.game.isFirstSelection));
+                dojo.place( this.game.format_block( 'jstpl_track', {
+                    id: this.scUtility.getPlacedTrackId(this.game.isFirstSelection),
+                    offsetx:-100* this.game.selectedTrack.card,
+                    rotate:this.game.rotation
+                } ) , "square_"+this.game.posx+"_"+this.game.posy);
+
+                badDirections = this.fitCardOnBoard();
+                this.showPlaceCardActionButton(badDirections);
+                
+                this.rotationClickHandler = dojo.connect($(this.scUtility.getPlacedTrackId(this.game.isFirstSelection)), 'onclick', this, 'onRotateCard' );
             }
         },   
         onRotateCard(evt)
@@ -104,7 +105,7 @@ define([
         fitCardOnBoard()
         {
             dojo.destroy('place_card_action_button');
-            badDirections = this.fitTrack(this.game.gamedatas.tracks[this.game.selectedTrack][0],
+            badDirections = this.fitTrack(this.game.gamedatas.tracks[this.game.selectedTrack.card][0],
                 this.game.rotation, parseInt(this.game.posx), parseInt(this.game.posy));
 
             dojo.addClass(this.scUtility.getPlacedTrackId(this.game.isFirstSelection),this.game.isFirstSelection ? 'track_placement' : 'track_placement2');
@@ -191,14 +192,15 @@ define([
              dojo.destroy('place_card_action_button');
              dojo.destroy('begin_trip_button');
  
-             let trackcard = this.game.gamedatas.tracks[this.game.selectedTrack][0];
+             let trackcard = this.game.gamedatas.tracks[this.game.selectedTrack.card][0];
              let directions_free = this.scUtility.getDirections_free(trackcard, this.game.rotation);
+             let sourceOfCard = this.game.selectedTrack.player_id; 
  
              // remove from available cards.
-             var itsme = this.game.gamedatas.gamestate.args.players.filter(p =>p.id==this.game.player_id)[0];
+             var player = this.game.gamedatas.gamestate.args.players.filter(p =>p.id==sourceOfCard)[0];
              
-             let availableCards = JSON.parse(itsme["available_cards"])
-             var index = availableCards.indexOf(parseInt(this.game.selectedTrack));
+             let availableCards = JSON.parse(player["available_cards"])
+             var index = availableCards.indexOf(parseInt(this.game.selectedTrack.card));
              if (index !== -1) {
                  availableCards.splice(index, 1);
              }    
@@ -211,7 +213,7 @@ define([
                  availableCards.push(parseInt(trackOnBoardID));
              }
  
-             itsme["available_cards"] = JSON.stringify(availableCards);
+             player["available_cards"] = JSON.stringify(availableCards);
              
              this.game.updatePlayers(this.game.gamedatas.gamestate.args.players);
  
@@ -228,11 +230,11 @@ define([
                  //write selected track data to underlying board
                  this.game.gamedatas.gamestate.args.board[this.game.posx][this.game.posy]= directions_free;
                  this.game.gamedatas.gamestate.args.rotations[this.game.posx][this.game.posy] = this.game.rotation;
-                 this.game.gamedatas.gamestate.args.tracks[this.game.posx][this.game.posy] = this.game.selectedTrack;
+                 this.game.gamedatas.gamestate.args.tracks[this.game.posx][this.game.posy] = this.game.selectedTrack.card;
  
  
                  //reset so user can select another piece
-                 this.game.selectedTrack =-1;
+                 this.game.selectedTrack = null;
                  this.game.rotation = 0;
  
                  this.game.isFirstSelection = false;
@@ -284,7 +286,7 @@ define([
                 let cardOnBoardTrackID = this.game.gamedatas.gamestate.args.tracks[x][y];
                 let rotationOfCardOnBoard = this.game.gamedatas.gamestate.args.rotations[x][y];
                 let cardOnBoard = this.game.gamedatas.tracks[cardOnBoardTrackID][rotationOfCardOnBoard/90];
-                let trackcardcheck =  this.game.gamedatas.tracks[this.game.selectedTrack][parseInt(rotation)/90];
+                let trackcardcheck =  this.game.gamedatas.tracks[this.game.selectedTrack.card][parseInt(rotation)/90];
                 if(!this.checktrackmatch(cardOnBoard, trackcardcheck)){
                     this.game.showMessage( _("Existing paths need to remain the same."), 'info');	                    
                     return ['x']; //new track is incompatible with track on board

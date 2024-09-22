@@ -123,5 +123,14 @@ return declare("bgagame.scUtility", null, {
             if (yDelta == -1) return "S";
         },
 
+        createSelectedTrackDataObj(id)
+        {
+            var coords = id.split('_');
+            return { domID : coords[0], //should always be 'track_'
+                card: parseInt(coords[1]),
+                player_id: parseInt(coords[2]),
+                idx: parseInt(coords[3]),
+            }
+        },
     });
 });

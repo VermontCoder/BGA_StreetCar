@@ -78,7 +78,7 @@ function (dojo, declare) {
             // TODO: Set up your game interface here, according to "gamedatas"
             
             this.rotation = 0;
-            this.selectedTrack = -1;
+            this.selectedTrack = null;
             this.firstPlacementData = {};
             this.isFirstSelection = true;
             this.traceTrack = false;
@@ -122,7 +122,7 @@ function (dojo, declare) {
             switch( stateName )
             {
                 case "placeTrack":
-                    this.selectedTrack = -1;
+                    this.selectedTrack = null;
                     this.isFirstSelection = true;
                     this.firstPlacementData = {};
                     //this.scRouting = new bgagame.scRouting(this,args.args.routes);
@@ -267,24 +267,34 @@ function (dojo, declare) {
         */
         sendMovesToServer()
         {
+            availableCardsOwner1 = this.firstPlacementData.selectedTrack.player_id;
+            availableCards1 = this.gamedatas.gamestate.args.players.filter(p =>p.id==availableCardsOwner1)[0]['available_cards'];
+            
+            availableCardsOwner2 = this.selectedTrack.player_id;
+            availableCards2 = this.gamedatas.gamestate.args.players.filter(p =>p.id==availableCardsOwner2)[0]['available_cards'];
+
+
             //list of available cards cannot be sent as [0,2,3...], but as a comma delimited string of nums.
             //So we need to strip the brackets
-            available_cards = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.player_id)[0]['available_cards'];
-            available_cards = available_cards.slice(1,available_cards.length-1);
+            available_cards1 = available_cards1.slice(1,available_cards1.length-1);
+            available_cards2 = available_cards2.slice(1,available_cards2.length-1);
 
             paramList =
             {   
                 r1 : this.firstPlacementData.rotation,
                 x1 : this.firstPlacementData.posx,
                 y1 : this.firstPlacementData.posy,
-                c1 : this.firstPlacementData.selectedTrack,
+                c1 : this.firstPlacementData.selectedTrack.card,
                 directions_free1 : this.firstPlacementData.directions_free,
+                availableCards1 : availableCards1,
+                availableCardsOwner1  : availableCardsOwner1,
                 r2 : this.rotation,
                 x2 : this.posx,
                 y2 : this.posy,
-                c2 : this.selectedTrack,
+                c2 : this.selectedTrack.card,
                 directions_free2 : this.directions_free,
-                available_cards : available_cards
+                availableCards2 : availableCards2,
+                availableCardsOwner2  : availableCardsOwner2,
             };
             
             //clear buttons
@@ -318,10 +328,10 @@ function (dojo, declare) {
         /**
          * 
          * Displays the train on the board for a given person.
-         * @param {Integer} linenum Line designation on train
-         * @param {Integer} player_id player_id of owner of train
-         * @param {String} nodeID x_y_d location of train
-         * @param {String} traindirection facing - NESW.
+         * @param Integer linenum Line designation on train
+         * @param Integer player_id player_id of owner of train
+         * @param String nodeID x_y_d location of train
+         * @param String traindirection facing - NESW.
          * @returns null
          */
         showTrain : function(linenum,player_id,nodeID,traindirection)
@@ -366,14 +376,14 @@ function (dojo, declare) {
             else //non-active players
             {
                 if (player.trainposition == null)
-                    {
-                        //none of this player's information should be shown. 
-                        return;
-                    }
+                {
+                    //none of this player's information should be shown. 
+                    return;
+                }
     
-                    //This player has completed their route.
-                    dojo.style('completedMsg_'+player.id,'display','inline-block');
-                    dojo.addClass('start_'+player.id,'linenum_completed');
+                //This player has completed their route.
+                dojo.style('completedMsg_'+player.id,'display','inline-block');
+                dojo.addClass('start_'+player.id,'linenum_completed');
             }
             
 

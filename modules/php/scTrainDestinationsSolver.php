@@ -53,7 +53,7 @@ class scTrainDestinationsSolver
 
             //Step 2a - If a stop is on the route, check to see if it fulfills a goal. If so, modify database accordingly.
             $lastStopNodeID = $stopOnRoute['lastStopNodeID'];
-            $this->game->dump('laststopnodeID:', $lastStopNodeID);
+            //$this->game->dump('laststopnodeID:', $lastStopNodeID);
             
             if ($stopOnRoute['stop'] != null && in_array($stopOnRoute['stop'],$player['goals']))
             {
