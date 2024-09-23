@@ -268,16 +268,16 @@ function (dojo, declare) {
         sendMovesToServer()
         {
             availableCardsOwner1 = this.firstPlacementData.selectedTrack.player_id;
-            availableCards1 = this.gamedatas.gamestate.args.players.filter(p =>p.id==availableCardsOwner1)[0]['available_cards'];
+            availableCards1 = this.gamedatas.gamestate.args.players.filter(p =>parseInt(p.id)==availableCardsOwner1)[0]['available_cards'];
             
             availableCardsOwner2 = this.selectedTrack.player_id;
-            availableCards2 = this.gamedatas.gamestate.args.players.filter(p =>p.id==availableCardsOwner2)[0]['available_cards'];
+            availableCards2 = this.gamedatas.gamestate.args.players.filter(p =>parseInt(p.id)==availableCardsOwner2)[0]['available_cards'];
 
 
             //list of available cards cannot be sent as [0,2,3...], but as a comma delimited string of nums.
             //So we need to strip the brackets
-            available_cards1 = available_cards1.slice(1,available_cards1.length-1);
-            available_cards2 = available_cards2.slice(1,available_cards2.length-1);
+            availableCards1 = availableCards1.slice(1,availableCards1.length-1);
+            availableCards2 = availableCards2.slice(1,availableCards2.length-1);
 
             paramList =
             {   
