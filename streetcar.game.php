@@ -815,7 +815,24 @@ class Streetcar extends Table
 
     function updateAndRefillAvailableCards($available_cards, $player_id)
     {
-        $newHand = $this->refillHand($available_cards 
+        $newHand = $this->refillHand($available_cards);
+        $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($newHand)) . "' WHERE player_id = " . $player_id . ";";
+        self::DbQuery($sql);      
+    }
+
+    function refillHand($available_cards)
+    {
+        $numNewCards = 5 - count($available_cards);
+
+        //check if we need to refill
+        if ($numNewCards ==0) return $available_cards;
+
+        $stackindex =  intval($this->globals->get(STACK_INDEX));
+        $stack = self::getStack();
+        
+
+        for ($i = 0; $i < $numNewCards; $i++) 
+        {
             $card = array_shift($stack); 
             $available_cards[] = $card;
         }
