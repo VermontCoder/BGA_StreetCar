@@ -208,7 +208,7 @@ class scTrainDestinationsSolver
         $stops = $this->game->getStops();
 
         //TESTING
-        //$die = 3;
+        //$die = 1;
 
         switch(intval($die))
         {
@@ -248,6 +248,13 @@ class scTrainDestinationsSolver
     public function moveAheadTwo($curTrainNodeID,$player,$stops)
     {
        $nextNodeID = $this->moveAheadOne($curTrainNodeID,$player)[0];
+       $this->game->dump('nextNode:endnodes: ', $player['endnodeids']);
+
+       if (in_array($nextNodeID,$player['endnodeids']))
+       {
+            //this is victory, so this can be the only available selection
+            return [$nextNodeID];
+       }
 
        //oddly enough, this method also works here! This isn't actually directions, but nodes which lie in the next directions.
        return $this->getPossibleDirectionsOfRouteFromNode($nextNodeID, $player, $stops);
