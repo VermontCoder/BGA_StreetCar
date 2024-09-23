@@ -25,6 +25,8 @@ require_once('modules/php/scRoute.php');
 require_once('modules/php/scUtility.php');
 require_once('modules/php/scTrainDestinationsSolver.php');
 
+const STACK_SIZE = 100;
+
 //globals names
 const STACK_INDEX = "stackIndex";
 const CUR_DIE = "curDie"; //only used to undo die selection 
@@ -397,8 +399,7 @@ class Streetcar extends Table
 
     function argSelectDirection()
     {
-        $retArray = $this->getDataToClient();
-        return $retArray;
+        return $this->getDataToClient();
     }   
 
     function stNextPlayer()
@@ -822,14 +823,21 @@ class Streetcar extends Table
 
     function refillHand($available_cards)
     {
-        $numNewCards = 5 - count($available_cards);
-
-        //check if we need to refill
-        if ($numNewCards ==0) return $available_cards;
-
         $stackindex =  intval($this->globals->get(STACK_INDEX));
         $stack = self::getStack();
-        
+
+        $numNewCards = 5 - count($available_cards);
+
+        //check for stack depletion - modify $numNewCards to reflect if the stack is depleted.
+        if ($stackindex+1+$numNewCards >= STACK_SIZE)
+        {
+            $numNewCards = STACK_SIZE - ($stackindex+1);
+        }
+
+        $stackindex += $numNewCards;
+        $this->globals->set(STACK_INDEX,$stackindex);
+        //check if we need to refill
+        if ($numNewCards <= 0) return $available_cards;
 
         for ($i = 0; $i < $numNewCards; $i++) 
         {
@@ -837,10 +845,9 @@ class Streetcar extends Table
             $available_cards[] = $card;
         }
         
-        $stackindex += $numNewCards;
         $sql = "DELETE FROM `stack` WHERE id <=" . $stackindex;
         self::DbQuery($sql);
-        $this->globals->set(STACK_INDEX,$stackindex);
+        
         
         return $available_cards;
     }

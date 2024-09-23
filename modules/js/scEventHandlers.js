@@ -48,7 +48,14 @@ define([
                     this.game.showMessage( _("Select track part you want to place."), 'error');	
                     return;
                 }
-                console.log("placecard");
+               
+                stackLen = this.game.gamedatas.gamestate.args.stack.length;
+                if(this.game.selectedTrack.player_id != this.game.getActivePlayerId() && stackLen >0)
+                {
+                    this.game.showMessage( _("You cannot play with other player's tiles until the tile stack is depleted."), 'error');	
+                    return;
+                }
+
                 var coords = evt.currentTarget.id.split('_');
                 if (coords[1] == this.game.firstPlacementData.posx && coords[2]== this.game.firstPlacementData.posy)
                 {
