@@ -24,7 +24,12 @@
     
     Please REMOVE this comment before publishing your game on BGA
 -->
-<div id="wrapper"> 
+<div id="wrapper">
+    <div id="stack_icon_wrapper" class="stack_icon">
+        <div id="stack_icon" class="over">
+            <div id="stack_count" class="stack_count"><span>99</span></div>
+        </div>
+    </div>
     <div id="board" class="board_wrap bg_img"> 
         <!-- BEGIN board -->
             <div id="square_{X}_{Y}" class="square" style="left: {LEFT}px; top: {TOP}px;">
