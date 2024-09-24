@@ -135,7 +135,7 @@ class scRoute
     }
 
     /**
-     * Gets both the stop on the route, if present, and records a lastStopNodeID to be inserted into the database if this stop or a terminal node is passed through.
+     * Gets both the stop or terminal on the route, if present, and records a lastStopNodeID to be inserted into the database if this stop or a terminal node is passed through.
      * @return array 'stop' => stop letter on route, null if none, 'lastStopNodeID' => if there was a stop or terminal node on the route, it is recorded here, otherwise null
      */
     public function getStopOnRoute($stoplocations)

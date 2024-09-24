@@ -672,7 +672,7 @@ class Streetcar extends Table
 
         //check for win condition!!!!
 
-        if (in_array($destinationNode, $player['endnodeids']))
+        if (scUtility::hasPlayerWon($destinationNode,$player))
         {
             //game is over
             $this->notifyAllPlayers( "endOfGame",

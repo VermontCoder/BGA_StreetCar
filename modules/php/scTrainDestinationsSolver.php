@@ -72,7 +72,7 @@ class scTrainDestinationsSolver
         }
         
         //Step 3 - check if player won!
-        if (in_array($destinationNode, $player['endnodeids']))
+        if (scUtility::hasPlayerWon($destinationNode,$player) )
         {
             $routes = null; //no further route
             $curTrainFacingsTilesSelection = null; //no need to select facing

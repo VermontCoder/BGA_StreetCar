@@ -217,5 +217,10 @@ class scUtility
     $xy = scUtility::key2xy($nodeID);
     return ($xy['x']==0 || $xy['y']==0 || $xy['x'] == 13 || $xy['y']==13);
   }
+
+  public static function hasPlayerWon($trainLocationNodeID, $player)
+  {
+    return in_array($trainLocationNodeID, $player['endnodeids']) && (count($player['goals']) == 0);
+  }
 }
 
