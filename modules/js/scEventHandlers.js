@@ -49,7 +49,7 @@ define([
                     return;
                 }
                
-                stackLen = this.game.gamedatas.gamestate.args.stack.length;
+                stackLen = this.game.gamedatas.gamestate.args.stackCount;
                 if(this.game.selectedTrack.player_id != this.game.getActivePlayerId() && stackLen >0)
                 {
                     this.game.showMessage( _("You cannot play with other player's tiles until the tile stack is depleted."), 'error');	

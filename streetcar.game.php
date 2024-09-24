@@ -383,7 +383,7 @@ class Streetcar extends Table
             'tracks' => self::getTracks(),
             'rotations' => self::getRotation(),
             'stops' => $stops,
-            'stack' => self::getStack(),
+            'stackCount' => STACK_SIZE - intval($this->globals->get(STACK_INDEX)),
             'connectivityGraph'=> $this->cGraph->connectivityGraph,
         );
     }
@@ -829,15 +829,18 @@ class Streetcar extends Table
         $numNewCards = 5 - count($available_cards);
 
         //check for stack depletion - modify $numNewCards to reflect if the stack is depleted.
-        if ($stackindex+1+$numNewCards >= STACK_SIZE)
+        if ($stackindex+$numNewCards >= STACK_SIZE)
         {
-            $numNewCards = STACK_SIZE - ($stackindex+1);
+            $numNewCards = STACK_SIZE - $stackindex;
         }
 
         $stackindex += $numNewCards;
         $this->globals->set(STACK_INDEX,$stackindex);
-        //check if we need to refill
+
+        //check if we need to refill - stack index will continue to rise even after stack depleted, leading to negative $numNewCards.
+        //when that happens, just don't do any refill.
         if ($numNewCards <= 0) return $available_cards;
+       
 
         for ($i = 0; $i < $numNewCards; $i++) 
         {
@@ -845,7 +848,7 @@ class Streetcar extends Table
             $available_cards[] = $card;
         }
         
-        $sql = "DELETE FROM `stack` WHERE id <=" . $stackindex;
+        $sql = "DELETE FROM `stack` WHERE id <" . $stackindex;
         self::DbQuery($sql);
         
         

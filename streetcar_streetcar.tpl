@@ -27,7 +27,7 @@
 <div id="wrapper">
     <div id="stack_icon_wrapper" class="stack_icon">
         <div id="stack_icon" class="over">
-            <div id="stack_count" class="stack_count"><span>99</span></div>
+            <div id="stack_count" class="stack_count">99</div>
         </div>
     </div>
     <div id="board" class="board_wrap bg_img"> 

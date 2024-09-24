@@ -127,9 +127,7 @@ function (dojo, declare) {
                     this.firstPlacementData = {};
                     //this.scRouting = new bgagame.scRouting(this,args.args.routes);
 
-                    this.updatePlayers(args.args.players);
-                    this.updateTracks();
-                    this.updateStops();
+                    this.updateBoardState(args.args.players, args.args.stackCount);
 
                     //clear out previous clickhandlers, if they exist
                     this.scEventHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
@@ -147,52 +145,41 @@ function (dojo, declare) {
 
                      //remove click ability on all the board squares - if this is still here.
                     this.scEventHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
-
-                    this.updatePlayers(args.args.players);
-                    this.updateTracks();
-                    this.updateStops();
+                    this.updateBoardState(args.args.players, args.args.stackCount);
                       
                     break;
                 case "selectDie":
                     console.log('selectDie');
-                    this.updatePlayers(args.args.players);
-                    this.updateTracks();
-                    this.updateStops();
-                    
+
+                    this.updateBoardState(args.args.players, args.args.stackCount);
                     this.showDice();
                    
                     break;
                 case "moveTrain":
                     console.log('moveTrain');
-                    this.updatePlayers(args.args.players);
-                    this.updateTracks();
-                    this.updateStops();
-                    
+
+                    this.updateBoardState(args.args.players, args.args.stackCount);
                     break;
                 
                 case "selectDirection":
                     console.log('selectDirection');
-                    this.updatePlayers(args.args.players);
-                    this.updateTracks();
-                    this.updateStops();
-                    
-                    break;
 
-            /* Example:
-            
-            case 'myGameState':
-            
-                // Show some HTML block at this game state
-                dojo.style( 'my_html_block_id', 'display', 'block' );
-                
-                break;
-           */
+                    this.updateBoardState(args.args.players, args.args.stackCount);
+                    break;
            
-           
-            case 'dummmy':
-                break;
+                case 'dummmy':
+                    break;
             }
         },
+
+        updateBoardState : function (players,stackCount)
+        {
+            this.updatePlayers(players);
+            this.updateTracks();
+            this.updateStops();
+            this.updateStackCounter(stackCount);
+        },
+
         setGamestateDescription: function (property) {
             if (property === void 0) { property = ''; }
             var originalState = this.gamedatas.gamestates[this.gamedatas.gamestate.id];
@@ -325,98 +312,8 @@ function (dojo, declare) {
             this.ajaxcall( "/streetcar/streetcar/placeTracks.html",paramList, this, function( result ) {} );
         },
 
-        /**
-         * 
-         * Displays the train on the board for a given person.
-         * @param Integer linenum Line designation on train
-         * @param Integer player_id player_id of owner of train
-         * @param String nodeID x_y_d location of train
-         * @param String traindirection facing - NESW.
-         * @returns null
-         */
-        showTrain : function(linenum,player_id,nodeID,traindirection)
-        {
-            //if nodeID is null, there is no train to show
-            if (nodeID==null) return;
+       
 
-            trainXYD = this.scUtility.extractXYD(nodeID);
-            
-            tileID = 'square_'+trainXYD.x+"_"+trainXYD.y;
-            rotation = this.scUtility.getRotationFromDirection(traindirection);
-            //console.log ('Params','linenum: '+linenum+'\nplayer_id: ' + player_id+'\ntileID:'+tileID+'\ndirection:'+traindirection+'\nrotation:'+rotation);
-            console.log(traindirection+'_'+player_id);
-            dojo.destroy("train_"+player_id);
-            dojo.place( this.format_block( 'jstpl_train', {
-                id: player_id,
-                offsetx:(-100)*(parseInt(linenum)-1),
-                rotate: rotation,
-            } ) , tileID);
-
-        },
-
-        showPlayerBoard(player)
-        {
-            if(player.id == this.player_id) //active player
-            {
-                 //show the "shortest route" button
-                 dojo.style('checktrack_'+player.id,'display','block');
-
-                 //Highlight goals on board 
-                player.goals.forEach(goal => {
-                    let location = this.gamedatas.initialStops.filter(l => l.code== goal)[0]
-                    dojo.style( 'stops_'+location.col+"_"+location.row, 'border', 'solid 4px #FCDF00' );
-                });
-
-                if (!(this.scRouting.curRoute==null) && this.scRouting.curRoute.isComplete)
-                {
-                        dojo.style('completedMsg_'+player.id,'display','inline-block');
-                        dojo.addClass('start_'+player.id,'linenum_completed');
-                } 
-            }
-            else //non-active players
-            {
-                if (player.trainposition == null)
-                {
-                    //none of this player's information should be shown. 
-                    return;
-                }
-    
-                //This player has completed their route.
-                dojo.style('completedMsg_'+player.id,'display','inline-block');
-                dojo.addClass('start_'+player.id,'linenum_completed');
-            }
-            
-
-            //All players
-
-            //show linenum
-            dojo.style( 'start_'+player.id, 'background-position', (parseInt(player.linenum)-1)*-50+'px 0px');
-            dojo.style('start_'+player.id,'display','inline-block');
-
-            let html = "";
-
-            //show completed goals
-            player.goalsfinished.forEach(goalfinished =>{
-                html += "<div class='goallocation goalreached' id='goallocation_"+goalfinished+"'>"+goalfinished+"</div>"
-            });
-
-            //show goals
-            player.goals.forEach(goal => 
-            {
-                html += "<div class='goallocation' id='goallocation_"+goal+"'>"+goal+"</div>";
-            });
-
-            $('goal_'+player.id).innerHTML=html;
-
-            let available_cards = JSON.parse(player["available_cards"])
-        
-            available_cards.forEach((s,c) => {
-                dojo.place( this.format_block( 'jstpl_track_player', {
-                    id: s+"_"+player.id+"_"+c,
-                    offsetx:-parseInt(s)*100,
-                } ) , 'track_'+player.id);    
-            });
-        },
         updatePlayers: function(players){
             //update player boards
             //delete previous tracks on player board
@@ -484,6 +381,103 @@ function (dojo, declare) {
                 }
             }
         },
+
+        updateStackCounter(stackCount) {
+            $('stack_count').innerHTML= stackCount;
+        },
+
+         /**
+         * 
+         * Displays the train on the board for a given person.
+         * @param Integer linenum Line designation on train
+         * @param Integer player_id player_id of owner of train
+         * @param String nodeID x_y_d location of train
+         * @param String traindirection facing - NESW.
+         * @returns null
+         */
+         showTrain : function(linenum,player_id,nodeID,traindirection)
+         {
+             //if nodeID is null, there is no train to show
+             if (nodeID==null) return;
+ 
+             trainXYD = this.scUtility.extractXYD(nodeID);
+             
+             tileID = 'square_'+trainXYD.x+"_"+trainXYD.y;
+             rotation = this.scUtility.getRotationFromDirection(traindirection);
+             //console.log ('Params','linenum: '+linenum+'\nplayer_id: ' + player_id+'\ntileID:'+tileID+'\ndirection:'+traindirection+'\nrotation:'+rotation);
+             console.log(traindirection+'_'+player_id);
+             dojo.destroy("train_"+player_id);
+             dojo.place( this.format_block( 'jstpl_train', {
+                 id: player_id,
+                 offsetx:(-100)*(parseInt(linenum)-1),
+                 rotate: rotation,
+             } ) , tileID);
+ 
+         },
+ 
+         showPlayerBoard(player)
+         {
+             if(player.id == this.player_id) //active player
+             {
+                  //show the "shortest route" button
+                  dojo.style('checktrack_'+player.id,'display','block');
+ 
+                  //Highlight goals on board 
+                 player.goals.forEach(goal => {
+                     let location = this.gamedatas.initialStops.filter(l => l.code== goal)[0]
+                     dojo.style( 'stops_'+location.col+"_"+location.row, 'border', 'solid 4px #FCDF00' );
+                 });
+ 
+                 if (!(this.scRouting.curRoute==null) && this.scRouting.curRoute.isComplete)
+                 {
+                         dojo.style('completedMsg_'+player.id,'display','inline-block');
+                         dojo.addClass('start_'+player.id,'linenum_completed');
+                 } 
+             }
+             else //non-active players
+             {
+                 if (player.trainposition == null)
+                 {
+                     //none of this player's information should be shown. 
+                     return;
+                 }
+     
+                 //This player has completed their route.
+                 dojo.style('completedMsg_'+player.id,'display','inline-block');
+                 dojo.addClass('start_'+player.id,'linenum_completed');
+             }
+             
+ 
+             //All players
+ 
+             //show linenum
+             dojo.style( 'start_'+player.id, 'background-position', (parseInt(player.linenum)-1)*-50+'px 0px');
+             dojo.style('start_'+player.id,'display','inline-block');
+ 
+             let html = "";
+ 
+             //show completed goals
+             player.goalsfinished.forEach(goalfinished =>{
+                 html += "<div class='goallocation goalreached' id='goallocation_"+goalfinished+"'>"+goalfinished+"</div>"
+             });
+ 
+             //show goals
+             player.goals.forEach(goal => 
+             {
+                 html += "<div class='goallocation' id='goallocation_"+goal+"'>"+goal+"</div>";
+             });
+ 
+             $('goal_'+player.id).innerHTML=html;
+ 
+             let available_cards = JSON.parse(player["available_cards"])
+         
+             available_cards.forEach((s,c) => {
+                 dojo.place( this.format_block( 'jstpl_track_player', {
+                     id: s+"_"+player.id+"_"+c,
+                     offsetx:-parseInt(s)*100,
+                 } ) , 'track_'+player.id);    
+             });
+         },
         
         showDice()
         {
@@ -491,7 +485,7 @@ function (dojo, declare) {
             
             // show dice
             dojo.style( 'dice', 'display', 'inline-flex' );
-            $('dice').innerHTML= ""
+            $('dice').innerHTML= "";
             dice = JSON.parse(activePlayer['dice']);
 
             for(i=0;i<dice.length;i++)
@@ -692,7 +686,7 @@ function (dojo, declare) {
         {
             activePlayer = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.getActivePlayerId())[0];
             trainposition = activePlayer.trainposition;
-            curDirection = activePlayer.traindirection;
+            //curDirection = activePlayer.traindirection;
             console.log('trainpos: ', trainposition);
             this.scEventHandlers.onSelectTrainDirection(evt, trainposition);
         }
