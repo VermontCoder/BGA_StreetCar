@@ -142,7 +142,13 @@ class scRoute
     {
         $retArray = [ 'stop' => null, 'lastStopNodeID' =>null];
         $startNodeID = $this->startNodeID.'_'.$this->routeID;
-        $curNode = $startNodeID;
+
+        //if there is no route, there are no stops.
+        if (!isset($this->routeNodes[$startNodeID])) return $retArray;
+        
+        //Note - starting node is *not* included in the search, but ending one is.
+        $curNode = $this->routeNodes[$startNodeID];
+
         while($curNode != null)
         {
             $curNodeXY = scUtility::key2xy($curNode);
