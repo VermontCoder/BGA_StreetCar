@@ -48,13 +48,16 @@ class scTrainDestinationsSolver
             $moveRoute = $this->scRouteFinder->findShortestRoute($player['trainposition'],$destinationNode);
             //$this->game->dump('route:', $route);
 
+            
             //Step 2 - Note any stops or terminal nodes.
             $stopOnRoute = $moveRoute->getStopOnRoute($stopsLocations);
-
-            //Step 2a - If a stop is on the route, check to see if it fulfills a goal. If so, modify database accordingly.
-            $lastStopNodeID = $stopOnRoute['lastStopNodeID'];
-            //$this->game->dump('laststopnodeID:', $lastStopNodeID);
+          
+            //step 2a - special processing for 2 space move. We must return the route that passes a stop, if there is one.
+            //This is ugly, but no avoiding it :(
+            $this->twoSpaceMoveSpecialProcessing($moveRoute,$stopOnRoute,$player,$stops,$stopsLocations);
             
+            
+            //Step 2b - If a stop is on the route, check to see if it fulfills a goal. If so, modify database accordingly.
             if ($stopOnRoute['stop'] != null && in_array($stopOnRoute['stop'],$player['goals']))
             {
                 //as $player will be used again later, modify $player
@@ -64,10 +67,10 @@ class scTrainDestinationsSolver
                 $sql .="goals='".json_encode(array_values($player['goals']))."', goalsfinished='".json_encode(array_values($player['goalsfinished']))."', ";
             }
 
-            //Step 2b - If a stop or terminal is noted on the route, record the nodeID in the "lastStopNodeID" column for the player.
-            if( $lastStopNodeID != null)
+            //Step 2c - If a stop or terminal is noted on the route, record the nodeID in the "lastStopNodeID" column for the player.
+            if( $stopOnRoute['lastStopNodeID'] != null)
             {
-                $sql .= "laststopnodeid='".$lastStopNodeID."', ";
+                $sql .= "laststopnodeid='".$stopOnRoute['lastStopNodeID']."', ";
             }
         }
         
@@ -94,7 +97,7 @@ class scTrainDestinationsSolver
             $routes = $this->game->calcRoutesFromNode( $destinationNode, $player,$stops);
 
             //Step 4 - Find direction of train. This might be a temporary direction - the user will select the direction in next state, if more than one direction is possible.
-            $curTrainFacingsTilesSelection = $this -> getPossibleDirectionsOfRouteFromNode($destinationNode, $player, $stops);
+            $curTrainFacingsTilesSelection = $this -> moveAheadOne($destinationNode, $player, $stops);
         
             //default face the train toward shortest route. If there is more than one route, the player can choose a different one in the next state.
             $direction = $this->getDefaultDirection($destinationNode, $routes[0]);
@@ -107,6 +110,41 @@ class scTrainDestinationsSolver
         //step 5 - return routes and traindirection.
 
         return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'curTrainFacingsTileSelection'=>$curTrainFacingsTilesSelection,'direction'=>$direction];
+    }
+
+    private function twoSpaceMoveSpecialProcessing(&$moveRoute,&$stopOnRoute,$player,$stops,$stopsLocations)
+    {
+        $dieRoll =  $this->game->globals->get(CUR_DIE);
+        
+        if ($dieRoll != 1)
+        // if ($stopOnRoute['lastStopNodeID'] != null && $dieRoll != 1)
+        {
+            //this situation does not require special processing
+            return;
+        }
+       
+        $possibleAdjacentNodes = $this->moveAheadOne($moveRoute->startNodeID,$player,$stops);
+        foreach($possibleAdjacentNodes as $node)
+        {
+            $altRoute = $this->scRouteFinder->findShortestRoute($moveRoute->startNodeID, $node);
+            $altStopOnRoute = $altRoute->getStopOnRoute($stopsLocations);
+    
+            if ($altStopOnRoute['lastStopNodeID'] != null)
+            {
+                //this might be the node we are looking for
+                $altRoutePart2 = $this->scRouteFinder->findShortestRoute($node, $moveRoute->endNodeID);
+                
+                //This route needs to be length 1. If not, this is further than two squares, so its no good.
+                if ($altRoutePart2->getLength() != 1) continue;
+                
+                $moveRoute = $altRoute->merge($altRoutePart2);
+                $stopOnRoute = $altStopOnRoute;
+                return;
+            }
+        }
+
+        //alt routes didn't have any stops either.
+        return;
     }
 
     /**
@@ -149,7 +187,7 @@ class scTrainDestinationsSolver
         }
 
         $routes = $this->game->calcRoutesFromNode( $destinationNode, $player,$stops);
-        $curTrainFacingsTilesSelection = $this -> getPossibleDirectionsOfRouteFromNode($destinationNode, $player, $stops);
+        $curTrainFacingsTilesSelection = $this -> moveAheadOne($destinationNode, $player, $stops);
         $direction = $this->getDefaultDirection($destinationNode, $routes[0]);
 
          //Modify database
@@ -168,36 +206,6 @@ class scTrainDestinationsSolver
         $xydEnd = scUtility::nodeID2xyd($nextNodeOfRoute);
         return scUtility::getDirectionOfTileFromCoords($xydStart['x'],$xydStart['y'],$xydEnd['x'],$xydEnd['y']);
     }
-    
-    /** Helper function for above functions */
-    private function getPossibleDirectionsOfRouteFromNode($nodeID, $player, $stops)
-    {
-        $possibleTileFacingsSelection = [];
-
-        $connectedNodes = $this->game->cGraph->getChildNodes($nodeID);
-
-        foreach($connectedNodes as $connectedNode)
-        {
-            //find if there are route(s) from this node to the end. If so, this is a possible way to go.
-            $routes = $this->game->calcRoutesFromNode($connectedNode,$player,$stops);
-            
-            //$this->game->dump('CONNECTED NODE: ', $connectedNode);
-            if ($routes==null) continue; //no routes found.
-            
-            foreach($routes as $route)
-            {
-                if ($route->isComplete)
-                {
-                    //this node lies in a possible direction 
-                    $possibleTileFacingsSelection[] = $connectedNode;
-                    break;
-                }
-            }
-
-        }
-
-        return $possibleTileFacingsSelection;
-    }
 
     /**
      * Based on current player position, get the possible moves for the train.
@@ -207,16 +215,13 @@ class scTrainDestinationsSolver
         $curTrainNodeID = $player['trainposition'];
         $stops = $this->game->getStops();
 
-        //TESTING
-        //$die = 1;
-
         switch(intval($die))
         {
             case 1: //move ahead 2
                 return $this -> moveAheadTwo($curTrainNodeID,$player,$stops);
                 break;
             case 2: //move ahead 1
-                return $this -> moveAheadOne($curTrainNodeID,$player);
+                return $this -> moveAheadOne($curTrainNodeID,$player,$stops);
                 break;
             case 3: //do nothing
                 return [$curTrainNodeID];
@@ -234,37 +239,56 @@ class scTrainDestinationsSolver
     /**
      * Moving ahead one, no choice, player moves forward in the direction of train facing.
      */
-    public function moveAheadOne($curTrainNodeID,$player)
+    public function moveAheadOne($curTrainNodeID,$player,$stops)
     {
-        $xyd= scUtility::nodeID2xyd($curTrainNodeID);
-        $xyDestination = scUtility::getCoordsOfTileInDirection($player['traindirection'],$xyd['x'],$xyd['y']);
+        $possibleMoves = [];
 
-        //Train will be entering new node from the side opposite the train direction (train moving North enters from the south,etc.)
-        $d = scUtility::get180($player['traindirection']);
+        $connectedNodes = $this->game->cGraph->getChildNodes($curTrainNodeID);
 
-        return [scUtility::xyd2NodeID($xyDestination['x'],$xyDestination['y'],$d)];
+        foreach($connectedNodes as $connectedNode)
+        {
+            //find if there are route(s) from this node to the end. If so, this is a possible way to go.
+            $routes = $this->game->calcRoutesFromNode($connectedNode,$player,$stops);
+            
+            //$this->game->dump('CONNECTED NODE: ', $connectedNode);
+            if ($routes==null) continue; //no routes found.
+            
+            foreach($routes as $route)
+            {
+                if ($route->isComplete)
+                {
+                    //this node lies in a possible direction 
+                    $possibleMoves[] = $connectedNode;
+                    break;
+                }
+            }
+
+        }
+
+        return $possibleMoves;
     }
 
     public function moveAheadTwo($curTrainNodeID,$player,$stops)
     {
-       $nextNodeID = $this->moveAheadOne($curTrainNodeID,$player)[0];
-       $this->game->dump('nextNode:endnodes: ', $player['endnodeids']);
+        $possibleMoves = [];
+        $nextNodeIDs = $this->moveAheadOne($curTrainNodeID,$player,$stops);
 
-       if (in_array($nextNodeID,$player['endnodeids']))
-       {
-            //this is victory, so this can be the only available selection
-            return [$nextNodeID];
-       }
+        //if moving ahead one results in a win, it will be in the $nextNodeIDs array
+        $nextMoveWin = array_intersect($nextNodeIDs,$player['endnodeids']);
 
-       //oddly enough, this method also works here! This isn't actually directions, but nodes which lie in the next directions.
-       return $this->getPossibleDirectionsOfRouteFromNode($nextNodeID, $player, $stops);
+        if (count($nextMoveWin) > 0 )  return $nextMoveWin; //player has won
+
+        foreach($nextNodeIDs as $nextNodeID)
+        {
+            $secondMoveNodes = $this->moveAheadOne($nextNodeID, $player, $stops);
+            $possibleMoves = array_merge($possibleMoves,$secondMoveNodes);
+        }
+
+        return $possibleMoves;
     }
 
     public function moveToNextStation($curTrainNodeID,$player,$stops)
     {
-
-        //step 0 - get the next node on the train's path
-        $originNode = $this->moveAheadOne($curTrainNodeID,$player)[0];
 
         //step 1 - make a copy of connectivity graph
         $connectivityGraphCopy = new scConnectivityGraph($this->game);
@@ -295,8 +319,21 @@ class scTrainDestinationsSolver
             
         }
 
+        //step 2b
+        //if the train is on a station, do not break connections from it.
+        //remove those station nodes
+
+        foreach($stationNodes as $idx=>$stationNode)
+        {
+            $sXYD = scUtility::nodeID2xyd($stationNode);
+            $tXYD = scUtility::nodeID2xyd($curTrainNodeID);
+            if ($sXYD['x']==$tXYD['x'] && $sXYD['y']==$tXYD['y'])
+            {
+                unset($stationNodes[$idx]);
+            }
+        }
         //$this->game->dump('Station Nodes', $stationNodes);
-        //step 2b - Alter connectivity graph to end at terminals or stops
+        //step 2c - Alter connectivity graph to end at terminals or stops
         foreach($connectivityGraphCopy->connectivityGraph as $node => $children)
         {
             $this->game->dump('NODEs', $node);
@@ -314,7 +351,7 @@ class scTrainDestinationsSolver
         $routeFinder = new scRouteFinder($connectivityGraphCopy);
         foreach($stationNodes as $stationNode)
         {
-            $route = $routeFinder->findShortestRoute($originNode,$stationNode);
+            $route = $routeFinder->findShortestRoute($curTrainNodeID,$stationNode);
             if (!$route->isEmpty())
             {
                 $routesToStations[] = $route;
@@ -326,8 +363,8 @@ class scTrainDestinationsSolver
         //$this->game->dump('CGRAPH', $this->game->cGraph->connectivityGraph);
         //step 4 - From all stops and terminals accessable, run from node to end.
         
-        $cGraph = new scConnectivityGraph($this->game); // create a non-altered connectivity graph
-        $routeFinder = new scRouteFinder($cGraph);
+        //$cGraph = new scConnectivityGraph($this->game); // create a non-altered connectivity graph
+        $routeFinder = new scRouteFinder($this->game->cGraph);
 
         
         $candidateNodes = []; //This is an array of the form $x_$y => [$d => length of route to end] - reasoning explained below.

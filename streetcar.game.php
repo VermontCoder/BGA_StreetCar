@@ -272,7 +272,7 @@ class Streetcar extends Table
         }
         else
         {
-            $result['routes'] =$this-> calcRoutesFromTrainPositionAndDirection($curPlayer,$this->getStops());
+            $result['routes'] =$this-> calcRoutesFromNode($curPlayer['trainposition'],$curPlayer,$this->getStops());
         }
 
         //only relevant when choosing the train start location (one time).
@@ -489,8 +489,7 @@ class Streetcar extends Table
             }
             else
             {
-                $routes =$this-> calcRoutesFromTrainPositionAndDirection($player,$stops);
-                //$routes =$this->calcRoutesFromNode( $player['trainposition'], $player,$stops);//these stops are stops located on the board.
+                $routes =$this-> calcRoutesFromNode($player['trainposition'],$player,$stops);
             }
             
             self::notifyPlayer($player['id'],'updateRoute','',
@@ -588,13 +587,17 @@ class Streetcar extends Table
     
         self::DbQuery($sql);
 
+        //testing
+        //$die =1;
+
+        $this->globals->set(CUR_DIE,(int)$die);
         //TO DO - get possible moves for this dice selection. For now, stub it out.
         $trainDestinationsSolver = new scTrainDestinationsSolver($this);
         $possibleTrainMoves = $trainDestinationsSolver->getTrainMoves($player,$die);
         
         //$possibleTrainMoves = ['0_0_N','2_1_W'];
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, $possibleTrainMoves);
-        $this->globals->set(CUR_DIE,(int)$die);
+        
 
         self::notifyAllPlayers('selectedDie', clienttranslate('${player_name} selected die.'), array(
             'player_name' =>self::getActivePlayerName(),
@@ -718,7 +721,7 @@ class Streetcar extends Table
         $player['traindirection'] = $direction;
 
         //find the route from the new direction.
-        $routes = $this-> calcRoutesFromTrainPositionAndDirection($player,$stops);
+        $routes = $this-> calcRoutesFromNode($player['trainposition'],$player,$stops);
 
         self::notifyAllPlayers('selectDirection', clienttranslate('${player_name} has choosen a direction to face their train.'), array(
             'player_name' =>self::getActivePlayerName(),
@@ -782,35 +785,6 @@ class Streetcar extends Table
         $routeFinder = new scRouteFinder($this->cGraph);
 
         $routes = $routeFinder->findRoutesFromNode($nodeID,$player,$stopsLocations,$this);
-        return scRoute::getShortestRoutes($routes);
-    }
-
-    /**
-     * Gets the route from the trainposition as far as it can based on connected stops AND assuming the first node of the route is in the direction the train is pointing.
-     * IMPORTANT: Do not call $this->getCurrentPlayerID() on game setup. Throws an error.
-     * So do not call it then.
-     * 
-     * @param string $nodeID starting node.
-     * @param array $stops from self::getStops()
-     * @param array $player FULL player information.
-     * @return array scRoute::scRoute Shortest routes (in array) 
-     */
-    function calcRoutesFromTrainPositionAndDirection($player,$stops)
-    {
-
-        $trainDestinationsSolver = new scTrainDestinationsSolver($this);
-
-        //normally moveAheadOne is called for die rolls which expects an array of locations which it is possible to move.
-        //So the return here is an array of one. We extract it.
-        $nodeInDirection = $trainDestinationsSolver -> moveAheadOne($player['trainposition'],$player)[0];
-
-        $routes = $this->calcRoutesFromNode($nodeInDirection,$player,$stops);
-        
-        foreach($routes as $route)
-        {
-            $route->newStartNode($player['trainposition']);
-        }
-
         return scRoute::getShortestRoutes($routes);
     }
 
