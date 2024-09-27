@@ -142,6 +142,11 @@ function (dojo, declare) {
 
                      //remove click ability on all the board squares - if this is still here.
                     this.scEventHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
+
+                    //also double check to remove any selections made. - hopefully handles very intermittent bug of these showing up.
+                    dojo.query(".selectable_tile").removeClass('selectable_tile');
+                    this.scEventHandlers.onSelectedNodeHandlers.forEach(dojo.disconnect);
+                    
                     this.updateBoardState(args.args.players, args.args.stackCount);
                       
                     break;
