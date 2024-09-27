@@ -82,21 +82,22 @@ function (dojo, declare) {
             this.firstPlacementData = {};
             this.isFirstSelection = true;
             this.traceTrack = false;
+
             // show stops
-           
             gamedatas.initialStops.forEach(l=>{
                 // dojo.destroy('stoplocation_'+stops[x][y])
                 html = "<div class='goallocation goalstart' id='stoplocation_"+l.code+"'>"+l.code+"</div><div class='goalname' id='goalname_"+l.code+"'>"+l.name+"</div>";
                 $('stops_'+l.col+"_"+l.row).innerHTML=html;
             });
-            
-            
+                        
             //wire up show route button.
             dojo.query( '.goalcheck' ).connect( 'onclick', this, 'onToggleShowRoute' );
 
             //if, after die roll, user refreshes, this will contain the possible destinations they can send the train to.
             this.showTrainDestinations(gamedatas.curTrainDestinationsSelection);
 
+            this.stackCounter = new ebg.counter();
+            this.stackCounter.create('stack_count');
 
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
@@ -384,7 +385,7 @@ function (dojo, declare) {
         },
 
         updateStackCounter(stackCount) {
-            $('stack_count').innerHTML= stackCount;
+            this.stackCounter.toValue(stackCount);
         },
 
          /**

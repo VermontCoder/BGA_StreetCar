@@ -84,17 +84,21 @@ define([
                 //card can be legally placed
 
                 // destroy selected track - will be replaced by actual card on the board
-                dojo.destroy(this.scUtility.getPlacedTrackId(this.game.isFirstSelection));
-                dojo.place( this.game.format_block( 'jstpl_track', {
-                    id: this.scUtility.getPlacedTrackId(this.game.isFirstSelection),
-                    offsetx:-100* this.game.selectedTrack.card,
-                    rotate:this.game.rotation
-                } ) , "square_"+this.game.posx+"_"+this.game.posy);
-
+                if(!$(this.scUtility.getPlacedTrackId(this.game.isFirstSelection)))
+                {
+                //dojo.destroy(this.scUtility.getPlacedTrackId(this.game.isFirstSelection));
+                    dojo.place( this.game.format_block( 'jstpl_track', 
+                    {
+                        id: this.scUtility.getPlacedTrackId(this.game.isFirstSelection),
+                        offsetx:-100* this.game.selectedTrack.card,
+                        rotate:this.game.rotation
+                    } ) , 'track_'+this.game.selectedTrack.player_id,'after');
+                    this.rotationClickHandler = dojo.connect($(this.scUtility.getPlacedTrackId(this.game.isFirstSelection)), 'onclick', this, 'onRotateCard' );
+                } 
+                this.game.slideToObject( this.scUtility.getPlacedTrackId(this.game.isFirstSelection), "square_"+this.game.posx+"_"+this.game.posy).play();
+                
                 badDirections = this.fitCardOnBoard();
                 this.showPlaceCardActionButton(badDirections);
-                
-                this.rotationClickHandler = dojo.connect($(this.scUtility.getPlacedTrackId(this.game.isFirstSelection)), 'onclick', this, 'onRotateCard' );
             }
         },   
         onRotateCard(evt)
@@ -102,9 +106,10 @@ define([
             // Stop this event propagation
             dojo.stopEvent( evt );
         
+           //console.log('ROTATE: ' + this.game.rotation);
             this.game.rotation = (this.game.rotation + 90) % 360;
             this.game.rotateTo(this.scUtility.getPlacedTrackId(this.game.isFirstSelection), this.game.rotation);
-
+            //console.log('ROTATE2: ' + this.game.rotation);
             badDirections = this.fitCardOnBoard();
             this.showPlaceCardActionButton(badDirections);
            

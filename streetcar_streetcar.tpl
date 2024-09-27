@@ -24,7 +24,7 @@
     
     Please REMOVE this comment before publishing your game on BGA
 -->
-<div id="wrapper">
+<div id="wrapper" muted="muted">
     <div id="stack_icon_wrapper" class="stack_icon">
         <div id="stack_icon" class="over">
             <div id="stack_count" class="stack_count">99</div>

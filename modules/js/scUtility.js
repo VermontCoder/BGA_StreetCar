@@ -132,5 +132,13 @@ return declare("bgagame.scUtility", null, {
                 idx: parseInt(coords[3]),
             }
         },
+
+        getSelectedTrackIDFromDataObj(selectedTrackDataObj)
+        {
+            return selectedTrackDataObj.domID+'_'+
+                selectedTrackDataObj.card+'_'+
+                selectedTrackDataObj.player_id+'_'+
+                selectedTrackDataObj.idx;
+        }
     });
 });
