@@ -108,42 +108,8 @@ $machinestates = array(
         "type" => "activeplayer",
         "args" => "argMoveTrain",
         "possibleactions" => array('selectTrainDestination','chooseDifferentDie','rollDice','doneWithTurn'),
-        "transitions" => array("rollDice" => 12, "selectDirection" => 15, "selectDie"=> 13, "nextPlayer"=> 11, "gameEnd" => 99)
+        "transitions" => array("rollDice" => 12, "selectDie"=> 13, "nextPlayer"=> 11, "gameEnd" => 99)
     ),
-
-    15 => array(
-        "name" => "selectDirection",
-        "description" => clienttranslate('${actplayer} selects the direction for their train.'),
-        "descriptionmyturn" => clienttranslate('Select the tile for your train to point to.'),
-
-        "type" => "activeplayer",
-        "args" => "argSelectDirection",
-        "possibleactions" => array('selectTrainDirection','doneWithTurn'),
-        "transitions" => array("rollDice" => 12, "nextPlayer"=> 11)
-    ),
-
-    /*
-    Examples:
-    
-    2 => array(
-        "name" => "nextPlayer",
-        "description" => '',
-        "type" => "game",
-        "action" => "stNextPlayer",
-        "updateGameProgression" => true,   
-        "transitions" => array( "endGame" => 99, "nextPlayer" => 10 )
-    ),
-    
-    10 => array(
-        "name" => "playerTurn",
-        "description" => clienttranslate('${actplayer} must play a card or pass'),
-        "descriptionmyturn" => clienttranslate('${you} must play a card or pass'),
-        "type" => "activeplayer",
-        "possibleactions" => array( "playCard", "pass" ),
-        "transitions" => array( "playCard" => 2, "pass" => 2 )
-    ), 
-
-*/
 
     // Final state.
     // Please do not modify (and do not overload action/args methods).

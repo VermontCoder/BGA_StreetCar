@@ -97,9 +97,6 @@ function (dojo, declare) {
             //if, after die roll, user refreshes, this will contain the possible destinations they can send the train to.
             this.showTrainDestinations(gamedatas.curTrainDestinationsSelection);
 
-            //if, after die roll, user refreshes, this will contain the possible directions the train can be oriented to.
-            this.showPossibleDirections(gamedatas.curTrainFacingsTileSelection);
-
 
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
@@ -364,19 +361,18 @@ function (dojo, declare) {
                         dojo.destroy('stoplocation_'+stops[x][y])
                         var html=""
                         if(this.scUtility.validCoordinates(x,y+1) && this.gamedatas.initialStops.filter(l => l.row==y+1 && l.col==x).length>0){
-                            html = "<div class='goallocation stopN' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>"
+                            html = "<div class='goallocation stopN' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>";
                         }
                         if(this.scUtility.validCoordinates(x,y-1) && this.gamedatas.initialStops.filter(l => l.row==y-1 && l.col==x).length>0){
-                            html = "<div class='goallocation stopS' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>"
+                            html = "<div class='goallocation stopS' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>";
                         }
                         if(this.scUtility.validCoordinates(x+1,y) && this.gamedatas.initialStops.filter(l => l.row==y && l.col==x+1).length>0){
-                            html = "<div class='goallocation stopE' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>"
+                            html = "<div class='goallocation stopE' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>";
                         }
                         if(this.scUtility.validCoordinates(x-1,y) && this.gamedatas.initialStops.filter(l => l.row==y && l.col==x-1).length>0){
-                            html = "<div class='goallocation stopW' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>"
+                            html = "<div class='goallocation stopW' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>";
                         }
-                        $('stops_'+x+"_"+y).innerHTML=html
-
+                        $('stops_'+x+"_"+y).innerHTML=html;
                     }
                 }
             }
@@ -528,16 +524,6 @@ function (dojo, declare) {
             this.showSelectableTiles(trainMoveNodeIDs, 'onSelectTrainDestination');
         },
         
-
-        showPossibleDirections(nodeIDs)
-        {
-            //only show if there is more than one thing to choose from.
-            if (nodeIDs != null && nodeIDs.length > 1)
-            {
-                this.showSelectableTiles(nodeIDs, 'onSelectTrainDirection');
-            }
-        },
-        
         setupNotifications: function()
         {
             // 
@@ -547,7 +533,6 @@ function (dojo, declare) {
             dojo.subscribe( 'rolledDice', this, 'notif_rolledDice');
             dojo.subscribe( 'selectedDie', this, 'notif_selectedDie');
             dojo.subscribe( 'moveTrain', this, 'notif_moveTrain');
-            dojo.subscribe( 'selectDirection', this, 'notif_selectDirection');
             dojo.subscribe( 'endOfGame', this, 'notif_endOfGame');
             this.notifqueue.setSynchronous( 'endOfGame', 1500 );
             //this.notifqueue.setSynchronous( 'placedTrack', 500 );
@@ -569,7 +554,6 @@ function (dojo, declare) {
         {
             console.log("notif_placedTrain", notif);
             this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.trainStartNodeID,notif.args.traindirection);
-
         },
 
         notif_updateRoute: function( notif )
@@ -599,30 +583,11 @@ function (dojo, declare) {
                 //TO DO animate train moving using this.scRouting.curRoute = notif.args.moveRoute;
                 //this.scRouting.curRoute = notif.args.moveRoute;
                 this.scRouting.showRoute();
-                this.showPossibleDirections(notif.args.curTrainFacingsTileSelection);
             }
 
             this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.nodeID, notif.args.traindirection);
            
             
-            
-        },
-
-        notif_selectDirection : function ( notif )
-        {
-            console.log('notif_selectDirection', JSON.stringify(notif));
-
-            if (this.isCurrentPlayerActive())
-            {
-                this.scRouting.curRoute = notif.args.routes[0];
-                this.scRouting.showRoute();
-            }
-
-            //actually rotate the train.
-            rotation = this.scUtility.getRotationFromDirection(notif.args.traindirection);
-
-            //necessary to put this on another thread, otherwise change of state nixes it.
-            setTimeout(() => this.rotateTo('train_'+notif.args.player_id, rotation),1000);
             
         },
 
@@ -681,15 +646,6 @@ function (dojo, declare) {
         {
             this.scEventHandlers.onSelectTrainDestination(evt, this.selectedNodes);
         },
-
-        onSelectTrainDirection(evt)
-        {
-            activePlayer = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.getActivePlayerId())[0];
-            trainposition = activePlayer.trainposition;
-            //curDirection = activePlayer.traindirection;
-            console.log('trainpos: ', trainposition);
-            this.scEventHandlers.onSelectTrainDirection(evt, trainposition);
-        }
 
         // getTrainRotation(trainPositionNodeID)
         // {   

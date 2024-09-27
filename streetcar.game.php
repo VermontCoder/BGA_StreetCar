@@ -31,7 +31,6 @@ const STACK_SIZE = 100;
 const STACK_INDEX = "stackIndex";
 const CUR_DIE = "curDie"; //only used to undo die selection 
 const CUR_TRAIN_DESTINATIONS_SELECTION = "curTrainDestinationsSelection"; //used to remember possible destinations as a result of a die roll
-const CUR_TRAIN_FACINGS_TILE_SELECTION = "curTrainFacingsTileSelection";
 
 class Streetcar extends Table
 {
@@ -80,8 +79,6 @@ class Streetcar extends Table
         $this->globals->set(STACK_INDEX, 0);
         $this->globals->set(CUR_DIE, null);
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
-        $this->globals->set(CUR_TRAIN_FACINGS_TILE_SELECTION, null);
-
         
 
         $allcards = array();
@@ -278,8 +275,6 @@ class Streetcar extends Table
         //only relevant when choosing the train start location (one time).
         $result[CUR_TRAIN_DESTINATIONS_SELECTION] = $this->globals->get(CUR_TRAIN_DESTINATIONS_SELECTION);
     
-        //only relevant when choosing train facing.
-        $result[CUR_TRAIN_FACINGS_TILE_SELECTION] = $this->globals->get(CUR_TRAIN_FACINGS_TILE_SELECTION); 
 
         return $result;
     }
@@ -396,11 +391,6 @@ class Streetcar extends Table
     {   
         return $this->getDataToClient();
     }
-
-    function argSelectDirection()
-    {
-        return $this->getDataToClient();
-    }   
 
     function stNextPlayer()
     {
@@ -588,14 +578,13 @@ class Streetcar extends Table
         self::DbQuery($sql);
 
         //testing
-        //$die =1;
+        $die =2;
 
         $this->globals->set(CUR_DIE,(int)$die);
-        //TO DO - get possible moves for this dice selection. For now, stub it out.
+        
         $trainDestinationsSolver = new scTrainDestinationsSolver($this);
         $possibleTrainMoves = $trainDestinationsSolver->getTrainMoves($player,$die);
         
-        //$possibleTrainMoves = ['0_0_N','2_1_W'];
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, $possibleTrainMoves);
         
 
@@ -642,7 +631,6 @@ class Streetcar extends Table
 
         //clear out saved state
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
-        $this->globals->set(CUR_TRAIN_FACINGS_TILE_SELECTION, null);
         $this->globals->set(CUR_DIE,null);
         //goto next player
         $this->gamestate->nextState('nextPlayer');
@@ -667,7 +655,6 @@ class Streetcar extends Table
             'linenum' => $player['linenum'],
             'routes' => $routesAndDirection['routes'],
             'moveRoute' => $routesAndDirection['moveRoute'],
-            CUR_TRAIN_FACINGS_TILE_SELECTION => $routesAndDirection[CUR_TRAIN_FACINGS_TILE_SELECTION],
         ));
 
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
@@ -691,46 +678,7 @@ class Streetcar extends Table
             return;
         }
 
-        //check if we need to offer the user a choice of directions
-
-        if (count($routesAndDirection[CUR_TRAIN_FACINGS_TILE_SELECTION])>1)
-        {
-            $this->globals->set(CUR_TRAIN_FACINGS_TILE_SELECTION, $routesAndDirection[CUR_TRAIN_FACINGS_TILE_SELECTION]);
-            $this->gamestate->nextState('selectDirection');
-            return;
-        }
-
          //We're done with the selection and the die.
-        $this->determineNextStateFromDice($player_id);
-    }
-
-    public function selectTrainDirection($direction)
-    {
-        $this->checkAction(('selectTrainDirection'));
-        
-        $player_id = self::getActivePlayerID();
-        $sql = "UPDATE player SET traindirection='".$direction."' WHERE player_id = ".$player_id . ";";
-        self::DbQuery($sql);
-
-        $this->globals->set(CUR_TRAIN_FACINGS_TILE_SELECTION, null);
-
-        $player = self::getPlayersWithIDKey()[$player_id];
-        $stops = self::getStops();
-
-        //update player for next function call
-        $player['traindirection'] = $direction;
-
-        //find the route from the new direction.
-        $routes = $this-> calcRoutesFromNode($player['trainposition'],$player,$stops);
-
-        self::notifyAllPlayers('selectDirection', clienttranslate('${player_name} has choosen a direction to face their train.'), array(
-            'player_name' =>self::getActivePlayerName(),
-            'player_id' => $player_id,
-            'traindirection' => $direction,
-            'linenum' => $player['linenum'],
-            'routes' => $routes,
-        ));
-
         $this->determineNextStateFromDice($player_id);
     }
 

@@ -24,7 +24,7 @@ class scTrainDestinationsSolver
     /**
      * Takes care of database updating and routing instructions for front end for moving the train to a particular node.
      * Typically next step after player selects destination from "getTrainMoves" below.
-     * @return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'curTrainFacingsTileSelection'=>$curTrainFacingsTilesSelection,'direction'=>$direction]
+     * @return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'direction'=>$direction]
      *          'moveRoute - route for train to get to destinationNode. 
      *          'routes' - new routes to show from train to end node.
      *          'curTrainFacingsTileSelection' - Set of tiles to for the user to choose from toward which they can face the train
@@ -78,7 +78,6 @@ class scTrainDestinationsSolver
         if (scUtility::hasPlayerWon($destinationNode,$player) )
         {
             $routes = null; //no further route
-            $curTrainFacingsTilesSelection = null; //no need to select facing
 
             $trainLoc = scUtility::key2xy($destinationNode);
 
@@ -95,9 +94,6 @@ class scTrainDestinationsSolver
         {
             //Step 3a - run a route calc from the $destinationNode to the end using calcRoutesFrom Node. This is our new curRoute.
             $routes = $this->game->calcRoutesFromNode( $destinationNode, $player,$stops);
-
-            //Step 4 - Find direction of train. This might be a temporary direction - the user will select the direction in next state, if more than one direction is possible.
-            $curTrainFacingsTilesSelection = $this -> moveAheadOne($destinationNode, $player, $stops);
         
             //default face the train toward shortest route. If there is more than one route, the player can choose a different one in the next state.
             $direction = $this->getDefaultDirection($destinationNode, $routes[0]);
@@ -109,7 +105,7 @@ class scTrainDestinationsSolver
 
         //step 5 - return routes and traindirection.
 
-        return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'curTrainFacingsTileSelection'=>$curTrainFacingsTilesSelection,'direction'=>$direction];
+        return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'direction'=>$direction];
     }
 
     private function twoSpaceMoveSpecialProcessing(&$moveRoute,&$stopOnRoute,$player,$stops,$stopsLocations)
@@ -152,7 +148,7 @@ class scTrainDestinationsSolver
      * Things work differently here - much simpler for everything but the move route, which requires special handling. 
      * But the return info is the same:
      * 
-     * @return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'curTrainFacingsTileSelection'=>$curTrainFacingsTilesSelection,'direction'=>$direction]
+     * @return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'direction'=>$direction]
      *          'moveRoute - route for train to get to destinationNode. 
      *          'routes' - new routes to show from train to end node.
      *          'curTrainFacingsTileSelection' - Set of tiles to for the user to choose from toward which they can face the train
@@ -187,14 +183,13 @@ class scTrainDestinationsSolver
         }
 
         $routes = $this->game->calcRoutesFromNode( $destinationNode, $player,$stops);
-        $curTrainFacingsTilesSelection = $this -> moveAheadOne($destinationNode, $player, $stops);
         $direction = $this->getDefaultDirection($destinationNode, $routes[0]);
 
          //Modify database
         $sql = "UPDATE player set trainposition='".$destinationNode."',";
         $sql .= "traindirection='".$direction."' WHERE player_id = ".$player['id'] . ";";
 
-        return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'curTrainFacingsTileSelection'=>$curTrainFacingsTilesSelection,'direction'=>$direction];
+        return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'direction'=>$direction];
     }
 
     /** Helper function for above functions */
