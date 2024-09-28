@@ -27,9 +27,28 @@ define([
             dojo.destroy('place_card_action_button'); //cannot place an unplaced track.
             dojo.query( '.playertrack' ).removeClass('trackselected')
             
-            // destroy previous selected track
-            dojo.destroy(this.scUtility.getPlacedTrackId(this.game.isFirstSelection));
             
+           //if this is a reselection of tile, show the animation of the tile returning to the playerboard.
+            if (this.game.selectedTrack != null && $(placedTrackID))
+            {
+                placedTrackID = this.scUtility.getPlacedTrackId(this.game.isFirstSelection); //tile on board
+                selectedTrackID = this.scUtility.getSelectedTrackIDFromDataObj(this.game.selectedTrack); // currently invisible tile on player board.
+                returnAnim = this.game.slideToObject( placedTrackID, 'track_'+this.game.selectedTrack.player_id);
+
+                dojo.connect(returnAnim, "onEnd", function(){
+                    // destroy previous selected track on the board- user has selected a different card.
+                    dojo.destroy(placedTrackID);
+
+                     //reveal previous card that wasn't placed.
+                    dojo.style(selectedTrackID,"display","");
+                });
+
+                //if the player rotated the returning tile, we want to forget that
+                this.game.rotation = 0;
+                returnAnim.play(); // start it up
+            }
+            
+            //even if there is no card returning to the deck, this needs to happen.
             this.game.selectedTrack = this.scUtility.createSelectedTrackDataObj(evt.currentTarget.id);
             dojo.addClass( evt.currentTarget.id, 'trackselected' );
             
@@ -83,19 +102,23 @@ define([
 
                 //card can be legally placed
 
-                // destroy selected track - will be replaced by actual card on the board
-                if(!$(this.scUtility.getPlacedTrackId(this.game.isFirstSelection)))
+                placedTrackID = this.scUtility.getPlacedTrackId(this.game.isFirstSelection);
+                
+                if(!$(placedTrackID))
                 {
-                //dojo.destroy(this.scUtility.getPlacedTrackId(this.game.isFirstSelection));
+                    // hide selected track on player board
+                    dojo.style(this.scUtility.getSelectedTrackIDFromDataObj(this.game.selectedTrack),"display","none");
+
+                    //put new track on board.
                     dojo.place( this.game.format_block( 'jstpl_track', 
                     {
-                        id: this.scUtility.getPlacedTrackId(this.game.isFirstSelection),
+                        id: placedTrackID,
                         offsetx:-100* this.game.selectedTrack.card,
                         rotate:this.game.rotation
                     } ) , 'track_'+this.game.selectedTrack.player_id,'after');
-                    this.rotationClickHandler = dojo.connect($(this.scUtility.getPlacedTrackId(this.game.isFirstSelection)), 'onclick', this, 'onRotateCard' );
+                    this.rotationClickHandler = dojo.connect($(placedTrackID), 'onclick', this, 'onRotateCard' );
                 } 
-                this.game.slideToObject( this.scUtility.getPlacedTrackId(this.game.isFirstSelection), "square_"+this.game.posx+"_"+this.game.posy).play();
+                this.game.slideToObject( placedTrackID, "square_"+this.game.posx+"_"+this.game.posy).play();
                 
                 badDirections = this.fitCardOnBoard();
                 this.showPlaceCardActionButton(badDirections);

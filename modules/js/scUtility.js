@@ -139,6 +139,6 @@ return declare("bgagame.scUtility", null, {
                 selectedTrackDataObj.card+'_'+
                 selectedTrackDataObj.player_id+'_'+
                 selectedTrackDataObj.idx;
-        }
+        },
     });
 });
