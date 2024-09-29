@@ -315,9 +315,7 @@ function (dojo, declare) {
             this.ajaxcall( "/streetcar/streetcar/placeTracks.html",paramList, this, function( result ) {} );
         },
 
-       
-
-        updatePlayers: function(players){
+        updatePlayers(players){
             //update player boards
             //delete previous tracks on player board
             dojo.query('.playertrack').orphan();

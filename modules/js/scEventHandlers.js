@@ -27,11 +27,10 @@ define([
             dojo.destroy('place_card_action_button'); //cannot place an unplaced track.
             dojo.query( '.playertrack' ).removeClass('trackselected')
             
-            
+            placedTrackID = this.scUtility.getPlacedTrackId(this.game.isFirstSelection); //tile on board
            //if this is a reselection of tile, show the animation of the tile returning to the playerboard.
             if (this.game.selectedTrack != null && $(placedTrackID))
             {
-                placedTrackID = this.scUtility.getPlacedTrackId(this.game.isFirstSelection); //tile on board
                 selectedTrackID = this.scUtility.getSelectedTrackIDFromDataObj(this.game.selectedTrack); // currently invisible tile on player board.
                 returnAnim = this.game.slideToObject( placedTrackID, 'track_'+this.game.selectedTrack.player_id);
 
@@ -224,71 +223,89 @@ define([
          //user has decided to actually put card down.
          onPlacedCard()
          {
-             dojo.destroy('place_card_action_button');
-             dojo.destroy('begin_trip_button');
+            dojo.destroy('place_card_action_button');
+            dojo.destroy('begin_trip_button');
  
-             let trackcard = this.game.gamedatas.tracks[this.game.selectedTrack.card][0];
-             let directions_free = this.scUtility.getDirections_free(trackcard, this.game.rotation);
-             let sourceOfCard = this.game.selectedTrack.player_id; 
+            let trackcard = this.game.gamedatas.tracks[this.game.selectedTrack.card][0];
+            let directions_free = this.scUtility.getDirections_free(trackcard, this.game.rotation);
+            let sourceOfCard = this.game.selectedTrack.player_id; 
  
              // remove from available cards.
-             var player = this.game.gamedatas.gamestate.args.players.filter(p =>p.id==sourceOfCard)[0];
+            var player = this.game.gamedatas.gamestate.args.players.filter(p =>p.id==sourceOfCard)[0];
              
-             let availableCards = JSON.parse(player["available_cards"])
-             var index = availableCards.indexOf(parseInt(this.game.selectedTrack.card));
-             if (index !== -1) {
-                 availableCards.splice(index, 1);
-             }    
+            let availableCards = JSON.parse(player["available_cards"])
+            var index = availableCards.indexOf(parseInt(this.game.selectedTrack.card));
+            if (index !== -1) 
+            {
+                availableCards.splice(index, 1);
+            }    
  
-             //if this track is replacing a track on the board, move it to the player's available cards.
-             trackOnBoardID = this.game.gamedatas.gamestate.args.tracks[this.game.posx][this.game.posy];
-             isReplacing = this.game.gamedatas.gamestate.args.board[this.game.posx][this.game.posy] != '[]';
-             if (isReplacing)
-             {
-                 availableCards.push(parseInt(trackOnBoardID));
-             }
+            //if this track is replacing a track on the board, move it to the player's available cards.
+            trackOnBoardID = this.game.gamedatas.gamestate.args.tracks[this.game.posx][this.game.posy];
+            isReplacing = this.game.gamedatas.gamestate.args.board[this.game.posx][this.game.posy] != '[]';
+            if (isReplacing)
+            {
+                availableCards.push(parseInt(trackOnBoardID));
+                player["available_cards"] = JSON.stringify(availableCards);
+                tileReturning = dojo.query('#square_'+this.game.posx+'_'+this.game.posy+' > .track')[0];
+                returnAnim = this.game.slideToObject(tileReturning, 'track_'+ sourceOfCard);
+
+                //we need to give this a local name so it can be used in the anonymous function.
+                g = this.game;
+
+                dojo.connect(returnAnim, "onEnd", function(){
+                    // destroy previous selected track on the board- user has selected a different card.
+                    dojo.destroy(tileReturning);
+                    g.updatePlayers(g.gamedatas.gamestate.args.players);
+                });
+
+                returnAnim.play();
+            }
+            else
+            {
+                player["available_cards"] = JSON.stringify(availableCards);                
+                this.game.updatePlayers(this.game.gamedatas.gamestate.args.players);
+            }
+
+            if (this.game.isFirstSelection)
+            {
+                //save data from first placement
+                this.game.firstPlacementData.directions_free = directions_free;
+                this.game.firstPlacementData.rotation = this.game.rotation;
+                this.game.firstPlacementData.selectedTrack = this.game.selectedTrack;
+                this.game.firstPlacementData.posx = this.game.posx;
+                this.game.firstPlacementData.posy = this.game.posy;
+                this.game.firstPlacementData.badDirections = this.fitCardOnBoard();
+
+                //write selected track data to underlying board
+                this.game.gamedatas.gamestate.args.board[this.game.posx][this.game.posy]= directions_free;
+                this.game.gamedatas.gamestate.args.rotations[this.game.posx][this.game.posy] = this.game.rotation;
+                this.game.gamedatas.gamestate.args.tracks[this.game.posx][this.game.posy] = this.game.selectedTrack.card;
+
+
+                //reset so user can select another piece
+                this.game.selectedTrack = null;
+                this.game.rotation = 0;
+
+                this.game.isFirstSelection = false;
+
+                //make the tile unrotatable.
+                dojo.disconnect(this.rotationClickHandler);
+
+                //add ability to reset turn
+                if(!$('reset_button'))
+                {
+                    this.game.addActionButton('reset_button', _('Reset'), () => this.onReset());
+                }
+            }
+            else
+            {
+                this.game.directions_free = directions_free; //pass this along
+                //Since this the 2nd placement, we are good to go.
+                this.game.sendMovesToServer();
+            } 
  
-             player["available_cards"] = JSON.stringify(availableCards);
              
-             this.game.updatePlayers(this.game.gamedatas.gamestate.args.players);
- 
-             if (this.game.isFirstSelection)
-             {
-                 //save data from first placement
-                 this.game.firstPlacementData.directions_free = directions_free;
-                 this.game.firstPlacementData.rotation = this.game.rotation;
-                 this.game.firstPlacementData.selectedTrack = this.game.selectedTrack;
-                 this.game.firstPlacementData.posx = this.game.posx;
-                 this.game.firstPlacementData.posy = this.game.posy;
-                 this.game.firstPlacementData.badDirections = this.fitCardOnBoard();
- 
-                 //write selected track data to underlying board
-                 this.game.gamedatas.gamestate.args.board[this.game.posx][this.game.posy]= directions_free;
-                 this.game.gamedatas.gamestate.args.rotations[this.game.posx][this.game.posy] = this.game.rotation;
-                 this.game.gamedatas.gamestate.args.tracks[this.game.posx][this.game.posy] = this.game.selectedTrack.card;
- 
- 
-                 //reset so user can select another piece
-                 this.game.selectedTrack = null;
-                 this.game.rotation = 0;
- 
-                 this.game.isFirstSelection = false;
- 
-                 //make the tile unrotatable.
-                 dojo.disconnect(this.rotationClickHandler);
- 
-                 //add ability to reset turn
-                 if(!$('reset_button'))
-                 {
-                     this.game.addActionButton('reset_button', _('Reset'), () => this.onReset());
-                 }
-             }
-             else
-             {
-                 this.game.directions_free = directions_free; //pass this along
-                 //Since this the 2nd placement, we are good to go.
-                 this.game.sendMovesToServer();
-             } 
          },
 
          /* Returns true if the new track supports movement in as many ways or more than the track it is replacing. */
