@@ -458,6 +458,16 @@ class Streetcar extends Table
        
         $player_name = self::getActivePlayerName();
         $stops = self::getStops();
+
+        //In the notify, inform the other players of which tiles were placed where for the animation
+        //We are not concerned with final state from this data, that is coming across in other data field.
+
+        $placedTiles = [];
+        $placedTileDestination1 = 'square_'.scUtility::xy2key($x1,$y1);
+        $placedTileDestination2 = 'square_'.scUtility::xy2key($x2,$y2);
+
+        $placedTiles[] = [ $c1, $r1, $availableCardsOwner1, $placedTileDestination1];
+        $placedTiles[] = [ $c2, $r2, $availableCardsOwner2, $placedTileDestination2];
         
         self::notifyAllPlayers('placedTrack', clienttranslate('${player_name} placed tracks.'), array(
             'player_name' =>$player_name,
@@ -465,6 +475,7 @@ class Streetcar extends Table
             'tracks' => self::getTracks(),
             'rotations' => self::getRotation(),
             'stops' => $stops,
+            'placedTiles' => $placedTiles,
         ));
 
         $players = self::getPlayers();

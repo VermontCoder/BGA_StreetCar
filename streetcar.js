@@ -546,12 +546,42 @@ function (dojo, declare) {
         notif_placedTrack: function( notif )
         {
             console.log("notif_placedTrack", notif);
+
             this.gamedatas.gamestate.args.stops=notif.args.stops;
             this.gamedatas.gamestate.args.rotations=notif.args.rotations;
             this.gamedatas.gamestate.args.board=notif.args.board;
             this.gamedatas.gamestate.args.tracks=notif.args.tracks;
+
+            //animate track placement for non-active players
+            if (!this.isCurrentPlayerActive())
+            {
+                placedTiles = notif.args.placedTiles;
+                for(i=0;i<placedTiles.length;i++)
+                {
+                    //put new track on board.
+                    dojo.place( this.format_block( 'jstpl_track', 
+                    {
+                        id: 'placing_'+i,
+                        offsetx:-100* placedTiles[i][0],
+                        rotate:placedTiles[i][1]
+                    } ) , 'overall_player_board_'+placedTiles[i][2]);
+
+                    dojo.style('placing_'+i,'z-index',1000);
+                    this.slideToObject('placing_'+i,placedTiles[i][3]).play();
+                    setTimeout(() => this.placedTileUpdateState(),3000);
+                }
+                return;
+            }
+            this.placedTileUpdateState();
+        },
+
+        placedTileUpdateState()
+        { 
+            //remove animation blocs
             this.updateStops();
             this.updateTracks();
+            dojo.destroy('placing_0');
+            dojo.destroy('placing_1');
         },
 
         notif_placedTrain : function(notif)
@@ -600,9 +630,9 @@ function (dojo, declare) {
 	        console.log( '**** Notification : finalScore' );
 	        console.log( notif );
 	      
-                // Update score
-                this.scoreCtrl[ notif.args.player_id ].incValue( notif.args.score_delta );
-	    },
+            // Update score
+            this.scoreCtrl[ notif.args.player_id ].incValue( notif.args.score_delta );
+    },
 
         //Have to put stubs here to pass game object (???don't know why).
         onSelectCard(evt)
