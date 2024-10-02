@@ -24,24 +24,24 @@
     
     Please REMOVE this comment before publishing your game on BGA
 -->
-<div id="wrapper" muted="muted">
-    <div id="stack_icon_wrapper" class="stack_icon">
-        <div id="stack_icon" class="over">
-            <div id="stack_count" class="stack_count">99</div>
-        </div>
+
+<div id="stack_icon_wrapper" class="stack_icon">
+    <div id="stack_icon" class="over">
+        <div id="stack_count" class="stack_count">99</div>
     </div>
-    <div id="board" class="board_wrap bg_img"> 
-        <!-- BEGIN board -->
-            <div id="square_{X}_{Y}" class="square" style="left: {LEFT}px; top: {TOP}px;">
-                <div id="stops_{X}_{Y}" class="stops" style="left: 0px; top: 0px;">
-                </div>
+</div>
+<div id="board" class="board_wrap bg_img"> 
+    <!-- BEGIN board -->
+        <div id="square_{X}_{Y}" class="square" style="left: {LEFT}px; top: {TOP}px;">
+            <div id="stops_{X}_{Y}" class="stops" style="left: 0px; top: 0px;">
             </div>
-        <!-- END board -->
-    </div>
+        </div>
+    <!-- END board -->
 </div>
 <script type="text/javascript">
 
 // Javascript HTML templates
+var jstpl_track_tile_back_animation='<div class="track_tile_back_animation" id="${id}" style="position: absolute;"></div>';
 var jstpl_track='<div class="track" id="${id}" style="position: absolute; transform:rotate(${rotate}deg); background-position: ${offsetx}px 0px;"></div>';
 var jstpl_track_player='<div class="track playertrack" id="track_${id}" style="background-position: ${offsetx}px 0px;"> </div>';
 

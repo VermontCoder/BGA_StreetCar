@@ -123,9 +123,9 @@ function (dojo, declare) {
                     this.selectedTrack = null;
                     this.isFirstSelection = true;
                     this.firstPlacementData = {};
-                    //this.scRouting = new bgagame.scRouting(this,args.args.routes);
 
-                    this.updateBoardState(args.args.players, args.args.stackCount);
+                    //delay this to allow for animations.
+                    setTimeout(function() {this.updateBoardState(args.args.players, args.args.stackCount)}.bind(this),450);
 
                     //clear out previous clickhandlers, if they exist
                     this.scEventHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
@@ -148,7 +148,9 @@ function (dojo, declare) {
                     dojo.query(".selectable_tile").removeClass('selectable_tile');
                     this.scEventHandlers.onSelectedNodeHandlers.forEach(dojo.disconnect);
                     
-                    this.updateBoardState(args.args.players, args.args.stackCount);
+                    //delay this to allow for animations.
+                    setTimeout(function() {this.updateBoardState(args.args.players, args.args.stackCount)}.bind(this),450);
+
                       
                     break;
                 case "selectDie":
@@ -552,10 +554,12 @@ function (dojo, declare) {
             this.gamedatas.gamestate.args.board=notif.args.board;
             this.gamedatas.gamestate.args.tracks=notif.args.tracks;
 
+            placedTiles = notif.args.placedTiles;
+
             //animate track placement for non-active players
             if (!this.isCurrentPlayerActive())
             {
-                placedTiles = notif.args.placedTiles;
+                
                 for(i=0;i<placedTiles.length;i++)
                 {
                     //put new track on board.
@@ -568,20 +572,34 @@ function (dojo, declare) {
 
                     dojo.style('placing_'+i,'z-index',1000);
                     this.slideToObject('placing_'+i,placedTiles[i][3]).play();
-                    setTimeout(() => this.placedTileUpdateState(),3000);
                 }
-                return;
             }
-            this.placedTileUpdateState();
+
+            //animate tiles coming from stack to player board - all players
+
+            for(i=0;i<placedTiles.length;i++)
+            {
+                dojo.place( this.format_block( 'jstpl_track_tile_back_animation', 
+                {
+                    id: 'tile_back_'+i,
+                } ) , 'stack_icon');
+
+                //delay the 2nd animation by 50ms.
+                destination = 'overall_player_board_'+placedTiles[i][2];
+                anim = this.slideToObject('tile_back_'+i,destination);
+                setTimeout(function() {anim.play();}.bind(this),1+i*50);
+            }
+
+            setTimeout(() => this.removeAnimationTiles(),450);//animation takes 350ms, approx. Was not able to get end animation callback to work.
         },
 
-        placedTileUpdateState()
+        removeAnimationTiles()
         { 
             //remove animation blocs
-            this.updateStops();
-            this.updateTracks();
             dojo.destroy('placing_0');
             dojo.destroy('placing_1');
+            dojo.destroy('tile_back_0');
+            dojo.destroy('tile_back_1');
         },
 
         notif_placedTrain : function(notif)
