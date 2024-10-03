@@ -24,19 +24,20 @@
     
     Please REMOVE this comment before publishing your game on BGA
 -->
-
-<div id="stack_icon_wrapper" class="stack_icon">
-    <div id="stack_icon" class="over">
-        <div id="stack_count" class="stack_count">99</div>
-    </div>
-</div>
-<div id="board" class="board_wrap bg_img"> 
-    <!-- BEGIN board -->
-        <div id="square_{X}_{Y}" class="square" style="left: {LEFT}px; top: {TOP}px;">
-            <div id="stops_{X}_{Y}" class="stops" style="left: 0px; top: 0px;">
-            </div>
+<div id="wrapper">
+    <div id="stack_icon_wrapper" class="stack_icon">
+        <div id="stack_icon" class="over">
+            <div id="stack_count" class="stack_count">99</div>
         </div>
-    <!-- END board -->
+    </div>
+    <div id="board" class="board_wrap bg_img"> 
+        <!-- BEGIN board -->
+            <div id="square_{X}_{Y}" class="square" style="left: {LEFT}px; top: {TOP}px;">
+                <div id="stops_{X}_{Y}" class="stops" style="left: 0px; top: 0px;">
+                </div>
+            </div>
+        <!-- END board -->
+    </div>
 </div>
 <script type="text/javascript">
 

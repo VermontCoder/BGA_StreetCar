@@ -51,12 +51,23 @@ return declare("bgagame.scRouting", null,
             }
         },
 
-        getPixelLocationBasedOnNodeID(nodeID)
+        getPixelLocationBasedOnNodeID(nodeID, fromTopLeft = false)
         {
-            xOrigin = 42+50; //+50 is center of tiles
-            yOrigin = 45+50;
+            xOrigin = 42;
+            yOrigin = 45;
 
             parsedNodeID = this.scUtility.extractXYD(nodeID);
+
+            //move train calc
+            if (fromTopLeft)
+            {
+                return {
+                    'x': parseInt(xOrigin + parsedNodeID['x']*100),
+                    'y': parseInt(yOrigin + parsedNodeID['y']*100),
+                };
+            }
+
+            //otherwise this is routing line calc.
 
             xOffset =0;
             yOffset =0;
@@ -78,9 +89,11 @@ return declare("bgagame.scRouting", null,
             }
 
             return {
-                'x': parseInt(xOrigin + xOffset + parsedNodeID['x']*100),
-                'y': parseInt(yOrigin + yOffset + parsedNodeID['y']*100),
+                //50 centers the location in the tile
+                'x': parseInt(xOrigin + 50 + xOffset + parsedNodeID['x']*100),
+                'y': parseInt(yOrigin + 50 +yOffset + parsedNodeID['y']*100),
             };
+            
         },
     });
 });

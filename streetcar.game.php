@@ -589,7 +589,7 @@ class Streetcar extends Table
         self::DbQuery($sql);
 
         //testing
-        $die =2;
+        //$die =2;
 
         $this->globals->set(CUR_DIE,(int)$die);
         

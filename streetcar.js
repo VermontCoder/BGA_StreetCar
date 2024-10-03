@@ -16,7 +16,7 @@
  */
 
  define([
-    "dojo","dojo/_base/declare",
+    "dojo","dojo/_base/declare", 
     "ebg/core/gamegui",
     "ebg/counter",
     g_gamethemeurl + "modules/js/scLines.js",
@@ -571,7 +571,7 @@ function (dojo, declare) {
                     } ) , 'overall_player_board_'+placedTiles[i][2]);
 
                     dojo.style('placing_'+i,'z-index',1000);
-                    this.slideToObject('placing_'+i,placedTiles[i][3]).play();
+                    this.slideToObjectAndDestroy('placing_'+i,placedTiles[i][3]).play();
                 }
             }
 
@@ -586,20 +586,9 @@ function (dojo, declare) {
 
                 //delay the 2nd animation by 50ms.
                 destination = 'overall_player_board_'+placedTiles[i][2];
-                anim = this.slideToObject('tile_back_'+i,destination);
+                anim = this.slideToObjectAndDestroy('tile_back_'+i,destination);
                 setTimeout(function() {anim.play();}.bind(this),1+i*50);
             }
-
-            setTimeout(() => this.removeAnimationTiles(),450);//animation takes 350ms, approx. Was not able to get end animation callback to work.
-        },
-
-        removeAnimationTiles()
-        { 
-            //remove animation blocs
-            dojo.destroy('placing_0');
-            dojo.destroy('placing_1');
-            dojo.destroy('tile_back_0');
-            dojo.destroy('tile_back_1');
         },
 
         notif_placedTrain : function(notif)
@@ -633,14 +622,29 @@ function (dojo, declare) {
                 this.scRouting.curRoute = (notif.args.routes==null) ? null : notif.args.routes[0];
 
                 //TO DO animate train moving using this.scRouting.curRoute = notif.args.moveRoute;
-                //this.scRouting.curRoute = notif.args.moveRoute;
+                
                 this.scRouting.showRoute();
             }
+            this.animateTrainMovement(notif.args.player_id,notif.args.moveRoute)
+            //this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.nodeID, notif.args.traindirection);
+        },
 
-            this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.nodeID, notif.args.traindirection);
-           
-            
-            
+        animateTrainMovement(player_id,moveRoute)
+        {
+            if (moveRoute == null) return;
+
+            anims = new Array();
+
+            curNode = moveRoute.startNodeID+'_'+moveRoute.routeID;
+
+            while(moveRoute.routeNodes.hasOwnProperty(curNode))
+            {
+                curNode = moveRoute.routeNodes[curNode];
+                curNodeXY = this.scRouting.getPixelLocationBasedOnNodeID(curNode, true);
+                anim = this.slideToObjectPos( "train_"+player_id, "board", curNodeXY['x'], curNodeXY['y']);
+                anims.push(anim);
+            }
+            dojo.fx.chain(anims).play();
         },
 
         notif_endOfGame: function( notif )
