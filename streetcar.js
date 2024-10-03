@@ -94,7 +94,7 @@ function (dojo, declare) {
             dojo.query( '.goalcheck' ).connect( 'onclick', this, 'onToggleShowRoute' );
 
             //if, after die roll, user refreshes, this will contain the possible destinations they can send the train to.
-            this.showTrainDestinations(gamedatas.curTrainDestinationsSelection);
+            this.showTrainDestinations(gamedatas.curTrainDestinationsSelection, 'onSelectTrainDestination');
 
             this.stackCounter = new ebg.counter();
             this.stackCounter.create('stack_count');
@@ -505,10 +505,11 @@ function (dojo, declare) {
             }
         },
 
-        showSelectableTiles(nodeIDs,clickMethod)
+        showTrainDestinations(nodeIDs,clickMethod)
         {
-            //First check if there are any to show
+             //First check if there are any to show
             if (nodeIDs==null) return;
+            
 
             if (this.isCurrentPlayerActive())
             {
@@ -521,13 +522,8 @@ function (dojo, declare) {
                     handler = dojo.connect($(boardID),'onclick', this, clickMethod);
                     this.scEventHandlers.onSelectedNodeHandlers.push(handler);
                     dojo.addClass(boardID,'selectable_tile');
-                }); 
-            }
-        },
-
-        showTrainDestinations(trainMoveNodeIDs)
-        {
-            this.showSelectableTiles(trainMoveNodeIDs, 'onSelectTrainDestination');
+                 }); 
+             }
         },
         
         setupNotifications: function()
@@ -611,7 +607,7 @@ function (dojo, declare) {
         notif_selectedDie: function( notif )
         {
             console.log('notif_selectedDie', JSON.stringify(notif));
-            this.showTrainDestinations(notif.args.possibleTrainMoves);
+            this.showTrainDestinations(notif.args.possibleTrainMoves,'onSelectTrainDestination');
         },
 
         notif_moveTrain : function( notif )

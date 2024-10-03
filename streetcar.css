@@ -147,6 +147,7 @@
   height: 100px;
   background-image: url("img/trains.png");
   z-index: 4;
+  pointer-events: none; /* don't accept click events */
   /* margin: 2px; */
 }
 .extra_actions

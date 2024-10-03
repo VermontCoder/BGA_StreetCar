@@ -426,7 +426,7 @@ define([
             //remove click ability on all the board squares
             this.onPlaceCardHandlers.forEach( dojo.disconnect);
 
-            game.showSelectableTiles([this.game.scRouting.curRoute.startNodeID,this.game.scRouting.curRoute.endNodeID], (evt) => this.onPlaceTrain(evt));
+            game.showTrainDestinations([this.game.scRouting.curRoute.startNodeID,this.game.scRouting.curRoute.endNodeID], (evt) => this.onPlaceTrain(evt));
         },
 
         /**
@@ -538,21 +538,6 @@ define([
             this.onSelectedNodeHandlers.forEach(dojo.disconnect);
             
             this.game.ajaxcall( "/streetcar/streetcar/selectTrainDestination.html",{'destinationNode':destinationNode}, this.game, function( result ) {} );
-        },
-
-        onSelectTrainDirection(evt, trainPosition)
-        {
-            xyTarget = this.scUtility.extractXY(evt.currentTarget.id);
-            xyStart = this.scUtility.extractXYD(trainPosition)
-
-            //based on train direction and clicked tile, determine the direction
-            direction = this.scUtility.getDirectionOfTileFromCoords(xyStart.x, xyStart.y, xyTarget.x,xyTarget.y);
-
-            //remove highlighting & clickability
-            dojo.query(".selectable_tile").removeClass('selectable_tile');
-            this.onSelectedNodeHandlers.forEach(dojo.disconnect);
-            
-            this.game.ajaxcall( "/streetcar/streetcar/selectTrainDirection.html",{'direction':direction}, this.game, function( result ) {} );
         },
 
         onChooseDifferentDie()
