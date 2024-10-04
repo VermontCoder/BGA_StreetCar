@@ -157,6 +157,9 @@ class scTrainDestinationsSolver
     public function moveTrainToDestinationPrevStop($destinationNode, $player, $stops)
     {
 
+        $this->cGraph = new scConnectivityGraph($this->game);
+        $this->scRouteFinder = new scRouteFinder($this->cGraph);
+
         if ($destinationNode== $player['trainposition'])
         {
             $moveRoute = null;
@@ -173,11 +176,12 @@ class scTrainDestinationsSolver
             $curRouteNodeID = $routeFromStop -> startNodeID.'_'.$routeFromStop -> routeID;
 
             //flip route
-            while ($curRouteNodeID != null)
+            while ($curRouteNodeID != null && isset($routeFromStop -> routeNodes[$curRouteNodeID]))
             {
                 $start = scRoute::truncRouteID($routeFromStop -> routeNodes[$curRouteNodeID]);
                 $target = scRoute::truncRouteID($curRouteNodeID);
                 $moveRoute->insertRouteNode($start, $target);
+
                 $curRouteNodeID = $routeFromStop -> routeNodes[$curRouteNodeID];
             }
         }

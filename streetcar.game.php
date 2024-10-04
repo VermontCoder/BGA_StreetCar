@@ -656,7 +656,16 @@ class Streetcar extends Table
         $stops = self::getStops();
 
         $trainDestinationsSolver = new scTrainDestinationsSolver($this);
-        $routesAndDirection = $trainDestinationsSolver->moveTrainToDestination($destinationNode,$player,$stops);
+
+        if ($this->globals->get(CUR_DIE) >=5)
+        {
+            $routesAndDirection = $trainDestinationsSolver->moveTrainToDestinationPrevStop($destinationNode,$player,$stops);
+        }
+        else
+        {
+            $routesAndDirection = $trainDestinationsSolver->moveTrainToDestination($destinationNode,$player,$stops);
+        }
+        
 
         self::notifyAllPlayers('moveTrain', clienttranslate('${player_name} has moved their train.'), array(
             'player_name' =>self::getActivePlayerName(),
