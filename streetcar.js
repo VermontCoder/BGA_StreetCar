@@ -510,7 +510,6 @@ function (dojo, declare) {
              //First check if there are any to show
             if (nodeIDs==null) return;
             
-
             if (this.isCurrentPlayerActive())
             {
                 this.selectedNodes = [];
@@ -621,26 +620,108 @@ function (dojo, declare) {
                 
                 this.scRouting.showRoute();
             }
-            this.animateTrainMovement(notif.args.player_id,notif.args.moveRoute)
+            this.animateTrainMovement(notif.args.player_id,notif.args.moveRoute,notif.args.traindirection);
             //this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.nodeID, notif.args.traindirection);
         },
 
-        animateTrainMovement(player_id,moveRoute)
+        animateTrainMovement(player_id,moveRoute,endDirection)
         {
             if (moveRoute == null) return;
 
+            trainDiv =  "train_"+player_id;
             anims = new Array();
 
+            
+            activePlayer = this.gamedatas.gamestate.args.players.filter(p =>parseInt(p.id)==player_id)[0];
+            curTrainRotation = this.scUtility.getRotationFromDirection(activePlayer.traindirection);
             curNode = moveRoute.startNodeID+'_'+moveRoute.routeID;
 
+            //only execute if the current node has a child in the route.
             while(moveRoute.routeNodes.hasOwnProperty(curNode))
             {
+                
+                //rotate train, if necessary
+                newRotation = this.getTrainRotation(curNode, moveRoute);
+
+                //if we are moving into the last node of the route or facing direction is the same, do not rotate.
+                if (newRotation != null && curTrainRotation != newRotation)
+                {
+                    anims.push(this.getRotationAnimation(curTrainRotation,newRotation,trainDiv));
+                    curTrainRotation = newRotation;
+                }
+
                 curNode = moveRoute.routeNodes[curNode];
+                //move train to next spot.
                 curNodeXY = this.scRouting.getPixelLocationBasedOnNodeID(curNode, true);
-                anim = this.slideToObjectPos( "train_"+player_id, "board", curNodeXY['x'], curNodeXY['y']);
+                anim = this.slideToObjectPos(trainDiv, "board", curNodeXY['x'], curNodeXY['y']);
                 anims.push(anim);
             }
+
+            //add final rotation, if necessary.
+            finalRotation = this.scUtility.getRotationFromDirection(endDirection);
+            if (finalRotation != curTrainRotation)
+            {
+                anims.push(this.getRotationAnimation(curTrainRotation,finalRotation,trainDiv));
+            }
+
             dojo.fx.chain(anims).play();
+        },
+
+        getRotationAnimation(from,to,divID)
+        {
+
+            //to rotate in the correct direction, we must treat "north" as either zero or 360 such that the difference between the rotations are minimized.
+            rotationDelta = from-to;
+            if (rotationDelta > 180)
+            {
+                from = from == 360 ? 0 : from;
+                to = to == 0 ? 360 : to;
+            }
+
+            if (rotationDelta < -180)
+            {
+                from = from == 0 ? 360 : from;
+                to = to == 360 ? 0 : to;
+            }
+            
+            var animation = new dojo.Animation({
+			    curve: [from, to],
+			    onAnimate: (v) => {
+				    $(divID).style.transform = 'rotate(' + v + 'deg)';
+			    } 
+		    });
+		    
+		    return animation;
+        },
+
+        /**
+         * 
+         * @param {string} trainPositionNodeID this will be a XYDR node from the routeNodes of the route.
+         * @param {scRoute} route the route the train is following.
+         * @returns {integer} degrees of rotation.
+         */
+        getTrainRotation(trainPositionNodeID, route)
+        {   
+            //check for no next node
+            if (!route.routeNodes.hasOwnProperty(trainPositionNodeID))
+            {
+                //we've reached the last route node - direction is defined elsewhere (derived from curRoute, but that is handled in PHP)
+                return null;
+            }
+            nextRouteNodeID = route.routeNodes[trainPositionNodeID];
+            console.log(JSON.stringify(route.routeNodes));
+
+            nextRouteNodeDirection = this.scUtility.extractXYD(nextRouteNodeID);
+            
+            //this is 180 degrees from the nextRouteNodeDirection, as the train will be entering from that side - it is facing opposite.
+            switch(nextRouteNodeDirection['d'])
+            {
+                case "N": return 180;
+                case "E": return 270;
+                case "S": return 0;
+                case "W": return 90;
+            
+            }
         },
 
         notif_endOfGame: function( notif )
@@ -698,28 +779,5 @@ function (dojo, declare) {
         {
             this.scEventHandlers.onSelectTrainDestination(evt, this.selectedNodes);
         },
-
-        // getTrainRotation(trainPositionNodeID)
-        // {   
-        //     //This relies on the fact that the routeID of the curRoute is the first routeID of the merge constructed route. 
-        //     //So the train is always at the begining of the route, and its routeID will be whatever the route ID is of the current route,
-        //     //even though it may be composed of multiple routes.
-        //     routeNodeID = trainPositionNodeID + '_' + this.scRouting.curRoute.routeID;
-        //     nextRouteNodeID = this.scRouting.curRoute.routeNodes[routeNodeID];
-        //     console.log(JSON.stringify(this.scRouting.curRoute.routeNodes));
-
-        //     nextRouteNodeDirection = this.scUtility.extractXYD(nextRouteNodeID);
-            
-        //     //this is 180 degrees from the nextRouteNodeDirection, as the train will be entering from that side - it is facing opposite.
-        //     switch(nextRouteNodeDirection['d'])
-        //     {
-        //         case "N": return 180;
-        //         case "E": return 270;
-        //         case "S": return 0;
-        //         case "W": return 90;
-            
-        //     }
-        // },
-        
    });             
 });
