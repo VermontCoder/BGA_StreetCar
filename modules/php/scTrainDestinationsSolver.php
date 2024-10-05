@@ -193,6 +193,8 @@ class scTrainDestinationsSolver
         $sql = "UPDATE player set trainposition='".$destinationNode."',";
         $sql .= "traindirection='".$direction."' WHERE player_id = ".$player['id'] . ";";
 
+        $this->game->DbQuery($sql);
+
         return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'direction'=>$direction];
     }
 

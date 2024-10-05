@@ -709,19 +709,12 @@ function (dojo, declare) {
                 return null;
             }
             nextRouteNodeID = route.routeNodes[trainPositionNodeID];
-            console.log(JSON.stringify(route.routeNodes));
+            nextRouteNodeXYD = this.scUtility.extractXYD(nextRouteNodeID);
+            trainPositionNodeXYD = this.scUtility.extractXYD(trainPositionNodeID);
 
-            nextRouteNodeDirection = this.scUtility.extractXYD(nextRouteNodeID);
+            direction = this.scUtility.getDirectionOfTileFromCoords(trainPositionNodeXYD.x, trainPositionNodeXYD.y,nextRouteNodeXYD.x,nextRouteNodeXYD.y)
             
-            //this is 180 degrees from the nextRouteNodeDirection, as the train will be entering from that side - it is facing opposite.
-            switch(nextRouteNodeDirection['d'])
-            {
-                case "N": return 180;
-                case "E": return 270;
-                case "S": return 0;
-                case "W": return 90;
-            
-            }
+            return this.scUtility.getRotationFromDirection(direction);
         },
 
         notif_endOfGame: function( notif )
