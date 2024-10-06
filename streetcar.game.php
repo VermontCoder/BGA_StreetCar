@@ -29,7 +29,8 @@ const STACK_SIZE = 100;
 
 //globals names
 const STACK_INDEX = "stackIndex";
-const CUR_DIE = "curDie"; //only used to undo die selection 
+const CUR_DIE = "curDie"; 
+const CUR_DIE_IDX ="curDieIdx";
 const CUR_TRAIN_DESTINATIONS_SELECTION = "curTrainDestinationsSelection"; //used to remember possible destinations as a result of a die roll
 
 class Streetcar extends Table
@@ -78,6 +79,7 @@ class Streetcar extends Table
         
         $this->globals->set(STACK_INDEX, 0);
         $this->globals->set(CUR_DIE, null);
+        $this->globals->set(CUR_DIE_IDX,null);
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
         
 
@@ -389,7 +391,11 @@ class Streetcar extends Table
 
     function argMoveTrain()
     {   
-        return $this->getDataToClient();
+        $data = $this->getDataToClient();
+        $data['curDie'] = $this->globals->get(CUR_DIE);
+        $data['curDieIdx'] = $this->globals->get(CUR_DIE_IDX);
+
+        return $data;
     }
 
     function stNextPlayer()
@@ -573,36 +579,23 @@ class Streetcar extends Table
         $players = $this->getPlayersWithIDKey();
         $player = $players[$player_id];
 
-        $dice= json_decode($player['dice']);
-       
-        if ($dice[(int)$dieIdx] == (int)$die)
-        {
-            unset($dice[(int)$dieIdx]);
-        }
-        else
-        {
-            throw new BgaSystemException( "Die Selected is Not Possible." );
-        }
-
-        $sql = "UPDATE player SET dice='".json_encode(array_values($dice))."', diceused= diceUsed+1 WHERE player_id = " . $player_id . ";";
-    
-        self::DbQuery($sql);
-
+        
         //testing
         //$die =2;
 
         $this->globals->set(CUR_DIE,(int)$die);
+        $this->globals->set(CUR_DIE_IDX,(int) $dieIdx);
         
         $trainDestinationsSolver = new scTrainDestinationsSolver($this);
         $possibleTrainMoves = $trainDestinationsSolver->getTrainMoves($player,$die);
         
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, $possibleTrainMoves);
         
-
         self::notifyAllPlayers('selectedDie', clienttranslate('${player_name} selected die.'), array(
             'player_name' =>self::getActivePlayerName(),
             'player_id' => $player_id,
             'die' => $die,
+            'dieIdx' => $dieIdx,
             'possibleTrainMoves' => $possibleTrainMoves,
         ));
         
@@ -643,6 +636,7 @@ class Streetcar extends Table
         //clear out saved state
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
         $this->globals->set(CUR_DIE,null);
+        $this->globals->set(CUR_DIE_IDX,null);
         //goto next player
         $this->gamestate->nextState('nextPlayer');
     }
@@ -666,6 +660,8 @@ class Streetcar extends Table
             $routesAndDirection = $trainDestinationsSolver->moveTrainToDestination($destinationNode,$player,$stops);
         }
         
+        //modify database to reflect the die selection
+        $this->updateDice($player);
 
         self::notifyAllPlayers('moveTrain', clienttranslate('${player_name} has moved their train.'), array(
             'player_name' =>self::getActivePlayerName(),
@@ -678,8 +674,7 @@ class Streetcar extends Table
         ));
 
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
-        $this->globals->set(CUR_DIE,null);
-
+        
         //check for win condition!!!!
 
         if (scUtility::hasPlayerWon($destinationNode,$player))
@@ -700,6 +695,25 @@ class Streetcar extends Table
 
          //We're done with the selection and the die.
         $this->determineNextStateFromDice($player_id);
+    }
+
+    function updateDice($player)
+    {
+        $dice= json_decode($player['dice']);
+
+        if ($this->globals->get(CUR_DIE_IDX) ===null) //0 is NOT the same as null
+        {
+            throw new BgaSystemException( "Die Selected is Not Possible." );
+        }
+
+        unset($dice[$this->globals->get(CUR_DIE_IDX)]);
+
+        $sql = "UPDATE player SET dice='".json_encode(array_values($dice))."', diceused= diceUsed+1 WHERE player_id = " . $player['id'] . ";";
+    
+        self::DbQuery($sql);
+
+        $this->globals->set(CUR_DIE,null);
+        $this->globals->set(CUR_DIE_IDX,null);
     }
 
     public function determineNextStateFromDice($player_id)

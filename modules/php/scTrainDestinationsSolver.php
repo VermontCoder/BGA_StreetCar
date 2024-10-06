@@ -237,9 +237,6 @@ class scTrainDestinationsSolver
         //return ['2_2_S','10_3_E'];
     }
 
-    /**
-     * Moving ahead one, no choice, player moves forward in the direction of train facing.
-     */
     public function moveAheadOne($curTrainNodeID,$player,$stops)
     {
         $possibleMoves = [];

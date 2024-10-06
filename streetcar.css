@@ -72,12 +72,11 @@
   height: 100px;
   background-color: rgba(0, 255, 0, 0);
   position: absolute;
-  z-index: 9 !important;
+  z-index: 1 !important;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   pointer-events: none;
-  z-index: 110;
 }
 .noclick {
   pointer-events: none;
@@ -98,9 +97,9 @@
   width: 100px;
   height: 100px;
   background-image: url("img/tracks.png");
-  //  position: relative;
+  /* //  position: relative;
   //  z-index: 3;
-  //  transform-origin: 50px 50px;
+  //  transform-origin: 50px 50px; */
 }
 .trackselected {
   box-sizing: border-box;
@@ -170,6 +169,12 @@
   margin: 10px;
   cursor: pointer;
   /* margin: 2px; */
+}
+
+.die_selected {
+  border: 8px solid green;
+  margin-top: 4px;
+  margin-left: 4px;
 }
 .goalsholder {
   height: 50px;

@@ -157,19 +157,14 @@ function (dojo, declare) {
                     console.log('selectDie');
 
                     this.updateBoardState(args.args.players, args.args.stackCount);
-                    this.showDice();
+                    this.showDice(null, null);
                    
                     break;
                 case "moveTrain":
                     console.log('moveTrain');
 
                     this.updateBoardState(args.args.players, args.args.stackCount);
-                    break;
-                
-                case "selectDirection":
-                    console.log('selectDirection');
-
-                    this.updateBoardState(args.args.players, args.args.stackCount);
+                    this.showDice(args.args.curDie,args.args.curDieIdx);
                     break;
            
                 case 'dummmy':
@@ -481,7 +476,12 @@ function (dojo, declare) {
              });
          },
         
-        showDice()
+        /**
+         * 
+         * @param {integer} curDie - if a die is selected, this is its value, otherwise null
+         * @param {integer} curDieIdx - if a die is selected, this is its index, otherwise null
+         */
+        showDice(curDie,curDieIdx)
         {
             var activePlayer = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.getActivePlayerId())[0];
             
@@ -503,6 +503,12 @@ function (dojo, declare) {
             {
                 dojo.query('.die').connect( 'onclick', this, 'onSelectDie' );
             }
+
+            dojo.query(".die_selected").removeClass('die_selected');
+            if(curDie !== null)
+            {   
+                dojo.addClass('die_'+curDieIdx+'_'+curDie,'die_selected');
+            }
         },
 
         showTrainDestinations(nodeIDs,clickMethod)
@@ -512,7 +518,11 @@ function (dojo, declare) {
             
             if (this.isCurrentPlayerActive())
             {
+                //clear previous selections, if any
+                dojo.query(".selectable_tile").removeClass('selectable_tile');
+                
                 this.selectedNodes = [];
+                this.scEventHandlers.onSelectedNodeHandlers.forEach(dojo.disconnect);
                 nodeIDs.forEach(nodeID => {
                     xydNode = this.scUtility.extractXYD(nodeID);
                     this.selectedNodes.push(xydNode); //save direction info.
@@ -566,7 +576,7 @@ function (dojo, declare) {
                     } ) , 'overall_player_board_'+placedTiles[i][2]);
 
                     dojo.style('placing_'+i,'z-index',1000);
-                    this.slideToObjectAndDestroy('placing_'+i,placedTiles[i][3]).play();
+                    this.slideToObjectAndDestroy('placing_'+i,placedTiles[i][3])
                 }
             }
 
@@ -581,8 +591,7 @@ function (dojo, declare) {
 
                 //delay the 2nd animation by 50ms.
                 destination = 'overall_player_board_'+placedTiles[i][2];
-                anim = this.slideToObjectAndDestroy('tile_back_'+i,destination);
-                setTimeout(function() {anim.play();}.bind(this),1+i*50);
+                this.slideToObjectAndDestroy('tile_back_'+i,destination);
             }
         },
 

@@ -511,7 +511,7 @@ define([
             var die = parseInt(coords[2]);
             var dieIdx = parseInt(coords[1]);
             console.log("onSelectDie", die);
-            //dojo.style( 'dice', 'display', 'none' );
+           
             this.game.ajaxcall( "/streetcar/streetcar/selectDie.html",{'dieIdx':dieIdx,'die':die}, this.game, function( result ) {} );
         },
 
@@ -535,6 +535,7 @@ define([
             
             //remove highlighting & clickability
             dojo.query(".selectable_tile").removeClass('selectable_tile');
+            dojo.query(".die_selected").removeClass('die_selected');
             this.onSelectedNodeHandlers.forEach(dojo.disconnect);
             
             this.game.ajaxcall( "/streetcar/streetcar/selectTrainDestination.html",{'destinationNode':destinationNode}, this.game, function( result ) {} );
