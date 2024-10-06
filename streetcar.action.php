@@ -89,12 +89,6 @@ class action_streetcar extends APP_GameAction
     self::ajaxResponse();
   }
 
-  public function chooseDifferentDie()
-  {
-    $result = $this->game->chooseDifferentDie();
-    self::ajaxResponse();
-  }
-
   public function selectTrainDestination()
   {
     $destinationNode = self::getArg("destinationNode",AT_alphanum, true);
@@ -102,58 +96,5 @@ class action_streetcar extends APP_GameAction
     self::ajaxResponse();
   }
 
-  public function selectTrainDirection()
-  {
-    $direction = self::getArg("direction",AT_alphanum, true);
-    $this->game->selectTrainDirection($direction);
-    self::ajaxResponse();
-  }
 
-/* DEPRECATED */
-
-
-  // public function trackDone()
-  // {
-  //   self::setAjaxMode();
-  //   $result = $this->game->trackDone();
-  //   self::ajaxResponse();
-  // }
-  // public function setTrainLocation()
-  // {
-  //   self::setAjaxMode();
-  //   $x = self::getArg("x", AT_posint, true);
-  //   $y = self::getArg("y", AT_posint, true);
-  //   $result = $this->game->setTrainLocation($x, $y);
-  //   self::ajaxResponse();
-  // }
-  // public function setTrainDirection()
-  // {
-  //   self::setAjaxMode();
-  //   $d = self::getArg("d", AT_alphanum, true);
-  //   $result = $this->game->setTrainDirection($d);
-  //   self::ajaxResponse();
-  // }
-  // TODO: defines your action entry points there
-
-
-  /*
-    
-    Example:
-  	
-    public function myAction()
-    {
-        self::setAjaxMode();     
-
-        // Retrieve arguments
-        // Note: these arguments correspond to what has been sent through the javascript "ajaxcall" method
-        $arg1 = self::getArg( "myArgument1", AT_posint, true );
-        $arg2 = self::getArg( "myArgument2", AT_posint, true );
-
-        // Then, call the appropriate method in your game logic, like "playCard" or "myAction"
-        $this->game->myAction( $arg1, $arg2 );
-
-        self::ajaxResponse( );
-    }
-    
-    */
 }

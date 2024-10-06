@@ -243,8 +243,6 @@ function (dojo, declare) {
                         this.addActionButton( 'done_with_turn_button', _('Done With Turn'), 'onDoneWithTurn');
                         
                         break;
-                    case 'moveTrain':
-                        this.addActionButton( 'choose_different_die', _('Choose a different die'), 'onChooseDifferentDie')
                 }
             }
         },
@@ -769,12 +767,6 @@ function (dojo, declare) {
         onSelectDie(evt)
         {
             this.scEventHandlers.onSelectDie(evt);
-        },
-
-        onChooseDifferentDie()
-        {
-            //send back to select die state.
-            this.scEventHandlers.onChooseDifferentDie();
         },
 
         onSelectTrainDestination(evt)

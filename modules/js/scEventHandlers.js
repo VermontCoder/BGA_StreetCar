@@ -540,15 +540,5 @@ define([
             
             this.game.ajaxcall( "/streetcar/streetcar/selectTrainDestination.html",{'destinationNode':destinationNode}, this.game, function( result ) {} );
         },
-
-        onChooseDifferentDie()
-        {
-            //remove highlighting & clickability
-            dojo.query(".selectable_tile").removeClass('selectable_tile');
-            this.onSelectedNodeHandlers.forEach(dojo.disconnect);
-            
-            this.game.ajaxcall( "/streetcar/streetcar/chooseDifferentDie.html",{}, this.game, function( result ) {} );
-        }
-
     });
 });
