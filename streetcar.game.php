@@ -842,12 +842,26 @@ class Streetcar extends Table
     function insertPiece($x,$y ,$r ,$c ,$directions_free,$stopToAdd)
     {
         //TBD change to update
-        $stopToAdd = $stopToAdd == null ? 'NULL' : "'$stopToAdd'";
         $sql_values = array();
-        $sql = "INSERT INTO board (board_x,board_y,rotation, card, directions_free, stop) VALUES ";
-        $sql_values[] = "($x,$y ,$r ,$c ,'$directions_free',$stopToAdd)";
+        $sql = '';
+
+        if ($stopToAdd == null)
+        {
+            $sql = "INSERT INTO board (board_x,board_y,rotation, card, directions_free) VALUES ";
+            $sql_values[] = "($x,$y ,$r ,$c ,'$directions_free')";
+        }
+        else
+        {
+            $sql = "INSERT INTO board (board_x,board_y,rotation, card, directions_free, stop) VALUES ";
+            $sql_values[] = "($x,$y ,$r ,$c ,'$directions_free','$stopToAdd')";
+        }
+       
         $sql .= implode(',', $sql_values);
-        $sql .= " ON DUPLICATE KEY UPDATE rotation= VALUES(rotation), card = VALUES(card), directions_free = VALUES(directions_free), stop = VALUES(stop)";
+        $sql .= " ON DUPLICATE KEY UPDATE rotation= VALUES(rotation), card = VALUES(card), directions_free = VALUES(directions_free)";
+        if ($stopToAdd != null)
+        {
+            $sql .= ", stop = VALUES(stop)";
+        }
         self::DbQuery($sql);
     }
 

@@ -597,7 +597,6 @@ function (dojo, declare) {
                     id: 'tile_back_'+i,
                 } ) , 'stack_icon');
 
-                //delay the 2nd animation by 50ms.
                 destination = 'overall_player_board_'+placedTiles[i][2];
                 this.slideToObjectAndDestroy('tile_back_'+i,destination);
             }
