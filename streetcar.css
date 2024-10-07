@@ -158,6 +158,8 @@
   width: 400px;
   height: 100px;
   margin: auto;
+  align-items: center;
+  justify-content: center;
   display: none; 
 }
 .die {
@@ -166,7 +168,7 @@
   background-image: url("img/die.png");
   border: 4px solid black;
   border-radius: 10%;
-  margin: 10px;
+  margin-right: 10px;
   cursor: pointer;
   /* margin: 2px; */
 }
@@ -217,7 +219,11 @@
   font-size: 0.8rem;
   text-align: center;
 }
-.goalcheck {
+.stopOnRoute {
+  border: solid 4px #FCDF00;
+}
+
+.shortestRouteButton {
   width: 175px;
   height: 30px;
   border-radius: 10%;
@@ -233,20 +239,20 @@
   cursor: pointer;
   display: none;
 }
-.stopW {
+.stop_W {
   position: absolute;
   top: 32px;
 }
-.stopS {
+.stop_S {
   position: absolute;
   left: 32px;
 }
-.stopN {
+.stop_N {
   position: absolute;
   left: 32px;
   top: 60px;
 }
-.stopE {
+.stop_E {
   position: absolute;
   top: 32px;
   left: 65px;

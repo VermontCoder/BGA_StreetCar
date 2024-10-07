@@ -91,7 +91,7 @@ function (dojo, declare) {
             });
                         
             //wire up show route button.
-            dojo.query( '.goalcheck' ).connect( 'onclick', this, 'onToggleShowRoute' );
+            dojo.query( '.shortestRouteButton' ).connect( 'onclick', this, 'onToggleShowRoute' );
 
             //if, after die roll, user refreshes, this will contain the possible destinations they can send the train to.
             this.showTrainDestinations(gamedatas.curTrainDestinationsSelection, 'onSelectTrainDestination');
@@ -352,6 +352,10 @@ function (dojo, declare) {
                 }                
             }    
         },
+
+        /**
+         * puts the stop indicator on the tile if there is a tile next to the stop.
+         */
         updateStops() {
             let stops = this.gamedatas.gamestate.args.stops;
             for(var x = 1; x<=12; x++){
@@ -360,16 +364,16 @@ function (dojo, declare) {
                         dojo.destroy('stoplocation_'+stops[x][y])
                         var html=""
                         if(this.scUtility.validCoordinates(x,y+1) && this.gamedatas.initialStops.filter(l => l.row==y+1 && l.col==x).length>0){
-                            html = "<div class='goallocation stopN' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>";
+                            html = "<div class='goallocation stop_N' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>";
                         }
                         if(this.scUtility.validCoordinates(x,y-1) && this.gamedatas.initialStops.filter(l => l.row==y-1 && l.col==x).length>0){
-                            html = "<div class='goallocation stopS' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>";
+                            html = "<div class='goallocation stop_S' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>";
                         }
                         if(this.scUtility.validCoordinates(x+1,y) && this.gamedatas.initialStops.filter(l => l.row==y && l.col==x+1).length>0){
-                            html = "<div class='goallocation stopE' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>";
+                            html = "<div class='goallocation stop_E' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>";
                         }
                         if(this.scUtility.validCoordinates(x-1,y) && this.gamedatas.initialStops.filter(l => l.row==y && l.col==x-1).length>0){
-                            html = "<div class='goallocation stopW' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>";
+                            html = "<div class='goallocation stop_W' id='stoplocation_"+stops[x][y]+"'>"+stops[x][y]+"</div>";
                         }
                         $('stops_'+x+"_"+y).innerHTML=html;
                     }
@@ -410,17 +414,23 @@ function (dojo, declare) {
  
          },
  
+         /**
+          * Draws the player board for the player passed as a parameter
+          * @param {Object} player 
+          * @returns 
+          */
          showPlayerBoard(player)
          {
              if(player.id == this.player_id) //active player
              {
-                  //show the "shortest route" button
-                  dojo.style('checktrack_'+player.id,'display','block');
+                //show the "shortest route" button
+                dojo.style('shortestRouteButton_'+player.id,'display','block');
  
-                  //Highlight goals on board 
-                 player.goals.forEach(goal => {
-                     let location = this.gamedatas.initialStops.filter(l => l.code== goal)[0]
-                     dojo.style( 'stops_'+location.col+"_"+location.row, 'border', 'solid 4px #FCDF00' );
+                //Highlight goals on board 
+                dojo.query(".stopOnRoute").removeClass('stopOnRoute');
+                player.goals.forEach(goal => {
+                     let location = this.gamedatas.initialStops.filter(l => l.code== goal)[0];
+                     dojo.addClass( 'stops_'+location.col+"_"+location.row, 'stopOnRoute' );
                  });
  
                  if (!(this.scRouting.curRoute==null) && this.scRouting.curRoute.isComplete)
@@ -731,7 +741,7 @@ function (dojo, declare) {
 	      
             // Update score
             this.scoreCtrl[ notif.args.player_id ].incValue( notif.args.score_delta );
-    },
+        },
 
         //Have to put stubs here to pass game object (???don't know why).
         onSelectCard(evt)
