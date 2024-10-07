@@ -117,7 +117,18 @@ define([
                     } ) , 'track_'+this.game.selectedTrack.player_id,'after');
                     this.rotationClickHandler = dojo.connect($(placedTrackID), 'onclick', this, 'onRotateCard' );
                 } 
-                this.game.slideToObject( placedTrackID, "square_"+this.game.posx+"_"+this.game.posy).play();
+                anim = this.game.slideToObject( placedTrackID, "square_"+this.game.posx+"_"+this.game.posy);
+
+                dojo.connect(anim, "onEnd", function(){
+                    // put in proper place in DOM heirarchy
+                    dojo.place($(placedTrackID),"square_"+this.game.posx+"_"+this.game.posy);
+                    //style top and left refer to the player board, which is no longer the parent. So remove these movements from style.
+                    dojo.style($(placedTrackID), 'top', '0px');
+                    dojo.style($(placedTrackID), 'left','0px');
+                }.bind(this));
+
+                anim.play();
+                
                 
                 badDirections = this.fitCardOnBoard();
                 this.showPlaceCardActionButton(badDirections);
@@ -128,10 +139,10 @@ define([
             // Stop this event propagation
             dojo.stopEvent( evt );
         
-           //console.log('ROTATE: ' + this.game.rotation);
+            console.log('ROTATE: ' + this.game.rotation);
             this.game.rotation = (this.game.rotation + 90) % 360;
             this.game.rotateTo(this.scUtility.getPlacedTrackId(this.game.isFirstSelection), this.game.rotation);
-            //console.log('ROTATE2: ' + this.game.rotation);
+            console.log('ROTATE2: ' + this.game.rotation);
             badDirections = this.fitCardOnBoard();
             this.showPlaceCardActionButton(badDirections);
            
