@@ -602,26 +602,6 @@ class Streetcar extends Table
         $this->gamestate->nextState('moveTrain');
     }
 
-    function chooseDifferentDie()
-    {
-        //put die back.
-        $this->checkAction('chooseDifferentDie');
-
-        $player_id = self::getActivePlayerID();
-        $sql = "SELECT dice FROM player WHERE player_id = " . $player_id . ";";
-        
-        $dice= json_decode(self::getUniqueValueFromDB($sql));
-        $dice[] = intval($this->globals->get(CUR_DIE));
-
-        $sql = "UPDATE player SET dice='".json_encode(array_values($dice))."', diceused= diceUsed-1 WHERE player_id = " . $player_id . ";";
-        self::DbQuery($sql);
-
-        //clear out saved state for possible Train Moves
-        $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
-        
-        $this->gamestate->nextState('selectDie');
-    }
-
     function doneWithTurn()
     {
         //player has decided to end dice throwing
