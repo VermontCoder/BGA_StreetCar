@@ -141,10 +141,12 @@ define([
         
             console.log('ROTATE: ' + this.game.rotation);
             this.game.rotation = (this.game.rotation + 90) % 360;
-            this.game.rotateTo(this.scUtility.getPlacedTrackId(this.game.isFirstSelection), this.game.rotation);
+            
             console.log('ROTATE2: ' + this.game.rotation);
             badDirections = this.fitCardOnBoard();
             this.showPlaceCardActionButton(badDirections);
+
+            setTimeout(this.game.rotateTo(this.scUtility.getPlacedTrackId(this.game.isFirstSelection), this.game.rotation),50);
            
         },
         fitCardOnBoard()

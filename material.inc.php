@@ -295,7 +295,7 @@ $this->tracks = array(
     array(
       "N" => "W",
       "E" => "SW",
-      "S" => "W",
+      "S" => "E",
       "W" => "NE",
     ),
     array(
@@ -307,7 +307,7 @@ $this->tracks = array(
     array(
       "N" => "W",
       "E" => "SW",
-      "S" => "W",
+      "S" => "E",
       "W" => "NE",
     ),
   ),
