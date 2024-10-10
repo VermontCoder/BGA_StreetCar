@@ -698,7 +698,7 @@ function (dojo, declare) {
                 //if we are moving into the last node of the route or facing direction is the same, do not rotate.
                 if (newRotation != null && curTrainRotation != newRotation)
                 {
-                    anims.push(this.getRotationAnimation(curTrainRotation,newRotation,trainDiv));
+                    anims.push(this.scUtility.getRotationAnimation(curTrainRotation,newRotation,trainDiv));
                     curTrainRotation = newRotation;
                 }
 
@@ -713,38 +713,12 @@ function (dojo, declare) {
             finalRotation = this.scUtility.getRotationFromDirection(endDirection);
             if (finalRotation != curTrainRotation)
             {
-                anims.push(this.getRotationAnimation(curTrainRotation,finalRotation,trainDiv));
+                anims.push(this.scUtility.getRotationAnimation(curTrainRotation,finalRotation,trainDiv));
             }
 
             dojo.fx.chain(anims).play();
         },
-
-        getRotationAnimation(from,to,divID)
-        {
-
-            //to rotate in the correct direction, we must treat "north" as either zero or 360 such that the difference between the rotations are minimized.
-            rotationDelta = from-to;
-            if (rotationDelta > 180)
-            {
-                from = from == 360 ? 0 : from;
-                to = to == 0 ? 360 : to;
-            }
-
-            if (rotationDelta < -180)
-            {
-                from = from == 0 ? 360 : from;
-                to = to == 360 ? 0 : to;
-            }
-            
-            var animation = new dojo.Animation({
-			    curve: [from, to],
-			    onAnimate: (v) => {
-				    $(divID).style.transform = 'rotate(' + v + 'deg)';
-			    } 
-		    });
-		    
-		    return animation;
-        },
+        
 
         /**
          * 

@@ -138,15 +138,14 @@ define([
         {
             // Stop this event propagation
             dojo.stopEvent( evt );
-        
-            console.log('ROTATE: ' + this.game.rotation);
+            startRotation = this.game.rotation;
             this.game.rotation = (this.game.rotation + 90) % 360;
-            
-            console.log('ROTATE2: ' + this.game.rotation);
+            this.scUtility.getRotationAnimation(startRotation, this.game.rotation, evt.currentTarget.id).play();
+
             badDirections = this.fitCardOnBoard();
             this.showPlaceCardActionButton(badDirections);
 
-            setTimeout(this.game.rotateTo(this.scUtility.getPlacedTrackId(this.game.isFirstSelection), this.game.rotation),50);
+            //setTimeout(this.game.rotateTo(this.scUtility.getPlacedTrackId(this.game.isFirstSelection), this.game.rotation),50);
            
         },
         fitCardOnBoard()
@@ -187,11 +186,20 @@ define([
         },
         showPlaceCardActionButton(badDirections)
         {
+            dojo.destroy("illegalPlacementMsg"); //delete this if present. might be present if placed below.
+            
             if (badDirections.includes('x')) return; //case where player tried to place on non-conforming space.
             if (this.game.isFirstSelection && badDirections.length <= 1)
             {
                 //Allow the placement with one bad direction. The user could fix it next placement.
                 this.game.addActionButton( 'place_card_action_button', _('Place track'), () => this.onPlacedCard() );
+
+                if (badDirections.length == 1)
+                {
+                    //display warning
+                    dojo.place("<div id='illegalPlacementMsg'> This is an illegal placement, so your next tile placement must make it legal for it to be allowed.</div>","pagemaintitletext");
+                }
+                
                 return;
             }
 
@@ -226,6 +234,7 @@ define([
                     this.game.addActionButton( 'place_card_action_button', _('Place track'), () => this.onPlacedCard() );
                     return;
                 }
+                
                 
             }
 

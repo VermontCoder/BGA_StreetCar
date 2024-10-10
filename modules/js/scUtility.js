@@ -140,5 +140,39 @@ return declare("bgagame.scUtility", null, {
                 selectedTrackDataObj.player_id+'_'+
                 selectedTrackDataObj.idx;
         },
+
+        /**
+         * 
+         * @param {*} from starting angle of rotation
+         * @param {*} to  ending angle of rotation
+         * @param {*} divID  div to be rotated.
+         * @returns animation
+         */
+        getRotationAnimation(from,to,divID)
+        {
+
+            //to rotate in the correct direction, we must treat "north" as either zero or 360 such that the difference between the rotations are minimized.
+            rotationDelta = from-to;
+            if (rotationDelta > 180)
+            {
+                from = from == 360 ? 0 : from;
+                to = to == 0 ? 360 : to;
+            }
+
+            if (rotationDelta < -180)
+            {
+                from = from == 0 ? 360 : from;
+                to = to == 360 ? 0 : to;
+            }
+            
+            var animation = new dojo.Animation({
+			    curve: [from, to],
+			    onAnimate: (v) => {
+				    $(divID).style.transform = 'rotate(' + v + 'deg)';
+			    } 
+		    });
+		    
+		    return animation;
+        },
     });
 });
