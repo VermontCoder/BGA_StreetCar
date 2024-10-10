@@ -123,6 +123,7 @@ function (dojo, declare) {
                     this.selectedTrack = null;
                     this.isFirstSelection = true;
                     this.firstPlacementData = {};
+                    this.rotation = 0;
 
                     //delay this to allow for animations.
                     setTimeout(function() {this.updateBoardState(args.args.players, args.args.stackCount)}.bind(this),450);
