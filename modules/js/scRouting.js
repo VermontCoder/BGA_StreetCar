@@ -26,8 +26,6 @@ return declare("bgagame.scRouting", null,
             //delete previous route
             dojo.query('.route_line').orphan();
 
-            console.log(JSON.stringify(this.curRoute));
-
             //if we are not showing the route, we are done.
             if (!this.scEventHandlers.isShowRoute) return;
             
@@ -35,8 +33,6 @@ return declare("bgagame.scRouting", null,
             if (this.curRoute == null) return;
 
             let route = this.curRoute.routeNodes; //will be null if there is no route.
-            
-            //console.debug(JSON.stringify(route));
 
             for (var parentID in route) 
             {

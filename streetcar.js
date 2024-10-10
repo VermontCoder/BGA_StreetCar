@@ -51,8 +51,6 @@ function (dojo, declare) {
         
         setup: function( gamedatas )
         {
-            console.log( "Starting game setup" , gamedatas);
-            
             this.nesw = ["N","E","S","W"];
             this.scLines =  new bgagame.scLines();
             this.scUtility = new bgagame.scUtility();
@@ -311,8 +309,12 @@ function (dojo, declare) {
             this.ajaxcall( "/streetcar/streetcar/placeTracks.html",paramList, this, function( result ) {} );
         },
 
+        /**
+         * Updates the player boards
+         * @param {Array} players 
+         */
         updatePlayers(players){
-            //update player boards
+            
             //delete previous tracks on player board
             dojo.query('.playertrack').orphan();
             
@@ -332,7 +334,9 @@ function (dojo, declare) {
             
         },
         
-        
+        /**
+         * Redraws all the tracks on the board.
+         */
         updateTracks() {
 
             //delete previous tracks
@@ -404,8 +408,7 @@ function (dojo, declare) {
              
              tileID = 'square_'+trainXYD.x+"_"+trainXYD.y;
              rotation = this.scUtility.getRotationFromDirection(traindirection);
-             //console.log ('Params','linenum: '+linenum+'\nplayer_id: ' + player_id+'\ntileID:'+tileID+'\ndirection:'+traindirection+'\nrotation:'+rotation);
-             console.log(traindirection+'_'+player_id);
+             
              dojo.destroy("train_"+player_id);
              dojo.place( this.format_block( 'jstpl_train', {
                  id: player_id,
@@ -520,6 +523,12 @@ function (dojo, declare) {
             }
         },
 
+        /**
+         * Highlights the possible places the train could go for selection by player
+         * @param {array<string>} nodeIDs - nodeIDs (really tiles) that should be highlighted.
+         * @param {string} clickMethod - a text name of what should happen should the player click on one of the destinations.
+         * @returns 
+         */
         showTrainDestinations(nodeIDs,clickMethod)
         {
              //First check if there are any to show
@@ -561,8 +570,7 @@ function (dojo, declare) {
         // TODO: from this point and below, you can write your game notifications handling methods
         notif_placedTrack: function( notif )
         {
-            console.log("notif_placedTrack", notif);
-
+            //placed tiles is an array with the following indexes corresponding to the following data.
             // 0 - card ID
             // 1 - rotation
             // 2 - player id source of tiles
@@ -640,30 +648,27 @@ function (dojo, declare) {
 
         notif_placedTrain : function(notif)
         {
-            console.log("notif_placedTrain", notif);
             this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.trainStartNodeID,notif.args.traindirection);
         },
 
         notif_updateRoute: function( notif )
         {
-            console.log('notif_updateRoute',notif.args.player_id);
             this.scRouting.updateRoutes(notif.args.routes);
         },
 
         notif_rolledDice: function( notif )
         {
-            console.log('notif_rolledDice: ',notif.args.throw);
+            //this info is handled elsewhere, but the message still needs to come across.
+            return;
         },
 
         notif_selectedDie: function( notif )
         {
-            console.log('notif_selectedDie', JSON.stringify(notif));
             this.showTrainDestinations(notif.args.possibleTrainMoves,'onSelectTrainDestination');
         },
 
         notif_moveTrain : function( notif )
         {
-            console.log('notif_moveTrain', JSON.stringify(notif));
             if (this.isCurrentPlayerActive())
             {
                 this.scRouting.curRoute = (notif.args.routes==null) ? null : notif.args.routes[0];
@@ -673,7 +678,6 @@ function (dojo, declare) {
                 this.scRouting.showRoute();
             }
             this.animateTrainMovement(notif.args.player_id,notif.args.moveRoute,notif.args.traindirection);
-            //this.showTrain(notif.args.linenum,notif.args.player_id,notif.args.nodeID, notif.args.traindirection);
         },
 
         animateTrainMovement(player_id,moveRoute,endDirection)
@@ -745,9 +749,6 @@ function (dojo, declare) {
 
         notif_endOfGame: function( notif )
 	    {
-	        console.log( '**** Notification : finalScore' );
-	        console.log( notif );
-	      
             // Update score
             this.scoreCtrl[ notif.args.player_id ].incValue( notif.args.score_delta );
         },

@@ -87,7 +87,7 @@ class scRoute
     */
     
     public function insertRouteNode($sourceNodeID,$targetNodeID)
-    {   //$game->dump('insert flkj ', $this->routeNodes);
+    {   
         $this->routeNodes[$sourceNodeID.'_'.$this->routeID] =$targetNodeID.'_'.$this->routeID;
     }
 

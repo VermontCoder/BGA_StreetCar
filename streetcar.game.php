@@ -533,9 +533,6 @@ class Streetcar extends Table
         if ($nodes[1][0] == $trainEndNodeID) { $trainEndNodeIDs = [$trainEndNodeID,$nodes[1][1]]; }
         if ($nodes[1][1] == $trainEndNodeID) { $trainEndNodeIDs = [$trainEndNodeID,$nodes[1][0]]; }
 
-        //$this->dump('nodes',$nodes);
-      
-
         $sql = "UPDATE `player` SET trainposition='".$trainStartNodeID."', traindirection='".$traindirection."', endnodeids='".json_encode(array_values($trainEndNodeIDs))."', laststopnodeid='".$trainStartNodeID."' where player_id=".$player_id;
         self::DbQuery($sql);
 

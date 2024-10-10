@@ -161,7 +161,6 @@ class scUtility
     }
 
     if ($x < 0 || $x >13 || $y < 0 || $y > 13) return true;
-    //$game->dump('unplayable: ',scUtility::$unplayableIDs);
 
     return isset(scUtility::$unplayableIDs[scUtility::xy2key($x,$y)]);
   }

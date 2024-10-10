@@ -20,6 +20,11 @@ define([
         /*              PLACING CARD                                                        */
         /*********************************************************************************** */
 
+        /**
+         * Fires when player selects a card from the player board (can be someone elses, if stack depleted.)
+         * @param {*} evt - click evt engendering this event.
+         * @param {*} game - reference to the game object - not sure why, but we need to pass it.
+         */
         onSelectCard(evt, game)
         {
             this.game = game; //HAVE TO REASSIGN THIS???
@@ -53,6 +58,12 @@ define([
             
         },
 
+        /**
+         * Player has put a tile on the board or moves a tile.
+          * @param {*} evt - click evt engendering this event.
+         * @param {*} game - reference to the game object - not sure why, but we need to pass it.
+         * @returns 
+         */
         onPlaceCard( evt, game )
         {
             //HAVE TO REASSIGN THIS???
@@ -133,7 +144,12 @@ define([
                 badDirections = this.fitCardOnBoard();
                 this.showPlaceCardActionButton(badDirections);
             }
-        },   
+        }, 
+        
+        /**
+         * Handles clicks on the card placed to rotate it.
+         * @param {*} evt 
+         */
         onRotateCard(evt)
         {
             // Stop this event propagation
@@ -148,6 +164,11 @@ define([
             //setTimeout(this.game.rotateTo(this.scUtility.getPlacedTrackId(this.game.isFirstSelection), this.game.rotation),50);
            
         },
+
+        /**
+         * Called above, colors the borders of the tile based on its ability to fit in to the location.
+         * @returns badDirections, essentially the sides of the tile which are not legal.
+         */
         fitCardOnBoard()
         {
             dojo.destroy('place_card_action_button');
@@ -184,10 +205,99 @@ define([
            
             return badDirections;
         },
+
+        //Called above. Does this track fit in this location on the board?
+        //If yes, an empty array is returned.
+        //If no the cardinal directions which are not a good fit are returned.
+        //If placed on an existing track and it does not conform to the directions, function returns 'x'
+        fitTrack(trackcard, rotation, x, y)
+        {
+            directions_free = this.scUtility.getDirections_free(trackcard, rotation);
+            badDirections = [];
+           
+            if(this.game.gamedatas.gamestate.args.board[x][y] !='[]') 
+            {
+                //This card has been placed on another card. Check it for compatibility.
+                let cardOnBoardTrackID = this.game.gamedatas.gamestate.args.tracks[x][y];
+                let rotationOfCardOnBoard = this.game.gamedatas.gamestate.args.rotations[x][y];
+                let cardOnBoard = this.game.gamedatas.tracks[cardOnBoardTrackID][rotationOfCardOnBoard/90];
+                let trackcardcheck =  this.game.gamedatas.tracks[this.game.selectedTrack.card][parseInt(rotation)/90];
+                if(!this.checktrackmatch(cardOnBoard, trackcardcheck)){
+                    this.game.showMessage( _("Existing paths need to remain the same."), 'info');	                    
+                    return ['x']; //new track is incompatible with track on board
+                }
+            }
+
+            this.nesw.forEach(direction =>{
+                switch(direction)
+                {
+                    case "N":
+                        var xcheck = x;
+                        var ycheck = y-1;
+                        break;
+                    case "E":
+                        var xcheck = x+1;
+                        var ycheck = y;
+                        break;
+                    case "S":
+                        var xcheck = x;
+                        var ycheck = y+1;
+                        break;
+                    case "W":
+                        var xcheck = x-1;
+                        var ycheck = y;
+                        break;
+                }
+
+                trackcheck = this.game.gamedatas.gamestate.args.board[xcheck ][ycheck];
+
+                if(directions_free.indexOf(direction)!=-1)
+                {
+                    //check for a stop
+                    if (this.game.gamedatas.initialStops.filter(l => l.row==ycheck && l.col==xcheck).length>0)
+                    {
+                        badDirections.push(direction);
+                        return; //acts like a "continue"
+                    }
+
+                    //check for invalid border square
+                    if (trackcheck == 'X')
+                    {
+                        badDirections.push(direction);
+                        return;
+                    }
+                }
+
+                //check for empty square in this direction
+                if (trackcheck == '[]')
+                    //direction is good, empty square
+                    return; //acts like a "continue"
+                
+                
+                //180 degree rotation - if we are looking North from the selected, this will look south from the north track.
+                directionFromTrackcheck = this.nesw[(this.nesw.indexOf(direction)+2)%4];
+
+                //if both true or both false, we don't want to record this direction as bad. Otherwise we do. XOR.
+                isSideFreeAtSelectedTrack = trackcheck.indexOf(directionFromTrackcheck) != -1;
+                isSelectedTrackFreeTowardThisTrack = directions_free.indexOf(direction)!=-1
+                if(isSideFreeAtSelectedTrack ? !isSelectedTrackFreeTowardThisTrack :isSelectedTrackFreeTowardThisTrack){
+                        badDirections.push(direction);
+                }  
+            });
+
+            return badDirections;
+        },
+
+
+        /**
+         * Show or do not show the appropriate action buttons based on the location and rotation of the the current tile.
+         * @param {*} badDirections 
+         * @returns 
+         */
         showPlaceCardActionButton(badDirections)
         {
             dojo.destroy("illegalPlacementMsg"); //delete this if present. might be present if placed below.
-            
+
             if (badDirections.includes('x')) return; //case where player tried to place on non-conforming space.
             if (this.game.isFirstSelection && badDirections.length <= 1)
             {
@@ -242,7 +352,9 @@ define([
             dojo.destroy('place_card_action_button');
         },
 
-         //user has decided to actually put card down.
+         /**
+          * User has decided to actually put card down.
+          */
          onPlacedCard()
          {
             dojo.destroy('place_card_action_button');
@@ -330,11 +442,17 @@ define([
              
          },
 
-         /* Returns true if the new track supports movement in as many ways or more than the track it is replacing. */
+         /** 
+          * Returns true if the new track supports movement in as many ways or more than the track it is replacing. 
+          * 
+          * @param {array} currenttrack - tracks array of the track currently on the board
+          * @param {array} newtrack - tracks array of the track being placed.
+          */
         checktrackmatch(currenttrack, newtrack)
         {
             let match = true
 
+            //check that in each entry direction of the old tile, the new tile also supports the same exit directions.
             this.nesw.forEach( direction =>{
                 for (var i = 0; i < currenttrack[direction].length; i++) {
                     if(match){
@@ -345,87 +463,7 @@ define([
             return match
         },
 
-        //Does this track fit in this location on the board?
-        //If yes, an empty array is returned.
-        //If no the cardinal directions which are not a good fit are returned.
-        //If placed on an existing track and it does not conform to the directions, function returns 'x'
-        fitTrack(trackcard, rotation, x, y)
-        {
-            directions_free = this.scUtility.getDirections_free(trackcard, rotation);
-            badDirections = [];
-           
-            if(this.game.gamedatas.gamestate.args.board[x][y] !='[]') 
-            {
-                //This card has been placed on another card. Check it for compatibility.
-                let cardOnBoardTrackID = this.game.gamedatas.gamestate.args.tracks[x][y];
-                let rotationOfCardOnBoard = this.game.gamedatas.gamestate.args.rotations[x][y];
-                let cardOnBoard = this.game.gamedatas.tracks[cardOnBoardTrackID][rotationOfCardOnBoard/90];
-                let trackcardcheck =  this.game.gamedatas.tracks[this.game.selectedTrack.card][parseInt(rotation)/90];
-                if(!this.checktrackmatch(cardOnBoard, trackcardcheck)){
-                    this.game.showMessage( _("Existing paths need to remain the same."), 'info');	                    
-                    return ['x']; //new track is incompatible with track on board
-                }
-            }
-
-            this.nesw.forEach(direction =>{
-                switch(direction)
-                {
-                    case "N":
-                        var xcheck = x;
-                        var ycheck = y-1;
-                        break;
-                    case "E":
-                        var xcheck = x+1;
-                        var ycheck = y;
-                        break;
-                    case "S":
-                        var xcheck = x;
-                        var ycheck = y+1;
-                        break;
-                    case "W":
-                        var xcheck = x-1;
-                        var ycheck = y;
-                        break;
-                }
-
-                trackcheck = this.game.gamedatas.gamestate.args.board[xcheck ][ycheck];
-
-                if(directions_free.indexOf(direction)!=-1)
-                {
-                    //check for a stop
-                    if (this.game.gamedatas.initialStops.filter(l => l.row==ycheck && l.col==xcheck).length>0)
-                    {
-                        badDirections.push(direction);
-                        return; //acts like a "continue"
-                    }
-
-                    //check for invalid border square
-                    if (trackcheck == 'X')
-                    {
-                        badDirections.push(direction);
-                        return;
-                    }
-                }
-
-                //check for empty square in this direction
-                if (trackcheck == '[]')
-                    //direction is good, empty square
-                    return; //acts like a "continue"
-                
-                
-                //180 degree rotation - if we are looking North from the selected, this will look south from the north track.
-                directionFromTrackcheck = this.nesw[(this.nesw.indexOf(direction)+2)%4];
-
-                //if both true or both false, we don't want to record this direction as bad. Otherwise we do. XOR.
-                isSideFreeAtSelectedTrack = trackcheck.indexOf(directionFromTrackcheck) != -1;
-                isSelectedTrackFreeTowardThisTrack = directions_free.indexOf(direction)!=-1
-                if(isSideFreeAtSelectedTrack ? !isSelectedTrackFreeTowardThisTrack :isSelectedTrackFreeTowardThisTrack){
-                        badDirections.push(direction);
-                }  
-            });
-
-            return badDirections;
-        },
+        
 
         /********************************************************************************* */
         /*                      Train Placement                                             */
@@ -532,7 +570,6 @@ define([
             var coords = evt.currentTarget.id.split('_');
             var die = parseInt(coords[2]);
             var dieIdx = parseInt(coords[1]);
-            console.log("onSelectDie", die);
            
             this.game.ajaxcall( "/streetcar/streetcar/selectDie.html",{'dieIdx':dieIdx,'die':die}, this.game, function( result ) {} );
         },
@@ -542,6 +579,7 @@ define([
         /********************************************************************************** */
         onSelectTrainDestination(evt, destinationNodes)
         {
+            //determine which destinationNode was clicked on
             destinationNode = null;
             for (i=0; i < destinationNodes.length; i++)
             {
@@ -553,7 +591,7 @@ define([
                     break;
                 }
             }
-            //determine which destinationNode was clicked on
+            
             
             //remove highlighting & clickability
             dojo.query(".selectable_tile").removeClass('selectable_tile');

@@ -95,7 +95,6 @@ class scConnectivityGraph
                 }
             }
         }
-        //$this->game->dump('connectivity', $connectivityInfo);
     }
 
     //done, save it to object.
@@ -146,9 +145,4 @@ class scConnectivityGraph
   {
     return $this->connectivityGraph[$nodeID];
   }
-
-  public function test() {
-    $this->game->dump('Dump: ',$this->connectivityGraph);
-  }
-  
 }

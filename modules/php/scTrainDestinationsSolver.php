@@ -46,7 +46,6 @@ class scTrainDestinationsSolver
 
             //Step 1 - find route to destination.
             $moveRoute = $this->scRouteFinder->findShortestRoute($player['trainposition'],$destinationNode);
-            //$this->game->dump('route:', $route);
 
             
             //Step 2 - Note any stops or terminal nodes.
@@ -248,7 +247,6 @@ class scTrainDestinationsSolver
             //find if there are route(s) from this node to the end. If so, this is a possible way to go.
             $routes = $this->game->calcRoutesFromNode($connectedNode,$player,$stops);
             
-            //$this->game->dump('CONNECTED NODE: ', $connectedNode);
             if ($routes==null) continue; //no routes found.
             
             foreach($routes as $route)
@@ -330,20 +328,16 @@ class scTrainDestinationsSolver
                 unset($stationNodes[$idx]);
             }
         }
-        //$this->game->dump('Station Nodes', $stationNodes);
         //step 2c - Alter connectivity graph to end at terminals or stops
         foreach($connectivityGraphCopy->connectivityGraph as $node => $children)
         {
-            $this->game->dump('NODEs', $node);
             if (in_array($node, $stationNodes))
             {
                 //terminate this node here.
-                //$this->game->dump('NULL NODE', $node);
                 $connectivityGraphCopy->connectivityGraph[$node] = [];
             }
         }
 
-        //$this->game->dump('CGRAPH', $connectivityGraphCopy ->connectivityGraph);
         //step 3 - run shortest path to all stops and terminals.
         $routesToStations =[];
         $routeFinder = new scRouteFinder($connectivityGraphCopy);
@@ -357,8 +351,6 @@ class scTrainDestinationsSolver
 
         }
 
-        //$this->game->dump("ROUTES", $routesToStations);
-        //$this->game->dump('CGRAPH', $this->game->cGraph->connectivityGraph);
         //step 4 - From all stops and terminals accessable, run from node to end.
         
         //$cGraph = new scConnectivityGraph($this->game); // create a non-altered connectivity graph
@@ -405,7 +397,6 @@ class scTrainDestinationsSolver
             $destinationNodes[] = $xyKey.'_'.array_key_first($dPlusLen);
         }
 
-        $this->game->dump("destinations: ", $destinationNodes);
         //step 5 - the routes that complete are locations available
         return $destinationNodes;
     }

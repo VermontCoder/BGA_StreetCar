@@ -62,7 +62,6 @@ return declare("bgagame.scUtility", null, {
          */
         validCoordinates(row, col)
         {
-            // console.log(">>vc",row,col)
             return (row >= 1 && row < 13 && col >= 1 && col < 13);
         },
         
