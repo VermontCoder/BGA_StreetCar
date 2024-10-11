@@ -124,6 +124,7 @@ class scTrainDestinationsSolver
             $altRoute = $this->scRouteFinder->findShortestRoute($moveRoute->startNodeID, $node);
             $altStopOnRoute = $altRoute->getStopOnRoute($stopsLocations);
     
+            //if we find a stop on the next node, route this way.
             if ($altStopOnRoute['lastStopNodeID'] != null)
             {
                 //this might be the node we are looking for
@@ -131,9 +132,15 @@ class scTrainDestinationsSolver
                 
                 //This route needs to be length 1. If not, this is further than two squares, so its no good.
                 if ($altRoutePart2->getLength() != 1) continue;
+
+                //now that we know this is a good route, check for a stop at the end.
+                $altStopOnRoutePart2 = $altRoutePart2->getStopOnRoute($stopsLocations);
                 
+                //if there is a stop at the end of the move, this is the stop we need to return.
+                //This situation happens if you get a two move die roll just before entering a terminal.
+                //The first tile in the terminal becomes the $altStopOnRoute and the 2nd is $altstopOnRoutePart2
+                $stopOnRoute = $altStopOnRoutePart2['lastStopNodeID'] != null ? $altStopOnRoutePart2 : $altStopOnRoute;
                 $moveRoute = $altRoute->merge($altRoutePart2);
-                $stopOnRoute = $altStopOnRoute;
                 return;
             }
         }

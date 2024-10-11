@@ -557,6 +557,8 @@ class Streetcar extends Table
 
          // set dice for this turn
         $throw = scUtility::rollDice(3-$diceUsed);
+        //testing
+        $throw = [1,4,5];
         $sql = "UPDATE player SET dice = '" . json_encode(array_values($throw)) . "' WHERE player_id = " . $player_id . ";";
         self::DbQuery($sql);
 
@@ -575,10 +577,6 @@ class Streetcar extends Table
         $player_id = self::getActivePlayerID();
         $players = $this->getPlayersWithIDKey();
         $player = $players[$player_id];
-
-        
-        //testing
-        //$die =2;
 
         $this->globals->set(CUR_DIE,(int)$die);
         $this->globals->set(CUR_DIE_IDX,(int) $dieIdx);

@@ -98,7 +98,7 @@ $machinestates = array(
         "type" => "activeplayer",
         "args" => "argPlayerTurn",
         "possibleactions" => array('selectDie'),
-        "transitions" => array( "moveTrain"=> 14),
+        "transitions" => array( "moveTrain"=> 14, "zombiePass" => 11),
     ),
     14 => array(
         "name" => "moveTrain",
@@ -108,7 +108,7 @@ $machinestates = array(
         "type" => "activeplayer",
         "args" => "argMoveTrain",
         "possibleactions" => array('selectTrainDestination','selectDie','rollDice','doneWithTurn'),
-        "transitions" => array("rollDice" => 12, "selectDie"=> 13, "moveTrain"=> 14, "nextPlayer"=> 11, "gameEnd" => 99)
+        "transitions" => array("rollDice" => 12, "selectDie"=> 13, "moveTrain"=> 14, "nextPlayer"=> 11, "zombiePass" => 11,"gameEnd" => 99)
     ),
 
     // Final state.
