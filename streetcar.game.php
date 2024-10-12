@@ -506,6 +506,8 @@ class Streetcar extends Table
             ));
         }
 
+        $this->giveExtraTime(self::getActivePlayerID());
+
         //goto next player
         $this->gamestate->nextState('nextPlayer');
     }
@@ -543,6 +545,8 @@ class Streetcar extends Table
             'trainStartNodeID' => $trainStartNodeID,
             'traindirection' => $traindirection,
         ));
+
+        $this->giveExtraTime($player_id);
         $this->gamestate->nextState('nextPlayer');
     }
 
@@ -612,6 +616,10 @@ class Streetcar extends Table
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
         $this->globals->set(CUR_DIE,null);
         $this->globals->set(CUR_DIE_IDX,null);
+        
+        //End of turn for die rolling.
+        $this->giveExtraTime($player_id);
+        
         //goto next player
         $this->gamestate->nextState('nextPlayer');
     }
