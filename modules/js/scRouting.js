@@ -1,3 +1,12 @@
+/**
+ *------
+ * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
+ * Streetcar implementation : © David Felcan dfelcan@gmail.com
+ *
+ * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
+ * See http://en.boardgamearena.com/#!doc/Studio for more information.
+ * -----*/
+
 define([
     "dojo", "dojo/_base/declare"
 ], function( dojo, declare )
