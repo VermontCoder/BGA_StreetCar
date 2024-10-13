@@ -587,57 +587,60 @@ function (dojo, declare) {
                     dojo.place( this.format_block( 'jstpl_track', 
                     {
                         id: 'placing_'+i,
-                        offsetx:-100* placedTiles[i][0],
-                        rotate:placedTiles[i][1]
-                    } ) , 'overall_player_board_'+placedTiles[i][2]);
+                        offsetx:-100* placedTiles[i]['card'],
+                        rotate:placedTiles[i]['rotation']
+                    } ) , 'overall_player_board_'+placedTiles[i]['ownerID']);
 
                     dojo.style('placing_'+i,'z-index',1000);
-                    this.slideToObjectAndDestroy('placing_'+i,placedTiles[i][3])
+                    this.slideToObjectAndDestroy('placing_'+i,placedTiles[i]['destination'])
                 }
             }
 
+            //animate tiles coming from board to player board for non-current players.
             for(i=0;i<placedTiles.length;i++)
             {
                 //check to see if new tiles to player's hand are coming from the board or the stack
                 //animate appropriately.
-                underlyingTrack = dojo.query('#'+placedTiles[i][3]+ ' > .track');
-                destination = 'overall_player_board_'+placedTiles[i][2];
-
-               
-                if (underlyingTrack.length > 0)
-                {
-                    //from board. Already animated for current player
-                    if (!this.isCurrentPlayerActive())
-                    {
-                        //extract data about underlying tile and move the copy. Moving current tile is proving buggy.
-                        sourceXY = this.scUtility.extractXY(placedTiles[i][3]);
-                        sourceRotation = this.gamedatas.gamestate.args.rotations[sourceXY.x][sourceXY.y];
-                        sourceCard = this.gamedatas.gamestate.args.tracks[sourceXY.x][sourceXY.y];
-
-                        //place a copy of the tile on the square and slide that for the animation.
-                        dojo.place( this.format_block( 'jstpl_track', 
-                            {
-                                id: 'replacing_'+i,
-                                offsetx:-100* sourceCard,
-                                rotate: sourceRotation
-                            } ) , placedTiles[i][3]);
-        
-                            dojo.style('replacing_'+i,'z-index',1000);
-                            this.slideToObjectAndDestroy('replacing_'+i,destination);
-                    }
-                }
-                else
-                {
-                    //animate tiles coming from stack to player board - all players
-                    dojo.place( this.format_block( 'jstpl_track_tile_back_animation', 
-                    {
-                        id: 'tile_back_'+i,
-                    } ) , 'stack_icon');
+                underlyingTrack = dojo.query('#'+placedTiles[i]['destination']+ ' > .track');
+                destination = 'overall_player_board_'+placedTiles[i]['ownerID'];
                     
-                    this.slideToObjectAndDestroy('tile_back_'+i,destination);
+                if (!this.isCurrentPlayerActive() && underlyingTrack.length > 0)
+                {
+                    //tile is coming from board. Already animated for current player
+                    //extract data about underlying tile and move the copy. Moving current tile is proving buggy.
+                    sourceXY = this.scUtility.extractXY(placedTiles[i]['destination']);
+                    sourceRotation = this.gamedatas.gamestate.args.rotations[sourceXY.x][sourceXY.y];
+                    sourceCard = this.gamedatas.gamestate.args.tracks[sourceXY.x][sourceXY.y];
+
+                    //place a copy of the tile on the square and slide that for the animation.
+                    dojo.place( this.format_block( 'jstpl_track', 
+                        {
+                            id: 'replacing_'+i,
+                            offsetx:-100* sourceCard,
+                            rotate: sourceRotation
+                        } ) , placedTiles[i]['destination']);
+    
+                        dojo.style('replacing_'+i,'z-index',1000);
+                        this.slideToObjectAndDestroy('replacing_'+i,destination);
                 }
-                
             }
+
+            //animate tiles coming from stack to player board - all players
+            numFromStack = placedTiles.length >0 ? placedTiles[0]['numFromStack'] : 0;
+
+            for (i=0; i< numFromStack;i++)
+            {
+                destination = 'overall_player_board_'+placedTiles[i]['ownerID'];
+                
+                dojo.place( this.format_block( 'jstpl_track_tile_back_animation', 
+                {
+                    id: 'tile_back_'+i,
+                } ) , 'stack_icon');
+                
+                this.slideToObjectAndDestroy('tile_back_'+i,destination);
+            }
+
+
 
             //update global gamestate
             this.gamedatas.gamestate.args.stops=notif.args.stops;

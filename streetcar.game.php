@@ -450,14 +450,17 @@ class Streetcar extends Table
         $availableCards1 = array_map('intval',explode(',',$availableCards1));
         $availableCards2 = array_map('intval',explode(',',$availableCards2));
         
-        $this->updateAndRefillAvailableCards($availableCards1, $availableCardsOwner1);
-
+        //We need to report back how many came from the stack so we can animate this.
+        $numFilled1 = $this->updateAndRefillAvailableCards($availableCards1, $availableCardsOwner1);
+        $numFilled2 = 0;
         //only update 2nd set of cards if the cards of two different players have been altered.
         if ($availableCardsOwner1 != $availableCardsOwner2)
         {
-            $this->updateAndRefillAvailableCards($availableCards2, $availableCardsOwner2);
+            $numFilled2 = $this->updateAndRefillAvailableCards($availableCards2, $availableCardsOwner2);
         }
 
+        $numFilled = $numFilled1 + $numFilled2;
+        
         $stopToAdd = $this->addStop($x1,$y1);
         $this->insertPiece($x1,$y1,$r1,$c1, $directions_free1,$stopToAdd);
 
@@ -474,8 +477,8 @@ class Streetcar extends Table
         $placedTileDestination1 = 'square_'.scUtility::xy2key($x1,$y1);
         $placedTileDestination2 = 'square_'.scUtility::xy2key($x2,$y2);
 
-        $placedTiles[] = [ $c1, $r1, $availableCardsOwner1, $placedTileDestination1];
-        $placedTiles[] = [ $c2, $r2, $availableCardsOwner2, $placedTileDestination2];
+        $placedTiles[] = [ 'card'=>$c1, 'rotation'=>$r1, 'ownerID'=>$availableCardsOwner1, 'destination'=>$placedTileDestination1, 'numFromStack'=>$numFilled];
+        $placedTiles[] = [ 'card'=>$c2, 'rotation'=>$r2, 'ownerID'=>$availableCardsOwner2, 'destination'=>$placedTileDestination2, 'numFromStack'=>0];
         
         self::notifyAllPlayers('placedTrack', clienttranslate('${player_name} placed tracks.'), array(
             'player_name' =>$player_name,
@@ -516,6 +519,7 @@ class Streetcar extends Table
 
     function placeTrain($linenum,$trainStartNodeID,$trainEndNodeID)
     {
+        $this->checkAction(('placeTrain'));
         $player_id = self::getActivePlayerId();
 
         //based on start node, find direction
@@ -779,7 +783,10 @@ class Streetcar extends Table
     {
         $newHand = $this->refillHand($available_cards);
         $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($newHand)) . "' WHERE player_id = " . $player_id . ";";
-        self::DbQuery($sql);      
+        self::DbQuery($sql);
+        
+        $numFilled = count($newHand) - count($available_cards);
+        return $numFilled;
     }
 
     function refillHand($available_cards)
