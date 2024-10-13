@@ -32,6 +32,7 @@ const STACK_INDEX = "stackIndex";
 const CUR_DIE = "curDie"; 
 const CUR_DIE_IDX ="curDieIdx";
 const CUR_TRAIN_DESTINATIONS_SELECTION = "curTrainDestinationsSelection"; //used to remember possible destinations as a result of a die roll
+const GAME_PROGRESSION = "gameProgression";
 
 class Streetcar extends Table
 {
@@ -81,6 +82,7 @@ class Streetcar extends Table
         $this->globals->set(CUR_DIE, null);
         $this->globals->set(CUR_DIE_IDX,null);
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
+        $this->globals->set(GAME_PROGRESSION, 0);
         
 
         $allcards = array();
@@ -295,7 +297,7 @@ class Streetcar extends Table
     {
         // TODO: compute and return the game progression
 
-        return 0;
+        return intval($this->globals->get(GAME_PROGRESSION));
     }
 
 
@@ -547,6 +549,13 @@ class Streetcar extends Table
         ));
 
         $this->giveExtraTime($player_id);
+
+        //once someone places their train, we are halfway through the game
+        if (intval($this->globals->get(GAME_PROGRESSION)) < 50)
+        {
+            $this->globals->set(GAME_PROGRESSION, 50);
+        }
+
         $this->gamestate->nextState('nextPlayer');
     }
 
@@ -672,10 +681,23 @@ class Streetcar extends Table
     			)
    			);
 
+            $this->globals->set(GAME_PROGRESSION,100);
             $this->gamestate->nextState('gameEnd');
             return;
         }
 
+        //Set game progression
+        //If we are here, the game is already at least 50% done
+        //Routes are typically around 50 tiles long. So 50 - the number of tiles in the remaining route + 50 is the progression.
+        //But if someone is further along, don't update
+
+        $newProgression = 50 + 50 - ($routesAndDirection['routes'][0])->getLength();
+        $newProgression = $newProgression > 100 ? 100 : $newProgression;
+
+        if ($newProgression > intval($this->globals->get(GAME_PROGRESSION)))
+        {   
+            $this->globals->set(GAME_PROGRESSION,$newProgression);
+        }
          //We're done with the selection and the die.
         $this->determineNextStateFromDice($player_id);
     }
@@ -790,6 +812,13 @@ class Streetcar extends Table
         $sql = "DELETE FROM `stack` WHERE id <" . $stackindex;
         self::DbQuery($sql);
         
+        if (intval($this->globals->get(GAME_PROGRESSION)) < 50)
+        {
+            //update game progression based on number of tiles played - but don't go over 50.
+
+            //estimate that around 50 cards are played before a route is established.
+            $this->globals->set(GAME_PROGRESSION, $stackindex <50 ? $stackindex : 50 );
+        }
         
         return $available_cards;
     }
