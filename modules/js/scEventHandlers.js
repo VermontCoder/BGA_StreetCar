@@ -1,7 +1,7 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * Streetcar implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
+ * LineNumberOne implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -529,7 +529,7 @@ define([
 
             players = this.game.gamedatas.gamestate.args.players;
             linenum = parseInt(players.filter(p =>p.id==this.game.player_id)[0]['linenum']);
-            this.game.ajaxcall( "/streetcar/streetcar/placeTrain.html",{linenum: linenum, trainStartNodeID: trainStartNodeID, trainEndNodeID: trainEndNodeID}, this.game, function( result ) {} );
+            this.game.ajaxcall( "/linenumberone/linenumberone/placeTrain.html",{linenum: linenum, trainStartNodeID: trainStartNodeID, trainEndNodeID: trainEndNodeID}, this.game, function( result ) {} );
         },
         
 
@@ -566,12 +566,12 @@ define([
         /********************************************************************************** */
         onRollDice()
         {
-            this.game.ajaxcall( "/streetcar/streetcar/rollDice.html",{}, this.game, function( result ) {} );
+            this.game.ajaxcall( "/linenumberone/linenumberone/rollDice.html",{}, this.game, function( result ) {} );
         },
 
         onDoneWithTurn()
         {
-            this.game.ajaxcall( "/streetcar/streetcar/doneWithTurn.html",{}, this.game, function( result ) {} );
+            this.game.ajaxcall( "/linenumberone/linenumberone/doneWithTurn.html",{}, this.game, function( result ) {} );
         },
 
         onSelectDie(evt )
@@ -582,7 +582,7 @@ define([
             var die = parseInt(coords[2]);
             var dieIdx = parseInt(coords[1]);
            
-            this.game.ajaxcall( "/streetcar/streetcar/selectDie.html",{'dieIdx':dieIdx,'die':die}, this.game, function( result ) {} );
+            this.game.ajaxcall( "/linenumberone/linenumberone/selectDie.html",{'dieIdx':dieIdx,'die':die}, this.game, function( result ) {} );
         },
 
         /*********************************************************************************** */
@@ -609,7 +609,7 @@ define([
             dojo.query(".die_selected").removeClass('die_selected');
             this.onSelectedNodeHandlers.forEach(dojo.disconnect);
             
-            this.game.ajaxcall( "/streetcar/streetcar/selectTrainDestination.html",{'destinationNode':destinationNode}, this.game, function( result ) {} );
+            this.game.ajaxcall( "/linenumberone/linenumberone/selectTrainDestination.html",{'destinationNode':destinationNode}, this.game, function( result ) {} );
         },
     });
 });

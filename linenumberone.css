@@ -1,15 +1,15 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * Streetcar implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
+ * LineNumberOne implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
  * -----
  *
- * streetcar.css
+ * linenumberone.css
  *
- * Streetcar stylesheet
+ * LineNumberOne stylesheet
  *
  */
 
@@ -17,8 +17,8 @@
     This is the CSS stylesheet of your game User Interface.
     
     Styles defined on this file will be applied to the HTML elements you define in your
-    HTML template (streetcar_streetcar.tpl), and to HTML elements you create dynamically
-    (in streetcar.js).
+    HTML template (linenumberone_linenumberone.tpl), and to HTML elements you create dynamically
+    (in linenumberone.js).
     
     Usually, you are using CSS to:
     

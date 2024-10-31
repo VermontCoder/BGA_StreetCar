@@ -11,7 +11,7 @@
  *
  * material.inc.php
  *
- * Streetcar game material description
+ * LineNumberOne game material description
  *
  * Here, you can describe the material of your game with PHP variables.
  *   

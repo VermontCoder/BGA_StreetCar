@@ -1,15 +1,15 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * Streetcar implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
+ * LineNumberOne implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
  * -----
  *
- * streetcar.js
+ * linenumberone.js
  *
- * Streetcar user interface script
+ * LineNumberOne user interface script
  * 
  * In this file, you are describing the logic of your user interface, in Javascript language.
  *
@@ -25,9 +25,9 @@
     g_gamethemeurl + "modules/js/scRouting.js"
 ],
 function (dojo, declare) {
-    return declare("bgagame.streetcar", ebg.core.gamegui, {
+    return declare("bgagame.linenumberone", ebg.core.gamegui, {
         constructor: function(){
-            console.log('streetcar constructor');
+            console.log('linenumberone constructor');
               
             // Here, you can init the global variables of your user interface
             // Example:
@@ -306,7 +306,7 @@ function (dojo, declare) {
 
             //clear firstPlacementData
             this.firstPlacementData = {};
-            this.ajaxcall( "/streetcar/streetcar/placeTracks.html",paramList, this, function( result ) {} );
+            this.ajaxcall( "/linenumberone/linenumberone/placeTracks.html",paramList, this, function( result ) {} );
         },
 
         /**

@@ -3,13 +3,13 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * Streetcar implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
+ * LineNumberOne implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
  * -----
  *
- * streetcar.view.php
+ * linenumberone.view.php
  *
  * This is your "view" file.
  *
@@ -18,7 +18,7 @@
  * _ when a player refreshes the game page (F5)
  *
  * "build_page" method allows you to dynamically modify the HTML generated for the game interface. In
- * particular, you can set here the values of variables elements defined in streetcar_streetcar.tpl (elements
+ * particular, you can set here the values of variables elements defined in linenumberone_linenumberone.tpl (elements
  * like {MY_VARIABLE_ELEMENT}), and insert HTML block elements (also defined in your HTML template file)
  *
  * Note: if the HTML of your game interface is always the same, you don't have to place anything here.
@@ -27,12 +27,12 @@
 
 require_once(APP_BASE_PATH . "view/common/game.view.php");
 
-class view_streetcar_streetcar extends game_view
+class view_linenumberone_linenumberone extends game_view
 {
     protected function getGameName()
     {
         // Used for translations and stuff. Please do not modify.
-        return "streetcar";
+        return "linenumberone";
     }
 
     function build_page($viewArgs)
@@ -40,7 +40,7 @@ class view_streetcar_streetcar extends game_view
         // Get players & players number
         $players = $this->game->loadPlayersBasicInfos();
 
-        $this->page->begin_block("streetcar_streetcar", "board");
+        $this->page->begin_block("linenumberone_linenumberone", "board");
 
         $hor_scale = 100.25;
         $ver_scale = 100.25;
@@ -57,7 +57,7 @@ class view_streetcar_streetcar extends game_view
             }
         }
 
-        // $this->page->begin_block("streetcar_streetcar", "route");
+        // $this->page->begin_block("linenumberone_linenumberone", "route");
 
         // for ($x = 0; $x <= 13; $x++) {
         //     for ($y = 0; $y <= 13; $y++) 
@@ -99,7 +99,7 @@ class view_streetcar_streetcar extends game_view
         //      <!-- END myblock --> 
         
 
-        $this->page->begin_block( "streetcar_streetcar", "myblock" );
+        $this->page->begin_block( "linenumberone_linenumberone", "myblock" );
         foreach( $players as $player )
         {
             $this->page->insert_block( "myblock", array( 
