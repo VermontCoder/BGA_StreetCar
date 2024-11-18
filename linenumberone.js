@@ -57,7 +57,7 @@ function (dojo, declare) {
             this.scEventHandlers = new bgagame.scEventHandlers(this);
             this.scRouting = new bgagame.scRouting(this,gamedatas.routes);
             
-
+            console.log("SETUP",gamedatas)
             // Setting up player boards
             for( var player_id in gamedatas.players )
             {
@@ -82,6 +82,7 @@ function (dojo, declare) {
             this.traceTrack = false;
 
             // show stops
+
             gamedatas.initialStops.forEach(l=>{
                 // dojo.destroy('stoplocation_'+stops[x][y])
                 html = "<div class='goallocation goalstart' id='stoplocation_"+l.code+"'>"+l.code+"</div><div class='goalname' id='goalname_"+l.code+"'>"+l.name+"</div>";
@@ -319,18 +320,23 @@ function (dojo, declare) {
             dojo.query('.playertrack').orphan();
             
             curPlayer = null;
-            players.forEach(player => {
-                //dojo.empty('track_'+player.id)
-                if(player.id == this.player_id) curPlayer = player;
-                this.showPlayerBoard(player);
-            });
-            
-            //do this here after all playerboards are set up.
-            if(curPlayer.trainposition==null)
-            {
-                //allow selection of train pieces for placement
-                dojo.query( '.playertrack' ).connect( 'onclick', this, 'onSelectCard');
-            }  
+            // added Spectator view
+            if(this.isSpectator){
+                this.showPlayerBoard(players[0]);
+            } else {
+                players.forEach(player => {
+                    //dojo.empty('track_'+player.id)
+                    if(player.id == this.player_id) curPlayer = player;
+                    this.showPlayerBoard(player);
+                });
+                
+                //do this here after all playerboards are set up.
+                if(curPlayer.trainposition==null)
+                {
+                    //allow selection of train pieces for placement
+                    dojo.query( '.playertrack' ).connect( 'onclick', this, 'onSelectCard');
+                }  
+            }
             
         },
         

@@ -29,8 +29,8 @@ const STACK_SIZE = 100;
 
 //globals names
 const STACK_INDEX = "stackIndex";
-const CUR_DIE = "curDie"; 
-const CUR_DIE_IDX ="curDieIdx";
+const CUR_DIE = "curDie";
+const CUR_DIE_IDX = "curDieIdx";
 const CUR_TRAIN_DESTINATIONS_SELECTION = "curTrainDestinationsSelection"; //used to remember possible destinations as a result of a die roll
 const GAME_PROGRESSION = "gameProgression";
 
@@ -47,7 +47,7 @@ class LineNumberOne extends Table
         parent::__construct();
 
         self::initGameStateLabels(array(
-             
+
             //    "my_first_global_variable" => 10,
             //    "my_second_global_variable" => 11,
             //      ...
@@ -77,13 +77,13 @@ class LineNumberOne extends Table
         // The number of colors defined here must correspond to the maximum number of players allowed for the gams
         $gameinfos = self::getGameinfos();
         $default_colors = $gameinfos['player_colors'];
-        
+
         $this->globals->set(STACK_INDEX, 0);
         $this->globals->set(CUR_DIE, null);
-        $this->globals->set(CUR_DIE_IDX,null);
+        $this->globals->set(CUR_DIE_IDX, null);
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
         $this->globals->set(GAME_PROGRESSION, 0);
-        
+
 
         $allcards = array();
         for ($i = 0; $i < 21; $i++) {
@@ -151,7 +151,7 @@ class LineNumberOne extends Table
 
             //goals will appear in database as JSON encoded PHP array
             //$jGoals = "'".json_encode(array_values(["B","I"]))."'" ;
-            $jGoals = "'".json_encode(array_values($this->goals[$goalnum][$linenum-1]))."'" ;
+            $jGoals = "'" . json_encode(array_values($this->goals[$goalnum][$linenum - 1])) . "'";
 
             $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$linenum,$jGoals,'[]',NULL,NULL, NULL,NULL,0)";
             $cardindex++;
@@ -162,24 +162,20 @@ class LineNumberOne extends Table
         $sql = "INSERT INTO board (board_x,board_y,directions_free) VALUES ";
         $sql_values = array();
 
-       
+
         for ($x = 0; $x <= 13; $x++) {
-            for ($y = 0; $y <= 13; $y++) 
-            {
-                if (scUtility::isUnplayable($x,$y,$this))
-                {
+            for ($y = 0; $y <= 13; $y++) {
+                if (scUtility::isUnplayable($x, $y, $this)) {
                     $sql_values[] = "('$x','$y','X')";
-                }
-                else if (($x != 0) && ($y != 0) && ($x !=13) && ($y !=13))
-                {
+                } else if (($x != 0) && ($y != 0) && ($x != 13) && ($y != 13)) {
                     $sql_values[] = "('$x','$y','[]')";
                 }
             }
         }
-       
+
         $sql .= implode(',', $sql_values);
         self::DbQuery($sql);
-        
+
         // add border tracks.
         $sql = "INSERT INTO board (board_x,board_y,directions_free,card,rotation) VALUES ";
         $sql_values = array();
@@ -263,22 +259,21 @@ class LineNumberOne extends Table
         $result['tracks'] = $this->tracks;
         $result['goals'] = $this->goals;
         $result['routeEndPoints'] = $this->routeEndPoints;
+        //added spectator check SvdH
+        if (array_search($current_player_id, $players) !== false) {
+            $curPlayer = $players[$current_player_id];
+            $trainposition = $curPlayer['trainposition'];
 
-        $curPlayer = $players[$current_player_id];
-        $trainposition = $curPlayer['trainposition'];
-
-        if($trainposition==null)
-        {
-            $result['routes'] = $this->calcRoutes($curPlayer,$this->getStops());//these stops are stops located on the board.
-        }
-        else
-        {
-            $result['routes'] =$this-> calcRoutesFromNode($curPlayer['trainposition'],$curPlayer,$this->getStops());
+            if ($trainposition == null) {
+                $result['routes'] = $this->calcRoutes($curPlayer, $this->getStops()); //these stops are stops located on the board.
+            } else {
+                $result['routes'] = $this->calcRoutesFromNode($curPlayer['trainposition'], $curPlayer, $this->getStops());
+            }
         }
 
         //only relevant when choosing the train start location (one time).
         $result[CUR_TRAIN_DESTINATIONS_SELECTION] = $this->globals->get(CUR_TRAIN_DESTINATIONS_SELECTION);
-    
+
 
         return $result;
     }
@@ -304,14 +299,13 @@ class LineNumberOne extends Table
     //////////////////////////////////////////////////////////////////////////////
     //////////// Utility functions
     ////////////
-    
+
     //@return array
     function getPlayers()
     {
         $players = self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, traindirection,goals,goalsfinished,trainposition, endnodeids, laststopnodeid, dice, diceused
                                            FROM player");
-        for($i=0;$i < count($players);$i++)
-        {
+        for ($i = 0; $i < count($players); $i++) {
             $players[$i]['goals'] = json_decode($players[$i]['goals']);
             $players[$i]['goalsfinished'] = json_decode($players[$i]['goalsfinished']);
             $players[$i]['endnodeids'] = json_decode($players[$i]['endnodeids']);
@@ -323,10 +317,9 @@ class LineNumberOne extends Table
     {
         //Players needs to be massaged to have an ID key. Why this wasn't done this way before eludes me.
         $p = self::getPlayers();
-        
-        $players =[];
-        foreach ($p as $player)
-        {
+
+        $players = [];
+        foreach ($p as $player) {
             $players[intval($player['id'])] = $player;
         }
         return $players;
@@ -335,7 +328,7 @@ class LineNumberOne extends Table
     function getBoardAsObjectList()
     {
         return self::getObjectListFromDB("SELECT board_x x, board_y y, directions_free, card, rotation, stop 
-                                                               FROM board");   
+                                                               FROM board");
     }
     function getBoard()
     {
@@ -368,14 +361,14 @@ class LineNumberOne extends Table
         //convert to integers
         return array_map('intval', self::getObjectListFromDB("SELECT card FROM stack", true));
     }
-   
+
 
     function getDataToClient()
     {
         $this->cGraph = new scConnectivityGraph($this);
         $stops =  self::getStops();
         $players = self::getPlayers();
-       
+
         return array(
             'players' => $players,
             'board' => self::getBoard(),
@@ -383,16 +376,16 @@ class LineNumberOne extends Table
             'rotations' => self::getRotation(),
             'stops' => $stops,
             'stackCount' => STACK_SIZE - intval($this->globals->get(STACK_INDEX)),
-            'connectivityGraph'=> $this->cGraph->connectivityGraph,
+            'connectivityGraph' => $this->cGraph->connectivityGraph,
         );
     }
     function argPlayerTurn()
-    {   
+    {
         return $this->getDataToClient();
     }
 
     function argMoveTrain()
-    {   
+    {
         $data = $this->getDataToClient();
         $data['curDie'] = $this->globals->get(CUR_DIE);
         $data['curDieIdx'] = $this->globals->get(CUR_DIE_IDX);
@@ -406,17 +399,14 @@ class LineNumberOne extends Table
         $player_id = self::activeNextPlayer();
         $players = self::getPlayersWithIDKey();
 
-        if ($players[$player_id]['trainposition'] == NULL) 
-        {
+        if ($players[$player_id]['trainposition'] == NULL) {
             $this->gamestate->nextState('placeTrack');
-        } 
-        else {
+        } else {
             $this->gamestate->nextState('rollDice');
         }
-            
     }
 
-   
+
     //////////////////////////////////////////////////////////////////////////////
     //////////// Player actions
     //////////// 
@@ -445,28 +435,27 @@ class LineNumberOne extends Table
      */
     function placeTracks($r1, $x1, $y1, $c1, $directions_free1, $availableCards1, $availableCardsOwner1, $r2, $x2, $y2, $c2, $directions_free2, $availableCards2, $availableCardsOwner2)
     {
-        $this->checkAction( 'placeTrack' );
+        $this->checkAction('placeTrack');
         //available cards comes in as a comma delimited string of numbers. Convert to array
-        $availableCards1 = array_map('intval',explode(',',$availableCards1));
-        $availableCards2 = array_map('intval',explode(',',$availableCards2));
-        
+        $availableCards1 = array_map('intval', explode(',', $availableCards1));
+        $availableCards2 = array_map('intval', explode(',', $availableCards2));
+
         //We need to report back how many came from the stack so we can animate this.
         $numFilled1 = $this->updateAndRefillAvailableCards($availableCards1, $availableCardsOwner1);
         $numFilled2 = 0;
         //only update 2nd set of cards if the cards of two different players have been altered.
-        if ($availableCardsOwner1 != $availableCardsOwner2)
-        {
+        if ($availableCardsOwner1 != $availableCardsOwner2) {
             $numFilled2 = $this->updateAndRefillAvailableCards($availableCards2, $availableCardsOwner2);
         }
 
         $numFilled = $numFilled1 + $numFilled2;
-        
-        $stopToAdd = $this->addStop($x1,$y1);
-        $this->insertPiece($x1,$y1,$r1,$c1, $directions_free1,$stopToAdd);
 
-        $stopToAdd = $this->addStop($x2,$y2);
-        $this->insertPiece($x2,$y2,$r2,$c2, $directions_free2,$stopToAdd);
-       
+        $stopToAdd = $this->addStop($x1, $y1);
+        $this->insertPiece($x1, $y1, $r1, $c1, $directions_free1, $stopToAdd);
+
+        $stopToAdd = $this->addStop($x2, $y2);
+        $this->insertPiece($x2, $y2, $r2, $c2, $directions_free2, $stopToAdd);
+
         $player_name = self::getActivePlayerName();
         $stops = self::getStops();
 
@@ -474,14 +463,14 @@ class LineNumberOne extends Table
         //We are not concerned with final state from this data, that is coming across in other data field.
 
         $placedTiles = [];
-        $placedTileDestination1 = 'square_'.scUtility::xy2key($x1,$y1);
-        $placedTileDestination2 = 'square_'.scUtility::xy2key($x2,$y2);
+        $placedTileDestination1 = 'square_' . scUtility::xy2key($x1, $y1);
+        $placedTileDestination2 = 'square_' . scUtility::xy2key($x2, $y2);
 
-        $placedTiles[] = [ 'card'=>$c1, 'rotation'=>$r1, 'ownerID'=>$availableCardsOwner1, 'destination'=>$placedTileDestination1, 'numFromStack'=>$numFilled];
-        $placedTiles[] = [ 'card'=>$c2, 'rotation'=>$r2, 'ownerID'=>$availableCardsOwner2, 'destination'=>$placedTileDestination2, 'numFromStack'=>0];
-        
+        $placedTiles[] = ['card' => $c1, 'rotation' => $r1, 'ownerID' => $availableCardsOwner1, 'destination' => $placedTileDestination1, 'numFromStack' => $numFilled];
+        $placedTiles[] = ['card' => $c2, 'rotation' => $r2, 'ownerID' => $availableCardsOwner2, 'destination' => $placedTileDestination2, 'numFromStack' => 0];
+
         self::notifyAllPlayers('placedTrack', clienttranslate('${player_name} placed tracks.'), array(
-            'player_name' =>$player_name,
+            'player_name' => $player_name,
             'board' => self::getBoard(),
             'tracks' => self::getTracks(),
             'rotations' => self::getRotation(),
@@ -492,23 +481,23 @@ class LineNumberOne extends Table
         $players = self::getPlayers();
         $this->cGraph = new scConnectivityGraph($this);
 
-        foreach($players as $player)
-        {
+        foreach ($players as $player) {
             $routes = null;
-            if($player['trainposition']==null)
-            {
-                $routes = $this->calcRoutes($player,$stops);//these stops are stops located on the board.
+            if ($player['trainposition'] == null) {
+                $routes = $this->calcRoutes($player, $stops); //these stops are stops located on the board.
+            } else {
+                $routes = $this->calcRoutesFromNode($player['trainposition'], $player, $stops);
             }
-            else
-            {
-                $routes =$this-> calcRoutesFromNode($player['trainposition'],$player,$stops);
-            }
-            
-            self::notifyPlayer($player['id'],'updateRoute','',
-            array(
-                'player_id' =>$player['id'],
-                'routes' => $routes,
-            ));
+
+            self::notifyPlayer(
+                $player['id'],
+                'updateRoute',
+                '',
+                array(
+                    'player_id' => $player['id'],
+                    'routes' => $routes,
+                )
+            );
         }
 
         $this->giveExtraTime(self::getActivePlayerID());
@@ -517,7 +506,7 @@ class LineNumberOne extends Table
         $this->gamestate->nextState('nextPlayer');
     }
 
-    function placeTrain($linenum,$trainStartNodeID,$trainEndNodeID)
+    function placeTrain($linenum, $trainStartNodeID, $trainEndNodeID)
     {
         $this->checkAction(('placeTrain'));
         $player_id = self::getActivePlayerId();
@@ -526,26 +515,42 @@ class LineNumberOne extends Table
         $trainLoc = scUtility::key2xy($trainStartNodeID);
 
         $traindirection = '';
-        if ($trainLoc['x'] == 0 ) { $traindirection = 'E';}
-        if ($trainLoc['y'] == 0 ) { $traindirection = 'S';}
-        if ($trainLoc['x'] == 13 ) { $traindirection = 'W';}
-        if ($trainLoc['y'] == 13 ) { $traindirection = 'N';}
+        if ($trainLoc['x'] == 0) {
+            $traindirection = 'E';
+        }
+        if ($trainLoc['y'] == 0) {
+            $traindirection = 'S';
+        }
+        if ($trainLoc['x'] == 13) {
+            $traindirection = 'W';
+        }
+        if ($trainLoc['y'] == 13) {
+            $traindirection = 'N';
+        }
 
         //the train could end at either of the two endpoints. Get the missing endpoint from materials.inc.
         //save the two endpoints as string with comma separator.
         $trainEndNodeIDs = '';
-        
-        $nodes = $this->routeEndPoints[((int)$linenum)]['end'];
-        if ($nodes[0][0] == $trainEndNodeID) { $trainEndNodeIDs= [$trainEndNodeID,$nodes[0][1]]; }
-        if ($nodes[0][1] == $trainEndNodeID) { $trainEndNodeIDs = [$trainEndNodeID,$nodes[0][0]]; }
-        if ($nodes[1][0] == $trainEndNodeID) { $trainEndNodeIDs = [$trainEndNodeID,$nodes[1][1]]; }
-        if ($nodes[1][1] == $trainEndNodeID) { $trainEndNodeIDs = [$trainEndNodeID,$nodes[1][0]]; }
 
-        $sql = "UPDATE `player` SET trainposition='".$trainStartNodeID."', traindirection='".$traindirection."', endnodeids='".json_encode(array_values($trainEndNodeIDs))."', laststopnodeid='".$trainStartNodeID."' where player_id=".$player_id;
+        $nodes = $this->routeEndPoints[((int)$linenum)]['end'];
+        if ($nodes[0][0] == $trainEndNodeID) {
+            $trainEndNodeIDs = [$trainEndNodeID, $nodes[0][1]];
+        }
+        if ($nodes[0][1] == $trainEndNodeID) {
+            $trainEndNodeIDs = [$trainEndNodeID, $nodes[0][0]];
+        }
+        if ($nodes[1][0] == $trainEndNodeID) {
+            $trainEndNodeIDs = [$trainEndNodeID, $nodes[1][1]];
+        }
+        if ($nodes[1][1] == $trainEndNodeID) {
+            $trainEndNodeIDs = [$trainEndNodeID, $nodes[1][0]];
+        }
+
+        $sql = "UPDATE `player` SET trainposition='" . $trainStartNodeID . "', traindirection='" . $traindirection . "', endnodeids='" . json_encode(array_values($trainEndNodeIDs)) . "', laststopnodeid='" . $trainStartNodeID . "' where player_id=" . $player_id;
         self::DbQuery($sql);
 
         self::notifyAllPlayers('placedTrain', clienttranslate('${player_name} placed a train.'), array(
-            'player_name' =>self::getActivePlayerName(),
+            'player_name' => self::getActivePlayerName(),
             'player_id' => $player_id,
             'linenum' => $linenum,
             'trainStartNodeID' => $trainStartNodeID,
@@ -555,8 +560,7 @@ class LineNumberOne extends Table
         $this->giveExtraTime($player_id);
 
         //once someone places their train, we are halfway through the game
-        if (intval($this->globals->get(GAME_PROGRESSION)) < 50)
-        {
+        if (intval($this->globals->get(GAME_PROGRESSION)) < 50) {
             $this->globals->set(GAME_PROGRESSION, 50);
         }
 
@@ -565,22 +569,22 @@ class LineNumberOne extends Table
 
     function rollDice()
     {
-        $this->checkAction( 'rollDice' );
+        $this->checkAction('rollDice');
         $player_id = self::getActivePlayerID();
-        
+
         //get number of dice to throw
         $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
         $diceUsed = (int)self::getUniqueValueFromDB($sql);
 
-         // set dice for this turn
-        $throw = scUtility::rollDice(3-$diceUsed);
+        // set dice for this turn
+        $throw = scUtility::rollDice(3 - $diceUsed);
         //testing
         //$throw = [1,4,5];
         $sql = "UPDATE player SET dice = '" . json_encode(array_values($throw)) . "' WHERE player_id = " . $player_id . ";";
         self::DbQuery($sql);
 
         self::notifyAllPlayers('rolledDice', clienttranslate('${player_name} rolled dice.'), array(
-            'player_name' =>self::getActivePlayerName(),
+            'player_name' => self::getActivePlayerName(),
             'player_id' => $player_id,
             'throw' => $throw,
         ));
@@ -588,29 +592,29 @@ class LineNumberOne extends Table
         $this->gamestate->nextState('selectDie');
     }
 
-    function selectDie($dieIdx,$die)
+    function selectDie($dieIdx, $die)
     {
-        $this->checkAction( 'selectDie' );
+        $this->checkAction('selectDie');
         $player_id = self::getActivePlayerID();
         $players = $this->getPlayersWithIDKey();
         $player = $players[$player_id];
 
-        $this->globals->set(CUR_DIE,(int)$die);
-        $this->globals->set(CUR_DIE_IDX,(int) $dieIdx);
-        
+        $this->globals->set(CUR_DIE, (int)$die);
+        $this->globals->set(CUR_DIE_IDX, (int) $dieIdx);
+
         $trainDestinationsSolver = new scTrainDestinationsSolver($this);
-        $possibleTrainMoves = $trainDestinationsSolver->getTrainMoves($player,$die);
-        
+        $possibleTrainMoves = $trainDestinationsSolver->getTrainMoves($player, $die);
+
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, $possibleTrainMoves);
-        
+
         self::notifyAllPlayers('selectedDie', clienttranslate('${player_name} selected die.'), array(
-            'player_name' =>self::getActivePlayerName(),
+            'player_name' => self::getActivePlayerName(),
             'player_id' => $player_id,
             'die' => $die,
             'dieIdx' => $dieIdx,
             'possibleTrainMoves' => $possibleTrainMoves,
         ));
-        
+
         $this->gamestate->nextState('moveTrain');
     }
 
@@ -622,17 +626,17 @@ class LineNumberOne extends Table
         $sql = "UPDATE player SET dice = NULL, diceused=0 WHERE player_id = " . $player_id . ";";
         self::DbQuery($sql);
         self::notifyAllPlayers('doneWithTurn', clienttranslate('${player_name} has finished their turn.'), array(
-            'player_name' =>self::getActivePlayerName(),
+            'player_name' => self::getActivePlayerName(),
         ));
 
         //clear out saved state
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
-        $this->globals->set(CUR_DIE,null);
-        $this->globals->set(CUR_DIE_IDX,null);
-        
+        $this->globals->set(CUR_DIE, null);
+        $this->globals->set(CUR_DIE_IDX, null);
+
         //End of turn for die rolling.
         $this->giveExtraTime($player_id);
-        
+
         //goto next player
         $this->gamestate->nextState('nextPlayer');
     }
@@ -647,20 +651,17 @@ class LineNumberOne extends Table
 
         $trainDestinationsSolver = new scTrainDestinationsSolver($this);
 
-        if ($this->globals->get(CUR_DIE) >=5)
-        {
-            $routesAndDirection = $trainDestinationsSolver->moveTrainToDestinationPrevStop($destinationNode,$player,$stops);
+        if ($this->globals->get(CUR_DIE) >= 5) {
+            $routesAndDirection = $trainDestinationsSolver->moveTrainToDestinationPrevStop($destinationNode, $player, $stops);
+        } else {
+            $routesAndDirection = $trainDestinationsSolver->moveTrainToDestination($destinationNode, $player, $stops);
         }
-        else
-        {
-            $routesAndDirection = $trainDestinationsSolver->moveTrainToDestination($destinationNode,$player,$stops);
-        }
-        
+
         //modify database to reflect the die selection
         $this->updateDice($player);
 
         self::notifyAllPlayers('moveTrain', clienttranslate('${player_name} has moved their train.'), array(
-            'player_name' =>self::getActivePlayerName(),
+            'player_name' => self::getActivePlayerName(),
             'player_id' => $player_id,
             'nodeID' => $destinationNode,
             'traindirection' => $routesAndDirection['direction'],
@@ -670,22 +671,22 @@ class LineNumberOne extends Table
         ));
 
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
-        
+
         //check for win condition!!!!
 
-        if (scUtility::hasPlayerWon($destinationNode,$player))
-        {
+        if (scUtility::hasPlayerWon($destinationNode, $player)) {
             //game is over
-            $this->notifyAllPlayers( "endOfGame",
-    			clienttranslate( '${player_name} wins the game!' ),
-    			array(
-    					"player_name" => $this->getActivePlayerName(),
-    					"player_id" => $player_id,
-    					"score_delta" => 1,
-    			)
-   			);
+            $this->notifyAllPlayers(
+                "endOfGame",
+                clienttranslate('${player_name} wins the game!'),
+                array(
+                    "player_name" => $this->getActivePlayerName(),
+                    "player_id" => $player_id,
+                    "score_delta" => 1,
+                )
+            );
 
-            $this->globals->set(GAME_PROGRESSION,100);
+            $this->globals->set(GAME_PROGRESSION, 100);
             $this->gamestate->nextState('gameEnd');
             return;
         }
@@ -698,46 +699,42 @@ class LineNumberOne extends Table
         $newProgression = 50 + 50 - ($routesAndDirection['routes'][0])->getLength();
         $newProgression = $newProgression > 100 ? 100 : $newProgression;
 
-        if ($newProgression > intval($this->globals->get(GAME_PROGRESSION)))
-        {   
-            $this->globals->set(GAME_PROGRESSION,$newProgression);
+        if ($newProgression > intval($this->globals->get(GAME_PROGRESSION))) {
+            $this->globals->set(GAME_PROGRESSION, $newProgression);
         }
-         //We're done with the selection and the die.
+        //We're done with the selection and the die.
         $this->determineNextStateFromDice($player_id);
     }
 
     function updateDice($player)
     {
-        $dice= json_decode($player['dice']);
+        $dice = json_decode($player['dice']);
 
-        if ($this->globals->get(CUR_DIE_IDX) ===null) //0 is NOT the same as null
+        if ($this->globals->get(CUR_DIE_IDX) === null) //0 is NOT the same as null
         {
-            throw new BgaSystemException( "Die Selected is Not Possible." );
+            throw new BgaSystemException("Die Selected is Not Possible.");
         }
 
         unset($dice[$this->globals->get(CUR_DIE_IDX)]);
 
-        $sql = "UPDATE player SET dice='".json_encode(array_values($dice))."', diceused= diceUsed+1 WHERE player_id = " . $player['id'] . ";";
-    
+        $sql = "UPDATE player SET dice='" . json_encode(array_values($dice)) . "', diceused= diceUsed+1 WHERE player_id = " . $player['id'] . ";";
+
         self::DbQuery($sql);
 
-        $this->globals->set(CUR_DIE,null);
-        $this->globals->set(CUR_DIE_IDX,null);
+        $this->globals->set(CUR_DIE, null);
+        $this->globals->set(CUR_DIE_IDX, null);
     }
 
     public function determineNextStateFromDice($player_id)
     {
         $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
-        $diceUsed= (int)self::getUniqueValueFromDB($sql);
+        $diceUsed = (int)self::getUniqueValueFromDB($sql);
 
-       if ($diceUsed == 3)
-       {
-           $this->doneWithTurn();
-       }
-       else
-       {
-           $this->gamestate->nextState('rollDice');
-       }
+        if ($diceUsed == 3) {
+            $this->doneWithTurn();
+        } else {
+            $this->gamestate->nextState('rollDice');
+        }
     }
 
     //*********************************************** */
@@ -751,12 +748,12 @@ class LineNumberOne extends Table
      * @param array $players key: data field, value: data value  - FULL player information.
      * @return array scRoute::scRoute Shortest routes (in array) 
      */
-    function calcRoutes($player,$stops)
+    function calcRoutes($player, $stops)
     {
         $stopsLocations = scUtility::getStopsLocations($stops);
 
         $routeFinder = new scRouteFinder($this->cGraph);
-        $routes = $routeFinder->findRoutesForPlayer($player,$stopsLocations,$this);
+        $routes = $routeFinder->findRoutesForPlayer($player, $stopsLocations, $this);
         return scRoute::getShortestRoutes($routes);
     }
 
@@ -770,12 +767,12 @@ class LineNumberOne extends Table
      * @param array $player FULL player information.
      * @return array scRoute::scRoute Shortest routes (in array) 
      */
-    function calcRoutesFromNode($nodeID,$player,$stops)
+    function calcRoutesFromNode($nodeID, $player, $stops)
     {
         $stopsLocations = scUtility::getStopsLocations($stops);
         $routeFinder = new scRouteFinder($this->cGraph);
 
-        $routes = $routeFinder->findRoutesFromNode($nodeID,$player,$stopsLocations,$this);
+        $routes = $routeFinder->findRoutesFromNode($nodeID, $player, $stopsLocations, $this);
         return scRoute::getShortestRoutes($routes);
     }
 
@@ -784,7 +781,7 @@ class LineNumberOne extends Table
         $newHand = $this->refillHand($available_cards);
         $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($newHand)) . "' WHERE player_id = " . $player_id . ";";
         self::DbQuery($sql);
-        
+
         $numFilled = count($newHand) - count($available_cards);
         return $numFilled;
     }
@@ -797,40 +794,37 @@ class LineNumberOne extends Table
         $numNewCards = 5 - count($available_cards);
 
         //check for stack depletion - modify $numNewCards to reflect if the stack is depleted.
-        if ($stackindex+$numNewCards >= STACK_SIZE)
-        {
+        if ($stackindex + $numNewCards >= STACK_SIZE) {
             $numNewCards = STACK_SIZE - $stackindex;
         }
 
         $stackindex += $numNewCards;
-        $this->globals->set(STACK_INDEX,$stackindex);
+        $this->globals->set(STACK_INDEX, $stackindex);
 
         //check if we need to refill - stack index will continue to rise even after stack depleted, leading to negative $numNewCards.
         //when that happens, just don't do any refill.
         if ($numNewCards <= 0) return $available_cards;
-       
 
-        for ($i = 0; $i < $numNewCards; $i++) 
-        {
-            $card = array_shift($stack); 
+
+        for ($i = 0; $i < $numNewCards; $i++) {
+            $card = array_shift($stack);
             $available_cards[] = $card;
         }
-        
+
         $sql = "DELETE FROM `stack` WHERE id <" . $stackindex;
         self::DbQuery($sql);
-        
-        if (intval($this->globals->get(GAME_PROGRESSION)) < 50)
-        {
+
+        if (intval($this->globals->get(GAME_PROGRESSION)) < 50) {
             //update game progression based on number of tiles played - but don't go over 50.
 
             //estimate that around 50 cards are played before a route is established.
-            $this->globals->set(GAME_PROGRESSION, $stackindex <50 ? $stackindex : 50 );
+            $this->globals->set(GAME_PROGRESSION, $stackindex < 50 ? $stackindex : 50);
         }
-        
+
         return $available_cards;
     }
 
-    function addStop($x,$y)
+    function addStop($x, $y)
     {
         // find stop if near location
         $needles = [$x, $y];
@@ -858,33 +852,29 @@ class LineNumberOne extends Table
         return $stopToAdd;
     }
 
-    function insertPiece($x,$y ,$r ,$c ,$directions_free,$stopToAdd)
+    function insertPiece($x, $y, $r, $c, $directions_free, $stopToAdd)
     {
         //TBD change to update
         $sql_values = array();
         $sql = '';
 
-        if ($stopToAdd == null)
-        {
+        if ($stopToAdd == null) {
             $sql = "INSERT INTO board (board_x,board_y,rotation, card, directions_free) VALUES ";
             $sql_values[] = "($x,$y ,$r ,$c ,'$directions_free')";
-        }
-        else
-        {
+        } else {
             $sql = "INSERT INTO board (board_x,board_y,rotation, card, directions_free, stop) VALUES ";
             $sql_values[] = "($x,$y ,$r ,$c ,'$directions_free','$stopToAdd')";
         }
-       
+
         $sql .= implode(',', $sql_values);
         $sql .= " ON DUPLICATE KEY UPDATE rotation= VALUES(rotation), card = VALUES(card), directions_free = VALUES(directions_free)";
-        if ($stopToAdd != null)
-        {
+        if ($stopToAdd != null) {
             $sql .= ", stop = VALUES(stop)";
         }
         self::DbQuery($sql);
     }
 
-   
+
 
 
     //////////////////////////////////////////////////////////////////////////////

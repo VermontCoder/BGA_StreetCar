@@ -13,7 +13,7 @@
 $gameinfos = array(
 
     // Name of the game in English (will serve as the basis for translation) 
-    'game_name' => _("Line 1"),
+    'game_name' => 'Line 1',
 
     // Game publisher (use empty string if there is no publisher)
     'publisher' => 'Rigoler',
