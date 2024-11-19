@@ -82,79 +82,82 @@ define([
             // Stop this event propagation
             dojo.stopEvent( evt );
             
-            if( this.game.checkAction( 'placeTrack' ))
+            if( !this.game.checkAction( 'placeTrack' ))
             {
-                if(this.game.selectedTrack==null){
-                    this.game.showMessage( _("Select track part you want to place."), 'error');	
-                    return;
-                }
-               
-                stackLen = this.game.gamedatas.gamestate.args.stackCount;
-                if(this.game.selectedTrack.player_id != this.game.getActivePlayerId() && stackLen >0)
-                {
-                    this.game.showMessage( _("You cannot play with other player's tiles until the tile stack is depleted."), 'error');	
-                    return;
-                }
-
-                var coords = evt.currentTarget.id.split('_');
-                if (coords[1] == this.game.firstPlacementData.posx && coords[2]== this.game.firstPlacementData.posy)
-                {
-                    this.game.showMessage( _("You cannot play on your first placement."), 'error');	
-                    return;
-                }
-                
-                this.game.posx =parseInt(coords[1]);
-                this.game.posy =parseInt(coords[2]);
-
-                if(parseInt(this.game.gamedatas.gamestate.args.tracks[this.game.posx][this.game.posy])>=6)
-                {
-                    this.game.showMessage( _("This track can not be replaced."), 'error');	
-                    dojo.destroy('place_card_action_button'); //eliminates place card button in action buttons.
-                    return;
-                }
-
-                let isStop = this.game.gamedatas.initialStops.filter(l => l.row==this.game.posy && l.col==this.game.posx).length>0
-                if(isStop) 
-                {
-                    this.game.showMessage( _("Cannot put track on stop."), 'error');
-                    dojo.destroy('place_card_action_button'); //deletes place track button
-                    return;
-                }
-
-                //card can be legally placed
-
-                placedTrackID = this.scUtility.getPlacedTrackId(this.game.isFirstSelection);
-                
-                if(!$(placedTrackID))
-                {
-                    // hide selected track on player board
-                    dojo.style(this.scUtility.getSelectedTrackIDFromDataObj(this.game.selectedTrack),"display","none");
-
-                    //put new track on board.
-                    dojo.place( this.game.format_block( 'jstpl_track', 
-                    {
-                        id: placedTrackID,
-                        offsetx:-100* this.game.selectedTrack.card,
-                        rotate:this.game.rotation
-                    } ) , 'track_'+this.game.selectedTrack.player_id,'after');
-                    this.rotationClickHandler = dojo.connect($(placedTrackID), 'onclick', this, 'onRotateCard' );
-                } 
-                anim = this.game.slideToObject( placedTrackID, "square_"+this.game.posx+"_"+this.game.posy);
-
-                dojo.connect(anim, "onEnd", function(){
-                    // put in proper place in DOM heirarchy
-                    dojo.place($(placedTrackID),"square_"+this.game.posx+"_"+this.game.posy);
-                    //style top and left refer to the player board, which is no longer the parent. So remove these movements from style.
-                    dojo.style($(placedTrackID), 'top', '0px');
-                    dojo.style($(placedTrackID), 'left','0px');
-                }.bind(this));
-
-                anim.play();
-                
-                
-                badDirections = this.fitCardOnBoard();
-                this.showPlaceCardActionButton(badDirections);
+                return;
             }
+
+            if(this.game.selectedTrack==null){
+                this.game.showMessage( _("Select track part you want to place."), 'error');	
+                return;
+            }
+            
+            stackLen = this.game.gamedatas.gamestate.args.stackCount;
+            if(this.game.selectedTrack.player_id != this.game.getActivePlayerId() && stackLen >0)
+            {
+                this.game.showMessage( _("You cannot play with other player's tiles until the tile stack is depleted."), 'error');	
+                return;
+            }
+
+            var coords = evt.currentTarget.id.split('_');
+            if (coords[1] == this.game.firstPlacementData.posx && coords[2]== this.game.firstPlacementData.posy)
+            {
+                this.game.showMessage( _("You cannot play on your first placement."), 'error');	
+                return;
+            }
+            
+            let click_x = parseInt(coords[1]);
+            let click_y = parseInt(coords[2]);
+            
+            if(parseInt(this.game.gamedatas.gamestate.args.tracks[click_x][click_y])>=6)
+            {
+                this.game.showMessage( _("This track can not be replaced."), 'error');	
+                return;
+            }
+
+            let isStop = this.game.gamedatas.initialStops.filter(l => l.row==click_y && l.col==click_x).length>0
+            if(isStop) 
+            {
+                this.game.showMessage( _("Cannot put track on stop."), 'error');
+                return;
+            }
+
+            //card can be legally placed
+
+            this.game.posx = click_x;
+            this.game.posy = click_y;
+
+            placedTrackID = this.scUtility.getPlacedTrackId(this.game.isFirstSelection);
+            
+            if(!$(placedTrackID))
+            {
+                // hide selected track on player board
+                dojo.style(this.scUtility.getSelectedTrackIDFromDataObj(this.game.selectedTrack),"display","none");
+
+                //put new track on board.
+                dojo.place( this.game.format_block( 'jstpl_track', 
+                {
+                    id: placedTrackID,
+                    offsetx:-100* this.game.selectedTrack.card,
+                    rotate:this.game.rotation
+                } ) , 'track_'+this.game.selectedTrack.player_id,'after');
+                this.rotationClickHandler = dojo.connect($(placedTrackID), 'onclick', this, 'onRotateCard' );
+            } 
+            anim = this.game.slideToObject( placedTrackID, "square_"+this.game.posx+"_"+this.game.posy);
+
+            dojo.connect(anim, "onEnd", function(){
+                // put in proper place in DOM heirarchy
+                dojo.place($(placedTrackID),"square_"+this.game.posx+"_"+this.game.posy);
+                //style top and left refer to the player board, which is no longer the parent. So remove these movements from style.
+                dojo.style($(placedTrackID), 'top', '0px');
+                dojo.style($(placedTrackID), 'left','0px');
+            }.bind(this));
+
+            anim.play();
+            
+            
+            badDirections = this.fitCardOnBoard();
+            this.showPlaceCardActionButton(badDirections);
         }, 
         
         /**
