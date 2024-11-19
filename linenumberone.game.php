@@ -260,7 +260,7 @@ class LineNumberOne extends Table
         $result['goals'] = $this->goals;
         $result['routeEndPoints'] = $this->routeEndPoints;
         //added spectator check SvdH
-        if (array_search($current_player_id, $players) !== false) {
+        if (array_key_exists(intval($current_player_id), $players) !== false) {
             $curPlayer = $players[$current_player_id];
             $trainposition = $curPlayer['trainposition'];
 
