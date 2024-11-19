@@ -320,22 +320,18 @@ function (dojo, declare) {
             dojo.query('.playertrack').orphan();
             
             curPlayer = null;
-            // added Spectator view
-            if(this.isSpectator){
-                this.showPlayerBoard(players[0]);
-            } else {
-                players.forEach(player => {
-                    //dojo.empty('track_'+player.id)
-                    if(player.id == this.player_id) curPlayer = player;
-                    this.showPlayerBoard(player);
-                });
-                
-                //do this here after all playerboards are set up.
-                if(curPlayer.trainposition==null)
-                {
-                    //allow selection of train pieces for placement
-                    dojo.query( '.playertrack' ).connect( 'onclick', this, 'onSelectCard');
-                }  
+            players.forEach(player => {
+                //dojo.empty('track_'+player.id)
+                if(player.id == this.player_id) curPlayer = player;
+                this.showPlayerBoard(player);
+            });
+            
+            //do this here after all playerboards are set up.
+            //if this is spectator, curPlayer will be null.
+            if(curPlayer != null && curPlayer.trainposition==null)
+            {
+                //allow selection of train pieces for placement
+                dojo.query( '.playertrack' ).connect( 'onclick', this, 'onSelectCard');
             }
             
         },
