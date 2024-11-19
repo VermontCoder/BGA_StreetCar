@@ -329,8 +329,8 @@
   vertical-align: middle;
 }
 
-.container {
-  display: flex;
+.container2 { /* container name is taken by some other css that I don't know about. This prevents namespace collision.*/
+  display: inline-flex;
   align-items: center; /* Vertically centers the divs */
 }
 

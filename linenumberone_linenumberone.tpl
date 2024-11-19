@@ -52,7 +52,7 @@ var jstpl_die='<div class="die" id="die_${id}" style="background-position: ${off
 var jstpl_direction='<div class="direction" id="direction_${px}_${py}_${d}" ></div>';
 
 var jstpl_player_board='<div class="boardblock">\
-            <div id="top_line" >\
+            <div id="top_line" class="container2">\
             <div id="start_${id}" class="linenum"></div>\
             <div id="completedMsg_${id}" class="completed_msg">Completed!</div>\
             </div>\
