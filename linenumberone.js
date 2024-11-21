@@ -98,6 +98,8 @@ function (dojo, declare) {
             this.stackCounter = new ebg.counter();
             this.stackCounter.create('stack_count');
 
+            this.updateLastTilesPlacedHighlighting(gamedatas.players);
+
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
@@ -176,6 +178,7 @@ function (dojo, declare) {
         {
             this.updatePlayers(players);
             this.updateTracks();
+            this.updateLastTilesPlacedHighlighting(players);
             this.updateStops();
             this.updateStackCounter(stackCount);
         },
@@ -358,6 +361,28 @@ function (dojo, declare) {
                     }
                 }                
             }    
+        },
+
+        /**
+         * Highlights tiles that have been played by other players
+         */
+        updateLastTilesPlacedHighlighting(players)
+        {
+            for(j = 0; j <players.length;j++)
+            {
+                let player = players[j];
+                let highlightClass = 'highlight_'+player.color;
+                dojo.query('.'+highlightClass).removeClass(highlightClass);
+
+                if(player.id != this.player_id && player.lasttileplacementlocation != null) 
+                {
+                    //Show highlighting
+                    for (i=0; i < player.lasttileplacementlocation.length; i++)
+                    {
+                        dojo.query('#square_'+player.lasttileplacementlocation[i]+ '> .track').addClass(highlightClass);
+                    }
+                }
+            }
         },
 
         /**

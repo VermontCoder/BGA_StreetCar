@@ -369,6 +369,12 @@
   border: 2px solid black;
 }
 
+.highlight_ff0000 {margin-top: -2px; margin-left: -2px; z-index: 3; border: 2px dashed #ff0000;}
+.highlight_008000 {margin-top: -2px; margin-left: -2px; z-index: 3; border: 2px dashed #008000;}
+.highlight_0000ff {margin-top: -2px; margin-left: -2px; z-index: 3; border: 2px dashed #0000ff;}
+.highlight_ffa500 {margin-top: -2px; margin-left: -2px; z-index: 3; border: 2px dashed #ffa500;}
+.highlight_773300 {margin-top: -2px; margin-left: -2px; z-index: 3; border: 2px dashed #773300;}
+
 #reset {
   margin-right: 20px;
 }

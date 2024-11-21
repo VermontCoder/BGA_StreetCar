@@ -61,3 +61,4 @@ ALTER TABLE `player` ADD `endnodeids` VARCHAR(32) DEFAULT NULL;
 ALTER TABLE `player` ADD `laststopnodeid` VARCHAR(16) DEFAULT NULL;
 ALTER TABLE `player` ADD `dice` VARCHAR(255) DEFAULT NULL;
 ALTER TABLE `player` ADD `diceused` smallint(5) unsigned NOT NULL;
+ALTER TABLE `player` ADD `lasttileplacementlocation` VARCHAR(15) DEFAULT NULL;

@@ -141,7 +141,7 @@ class LineNumberOne extends Table
 
         // Create players
         // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
-        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, available_cards, linenum, goals, goalsfinished, trainposition, traindirection, endnodeids, dice, diceused) VALUES ";
+        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, available_cards, linenum, goals, goalsfinished, trainposition, traindirection, endnodeids, dice, diceused, lasttileplacementlocation) VALUES ";
         $values = array();
         $cardindex = 0;
         foreach ($players as $player_id => $player) {
@@ -153,7 +153,7 @@ class LineNumberOne extends Table
             //$jGoals = "'".json_encode(array_values(["B","I"]))."'" ;
             $jGoals = "'" . json_encode(array_values($this->goals[$goalnum][$linenum - 1])) . "'";
 
-            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$linenum,$jGoals,'[]',NULL,NULL, NULL,NULL,0)";
+            $values[] = "('" . $player_id . "','$color','" . $player['player_canal'] . "','" . addslashes($player['player_name']) . "','" . addslashes($player['player_avatar']) . "','[0,0,0,1,1]',$linenum,$jGoals,'[]',NULL,NULL, NULL,NULL,0,NULL)";
             $cardindex++;
         }
         $sql .= implode(',', $values);
@@ -303,12 +303,13 @@ class LineNumberOne extends Table
     //@return array
     function getPlayers()
     {
-        $players = self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, traindirection,goals,goalsfinished,trainposition, endnodeids, laststopnodeid, dice, diceused
+        $players = self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, traindirection,goals,goalsfinished,trainposition, endnodeids, laststopnodeid, dice, diceused, lasttileplacementlocation
                                            FROM player");
         for ($i = 0; $i < count($players); $i++) {
             $players[$i]['goals'] = json_decode($players[$i]['goals']);
             $players[$i]['goalsfinished'] = json_decode($players[$i]['goalsfinished']);
             $players[$i]['endnodeids'] = json_decode($players[$i]['endnodeids']);
+            $players[$i]['lasttileplacementlocation'] = json_decode($players[$i]['lasttileplacementlocation']);
         }
         return $players;
     }
@@ -456,6 +457,12 @@ class LineNumberOne extends Table
         $stopToAdd = $this->addStop($x2, $y2);
         $this->insertPiece($x2, $y2, $r2, $c2, $directions_free2, $stopToAdd);
 
+        $tileLocations=json_encode(array_values([$x1.'_'.$y1,$x2.'_'.$y2]));
+
+        //record location of placed pieces in database
+        $sql = "UPDATE `player` SET `lasttileplacementlocation`='".$tileLocations."' WHERE `player_id`= ". self::getActivePlayerId();
+        self::DbQuery($sql);
+
         $player_name = self::getActivePlayerName();
         $stops = self::getStops();
 
@@ -546,7 +553,7 @@ class LineNumberOne extends Table
             $trainEndNodeIDs = [$trainEndNodeID, $nodes[1][0]];
         }
 
-        $sql = "UPDATE `player` SET trainposition='" . $trainStartNodeID . "', traindirection='" . $traindirection . "', endnodeids='" . json_encode(array_values($trainEndNodeIDs)) . "', laststopnodeid='" . $trainStartNodeID . "' where player_id=" . $player_id;
+        $sql = "UPDATE `player` SET trainposition='" . $trainStartNodeID . "', traindirection='" . $traindirection . "', endnodeids='" . json_encode(array_values($trainEndNodeIDs)) . "', laststopnodeid='" . $trainStartNodeID . "', lasttileplacementlocation = NULL where player_id=" . $player_id;
         self::DbQuery($sql);
 
         self::notifyAllPlayers('placedTrain', clienttranslate('${player_name} placed a train.'), array(
@@ -984,6 +991,14 @@ class LineNumberOne extends Table
 
     function upgradeTableDb($from_version)
     {
+        if( $from_version <= 2411192022 )
+        {
+          // ! important ! Use DBPREFIX_<table_name> for all tables
+          // test first the new column existance since it can exists from a previous call to upgradeTableDb while an undo was performed
+          $result = self::getUniqueValueFromDB("SHOW COLUMNS FROM player LIKE 'lasttileplacementlocation'");
+          if (empty($result))
+              self::applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player ADD `lasttileplacementlocation` VARCHAR(15) DEFAULT NULL;");
+        }
         // $from_version is the current version of this game database, in numerical form.
         // For example, if the game was running with a release of your game named "140430-1345",
         // $from_version is equal to 1404301345
