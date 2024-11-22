@@ -997,7 +997,13 @@ class LineNumberOne extends Table
           // test first the new column existance since it can exists from a previous call to upgradeTableDb while an undo was performed
           $result = self::getUniqueValueFromDB("SHOW COLUMNS FROM player LIKE 'lasttileplacementlocation'");
           if (empty($result))
-              self::applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player ADD `lasttileplacementlocation` VARCHAR(15) DEFAULT NULL;");
+              self::applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player ADD `lasttileplacementlocation` VARCHAR(20) DEFAULT NULL;");
+        }
+
+        if( $from_version == 2411212045 )
+        {
+          // ! important ! Use DBPREFIX_<table_name> for all tables
+            self::applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player MODIFY COLUMN `lasttileplacementlocation` VARCHAR(20) DEFAULT NULL;");
         }
         // $from_version is the current version of this game database, in numerical form.
         // For example, if the game was running with a release of your game named "140430-1345",
