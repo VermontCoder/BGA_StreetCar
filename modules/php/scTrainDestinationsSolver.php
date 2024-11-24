@@ -280,11 +280,26 @@ class scTrainDestinationsSolver
         $nextMoveWin = array_intersect($nextNodeIDs,$player['endnodeids']);
 
         if (count($nextMoveWin) > 0 )  return $nextMoveWin; //player has won
+        $stopsLocations = scUtility::getStopsLocations($stops);
 
         foreach($nextNodeIDs as $nextNodeID)
         {
+            //Before checking which nodes are legit 2nd nodes, if this node contains a stop
+            //in the player's goals, remove it so the routing works to find the 2nd node! 
+            //This fixes the case where the player must move two and the first tile is a stop in the goal list.
+
+            $stopAtNode = scUtility::getStopAtNode($nextNodeID, $stopsLocations);
+            $origGoals = $player['goals'];
+            if ($stopAtNode != null)
+            {
+                $player['goals'] = array_diff( $player['goals'], array($stopAtNode) );
+            }
+
             $secondMoveNodes = $this->moveAheadOne($nextNodeID, $player, $stops);
             $possibleMoves = array_merge($possibleMoves,$secondMoveNodes);
+            
+            //restore original goals.
+            $player['goals'] = $origGoals;
         }
 
         return $possibleMoves;

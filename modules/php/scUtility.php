@@ -131,6 +131,19 @@ class scUtility
     return $stopLocations;
   }
 
+  public static function getStopAtNode($node, $stopLocations)
+  {
+    $nodeXY = scUtility::nodeID2xyd($node);
+    foreach($stopLocations as $stopletter => $stoplocation)
+    {
+        if ($stoplocation != null && $nodeXY['x']==$stoplocation['x'] && $nodeXY['y']==$stoplocation['y'])
+        {
+            return $stopletter;
+        }
+    }
+    return null;
+  }
+
   /**
    * get numDice number of six sided dice.
    * @param integer $numDice
