@@ -566,14 +566,12 @@ class LineNumberOne extends Table
             'traindirection' => $traindirection,
         ));
 
-        $this->giveExtraTime($player_id);
-
         //once someone places their train, we are halfway through the game
         if (intval($this->globals->get(GAME_PROGRESSION)) < 50) {
             $this->globals->set(GAME_PROGRESSION, 50);
         }
 
-        $this->gamestate->nextState('nextPlayer');
+        $this->gamestate->nextState('rollDice');
     }
 
     function rollDice()
@@ -732,17 +730,19 @@ class LineNumberOne extends Table
         $sql = "UPDATE player SET dice='" . json_encode(array_values($dice)) . "', diceused= diceUsed+1 WHERE player_id = " . $player['id'] . ";";
 
         self::DbQuery($sql);
-
-        $this->globals->set(CUR_DIE, null);
-        $this->globals->set(CUR_DIE_IDX, null);
     }
 
     public function determineNextStateFromDice($player_id)
     {
         $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
         $diceUsed = (int)self::getUniqueValueFromDB($sql);
+        $curDie = (int)$this->globals->get(CUR_DIE);
 
-        if ($diceUsed == 3) {
+        $this->globals->set(CUR_DIE, null);
+        $this->globals->set(CUR_DIE_IDX, null);
+
+        //finish turn if player had to go back to station or have used all their dice.
+        if ($diceUsed == 3 || $curDie >= 5) {
             $this->doneWithTurn();
         } else {
             $this->gamestate->nextState('rollDice');

@@ -69,7 +69,7 @@ $machinestates = array(
         "type" => "activeplayer",
         "args" => "argPlayerTurn",
         "possibleactions" => array('placeTrack','placeTrain'),
-        "transitions" => array("nextPlayer" => 11, "zombiePass" => 11)
+        "transitions" => array("nextPlayer" => 11, "rollDice" => 12, "zombiePass" => 11)
     ),
 
     11 => array(
