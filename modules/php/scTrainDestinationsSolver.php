@@ -45,7 +45,26 @@ class scTrainDestinationsSolver
             $stopsLocations = scUtility::getStopsLocations($stops);
 
             //Step 1 - find route to destination.
-            $moveRoute = $this->scRouteFinder->findShortestRoute($player['trainposition'],$destinationNode);
+
+            //If routes to the destination have been stored in globals, we use those instead of calculating the route.
+            //This happens during the move to next station choices, as findShortestRoute sometimes gives the wrong route.
+            $storedRoutes = json_decode($this->game->globals->get(ROUTES_TO_NEXT_STATION));
+
+            if ($storedRoutes == null)
+            {
+                $moveRoute = $this->scRouteFinder->findShortestRoute($player['trainposition'],$destinationNode);
+            }
+            else
+            {
+                foreach($storedRoutes as $idx=>$route)
+                {
+                    $this->game->dump('route3',$route);
+                    if ($route->endNodeID == $destinationNode)
+                    {
+                        $moveRoute = scRoute::JSON2Route($route);
+                    }
+                }
+            }
 
             
             //Step 2 - Note any stops or terminal nodes.
@@ -381,6 +400,8 @@ class scTrainDestinationsSolver
         
         $candidateNodes = []; //This is an array of the form $x_$y => [$d => length of route to end] - reasoning explained below.
 
+        //store all the routesToStations as JSON in the database for retrieval for when it is time to move the train
+        $this->game->globals->set(ROUTES_TO_NEXT_STATION, json_encode($routesToStations));
         foreach($routesToStations as $route)
         {
             //endNodes of these routes are candidates for next destination

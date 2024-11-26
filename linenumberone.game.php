@@ -33,6 +33,7 @@ const CUR_DIE = "curDie";
 const CUR_DIE_IDX = "curDieIdx";
 const CUR_TRAIN_DESTINATIONS_SELECTION = "curTrainDestinationsSelection"; //used to remember possible destinations as a result of a die roll
 const GAME_PROGRESSION = "gameProgression";
+const ROUTES_TO_NEXT_STATION = "routesToNextStation";
 
 class LineNumberOne extends Table
 {
@@ -83,6 +84,7 @@ class LineNumberOne extends Table
         $this->globals->set(CUR_DIE_IDX, null);
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
         $this->globals->set(GAME_PROGRESSION, 0);
+        $this->globals->set(ROUTES_TO_NEXT_STATION, null);
 
 
         $allcards = array();
@@ -608,6 +610,9 @@ class LineNumberOne extends Table
 
         $this->globals->set(CUR_DIE, (int)$die);
         $this->globals->set(CUR_DIE_IDX, (int) $dieIdx);
+
+        //clear previously stored routes in globals, if any (only on move to next station)
+        $this->globals->set(ROUTES_TO_NEXT_STATION, null);
 
         $trainDestinationsSolver = new scTrainDestinationsSolver($this);
         $possibleTrainMoves = $trainDestinationsSolver->getTrainMoves($player, $die);

@@ -31,6 +31,19 @@ class scRoute
     }
 
     /**
+     * Deserialize JSON stdObj into a route object
+     */
+    public static function JSON2Route($jsonObj)
+    {
+        $route = new scRoute($jsonObj->startNodeID,$jsonObj->endNodeID);
+        $route->routeNodes = get_object_vars($jsonObj->routeNodes); //convert to array instead of object.
+        $route->stopGoals = $jsonObj->stopGoals;
+        $route->isComplete = $jsonObj->isComplete;
+        $route->routeID = $jsonObj->routeID;
+
+        return $route;
+    }
+    /**
      * Remove RouteID from route nodes
      */
     public static function truncRouteID($nodeID)
