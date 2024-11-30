@@ -25,7 +25,7 @@ require_once('modules/php/scRoute.php');
 require_once('modules/php/scUtility.php');
 require_once('modules/php/scTrainDestinationsSolver.php');
 
-const STACK_SIZE = 100;
+
 
 //globals names
 const STACK_INDEX = "stackIndex";
@@ -37,6 +37,8 @@ const ROUTES_TO_NEXT_STATION = "routesToNextStation";
 
 class LineNumberOne extends Table
 {
+    private $STACK_SIZE = 100;
+
     function __construct()
     {
         // Your global variables labels:
@@ -87,35 +89,35 @@ class LineNumberOne extends Table
         $this->globals->set(ROUTES_TO_NEXT_STATION, null);
 
 
-        $allcards = array();
+        $stack = array();
         for ($i = 0; $i < 21; $i++) {
-            array_push($allcards, 0);
+            array_push($stack, 0);
         }
         for ($i = 0; $i < 20; $i++) {
-            array_push($allcards, 1);
+            array_push($stack, 1);
         }
         for ($i = 0; $i < 10; $i++) {
-            array_push($allcards, 2);
-            array_push($allcards, 3);
-            array_push($allcards, 4);
+            array_push($stack, 2);
+            array_push($stack, 3);
+            array_push($stack, 4);
         }
         for ($i = 0; $i < 6; $i++) {
-            array_push($allcards, 5);
-            array_push($allcards, 6);
-            array_push($allcards, 7);
+            array_push($stack, 5);
+            array_push($stack, 6);
+            array_push($stack, 7);
         }
         for ($i = 0; $i < 4; $i++) {
-            array_push($allcards, 8);
-            array_push($allcards, 9);
+            array_push($stack, 8);
+            array_push($stack, 9);
         }
         for ($i = 0; $i < 2; $i++) {
-            array_push($allcards, 10);
-            array_push($allcards, 11);
+            array_push($stack, 10);
+            array_push($stack, 11);
         }
-        shuffle($allcards);
+        shuffle($stack);
 
         $sql_values = array();
-        $stack = array_slice($allcards, 1);
+        $stack = array_slice($stack, 1);
         $sql = "INSERT INTO stack (id, card) VALUES ";
         for ($y = 0; $y < count($stack); $y++) {
             $sql_values[] = "('$y','$stack[$y]')";
@@ -378,7 +380,7 @@ class LineNumberOne extends Table
             'tracks' => self::getTracks(),
             'rotations' => self::getRotation(),
             'stops' => $stops,
-            'stackCount' => STACK_SIZE - intval($this->globals->get(STACK_INDEX)),
+            'stackCount' => $this->STACK_SIZE - intval($this->globals->get(STACK_INDEX)),
             'connectivityGraph' => $this->cGraph->connectivityGraph,
         );
     }
@@ -806,8 +808,8 @@ class LineNumberOne extends Table
         $numNewCards = 5 - count($available_cards);
 
         //check for stack depletion - modify $numNewCards to reflect if the stack is depleted.
-        if ($stackindex + $numNewCards >= STACK_SIZE) {
-            $numNewCards = STACK_SIZE - $stackindex;
+        if ($stackindex + $numNewCards >= $this->STACK_SIZE) {
+            $numNewCards = $this->STACK_SIZE - $stackindex;
         }
 
         $stackindex += $numNewCards;
