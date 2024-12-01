@@ -25,7 +25,7 @@ require_once('modules/php/scRoute.php');
 require_once('modules/php/scUtility.php');
 require_once('modules/php/scTrainDestinationsSolver.php');
 
-
+const STACK_SIZE = 125;
 
 //globals names
 const STACK_INDEX = "stackIndex";
@@ -37,8 +37,6 @@ const ROUTES_TO_NEXT_STATION = "routesToNextStation";
 
 class LineNumberOne extends Table
 {
-    private $STACK_SIZE = 100;
-
     function __construct()
     {
         // Your global variables labels:
@@ -90,34 +88,35 @@ class LineNumberOne extends Table
 
 
         $stack = array();
-        for ($i = 0; $i < 21; $i++) {
+        for ($i = 0; $i < 24; $i++) {
             array_push($stack, 0);
         }
-        for ($i = 0; $i < 20; $i++) {
+        for ($i = 0; $i < 23; $i++) {
             array_push($stack, 1);
         }
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 13; $i++) {
             array_push($stack, 2);
             array_push($stack, 3);
+        }
+        for ($i = 0; $i < 12; $i++) {
             array_push($stack, 4);
         }
-        for ($i = 0; $i < 6; $i++) {
+        for ($i = 0; $i < 8; $i++) {
             array_push($stack, 5);
             array_push($stack, 6);
             array_push($stack, 7);
         }
-        for ($i = 0; $i < 4; $i++) {
+        for ($i = 0; $i < 5; $i++) {
             array_push($stack, 8);
             array_push($stack, 9);
         }
-        for ($i = 0; $i < 2; $i++) {
+        for ($i = 0; $i < 3; $i++) {
             array_push($stack, 10);
             array_push($stack, 11);
         }
         shuffle($stack);
 
         $sql_values = array();
-        $stack = array_slice($stack, 1);
         $sql = "INSERT INTO stack (id, card) VALUES ";
         for ($y = 0; $y < count($stack); $y++) {
             $sql_values[] = "('$y','$stack[$y]')";
@@ -278,7 +277,6 @@ class LineNumberOne extends Table
         //only relevant when choosing the train start location (one time).
         $result[CUR_TRAIN_DESTINATIONS_SELECTION] = $this->globals->get(CUR_TRAIN_DESTINATIONS_SELECTION);
 
-
         return $result;
     }
 
@@ -380,7 +378,7 @@ class LineNumberOne extends Table
             'tracks' => self::getTracks(),
             'rotations' => self::getRotation(),
             'stops' => $stops,
-            'stackCount' => $this->STACK_SIZE - intval($this->globals->get(STACK_INDEX)),
+            'stackCount' => STACK_SIZE - intval($this->globals->get(STACK_INDEX)),
             'connectivityGraph' => $this->cGraph->connectivityGraph,
         );
     }
@@ -808,8 +806,8 @@ class LineNumberOne extends Table
         $numNewCards = 5 - count($available_cards);
 
         //check for stack depletion - modify $numNewCards to reflect if the stack is depleted.
-        if ($stackindex + $numNewCards >= $this->STACK_SIZE) {
-            $numNewCards = $this->STACK_SIZE - $stackindex;
+        if ($stackindex + $numNewCards >= STACK_SIZE) {
+            $numNewCards = STACK_SIZE - $stackindex;
         }
 
         $stackindex += $numNewCards;
@@ -868,6 +866,7 @@ class LineNumberOne extends Table
 
     function insertPiece($x, $y, $r, $c, $directions_free, $stopToAdd)
     {
+        $this->addCardsToDBStack([]);
         //TBD change to update
         $sql_values = array();
         $sql = '';
@@ -1012,29 +1011,38 @@ class LineNumberOne extends Table
           // ! important ! Use DBPREFIX_<table_name> for all tables
             self::applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player MODIFY COLUMN `lasttileplacementlocation` VARCHAR(20) DEFAULT NULL;");
         }
-        // $from_version is the current version of this game database, in numerical form.
-        // For example, if the game was running with a release of your game named "140430-1345",
-        // $from_version is equal to 1404301345
 
-        // Example:
-        //        if( $from_version <= 1404301345 )
-        //        {
-        //            // ! important ! Use DBPREFIX_<table_name> for all tables
-        //
-        //            $sql = "ALTER TABLE DBPREFIX_xxxxxxx ....";
-        //            self::applyDbUpgradeToAllDB( $sql );
-        //        }
-        //        if( $from_version <= 1405061421 )
-        //        {
-        //            // ! important ! Use DBPREFIX_<table_name> for all tables
-        //
-        //            $sql = "CREATE TABLE DBPREFIX_xxxxxxx ....";
-        //            self::applyDbUpgradeToAllDB( $sql );
-        //        }
-        //        // Please add your future database scheme changes here
-        //
-        //
+        if( $from_version <= 2411261625 )
+        {
+            //Add the new cards!
+            $this->addCardsToDBStack([0,0,0,0,1,1,1,2,2,2,3,3,3,4,4,5,5,6,6,7,7,8,9,10,11]);
+        }
+    }
 
+    /**
+     * Takes an array of card values, adds them to the stack and saves it back to the database. Does not modify stack pointer or stack count.
+     * 
+     * @param array $newCards - array of new card ids to add
+     */
+    function addCardsToDBStack($newCards)
+    {
+        $curStack = $this->getStack();
+        $newStack = array_merge($curStack, $newCards);
+        shuffle($newStack);
 
+        $stackIdx = (int)$this->globals->get(STACK_INDEX);
+        $sql_values = array();
+
+        //Destroy previous stack, replace with new one.
+        self::DbQuery("TRUNCATE TABLE stack;");
+
+        foreach($newStack as $card)
+        {
+            $sql = "INSERT INTO stack (id, card) VALUES ";
+            $sql_values[] = "('$stackIdx','$card')";
+            $stackIdx++;
+        }
+        $sql .= implode(',', $sql_values);
+        self::DbQuery($sql);
     }
 }
