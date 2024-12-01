@@ -1034,7 +1034,7 @@ class LineNumberOne extends Table
         $sql_values = array();
 
         //Destroy previous stack, replace with new one.
-        self::DbQuery("TRUNCATE TABLE stack;");
+        self::DbQuery("DELETE from TABLE stack;");
 
         foreach($newStack as $card)
         {
