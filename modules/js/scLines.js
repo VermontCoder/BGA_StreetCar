@@ -8,16 +8,15 @@ return declare("bgagame.scLines", null, { // null here if we don't want to inher
         constructor: function(){},
         createLineElement: function (x, y, length, angle, color) {
             var line = document.createElement("div");
-            var styles = 'width: ' + length + 'px; '
-                        + 'border-color: ' + color + '; '
-                        + '-moz-transform: rotate(' + angle + 'rad); '
+            var styles =  '-moz-transform: rotate(' + angle + 'rad); '
                         + '-webkit-transform: rotate(' + angle + 'rad); '
                         + '-o-transform: rotate(' + angle + 'rad); '
                         + '-ms-transform: rotate(' + angle + 'rad); '
                         + 'top: ' + y + 'px; '
-                        + 'left: ' + x + 'px; ';
+                        + 'left: ' + x + 'px; '
+                        + 'background-position: -100px 0px;';
             line.setAttribute('style', styles);
-            line.setAttribute('class', 'route_line')
+            line.setAttribute('class', 'route_line2')
             return line;
         },
         /**

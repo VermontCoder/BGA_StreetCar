@@ -311,10 +311,12 @@
 }
 
 .route_line {
-  border: 1px solid;
-  height: 0px;
-  position: absolute;
   z-index: 4;
+  height: 100px;
+  width: 100px;
+  background-image: url("img/route_lines.png");
+  position: absolute;
+  pointer-events: none;
 }
 
 .completed_msg {

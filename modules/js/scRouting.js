@@ -30,6 +30,7 @@ return declare("bgagame.scRouting", null,
             this.curRoute = (this.routes != null) ? this.routes[0] : null;
             this.showRoute();
         },
+
         showRoute()
         {
             //delete previous route
@@ -41,64 +42,106 @@ return declare("bgagame.scRouting", null,
             //no route to show.
             if (this.curRoute == null) return;
 
-            let route = this.curRoute.routeNodes; //will be null if there is no route.
+            let routeNodes = this.curRoute.routeNodes; //will be null if there is no route.
 
-            for (var parentID in route) 
+            if (routeNodes == null) return;
+
+            for (var parentID in routeNodes) 
             {
-                if (Object.prototype.hasOwnProperty.call(route, parentID))
+                //only draw route nodes that have children.
+                if (Object.prototype.hasOwnProperty.call(routeNodes, parentID))
                 {
-                    childID = route[parentID];
+                    childID = routeNodes[parentID];
                     
-                    parentPixelXY = this.getPixelLocationBasedOnNodeID(parentID);
-                    childPixelXY = this.getPixelLocationBasedOnNodeID(childID);
-                    $('wrapper').appendChild(this.scLines.createLine(parentPixelXY['x'], parentPixelXY['y'], childPixelXY['x'], childPixelXY['y'],'red'));
+                    this.drawRouteDiv(parentID,childID, this.isTerminalNode(this.curRoute,parentID));
                 }
             }
         },
 
-        getPixelLocationBasedOnNodeID(nodeID, fromTopLeft = false)
+        isTerminalNode(route, nodeID)
+        {
+            nodeIDJSON = JSON.stringify(this.scUtility.extractXYD(nodeID));
+            startJSON = JSON.stringify(this.scUtility.extractXYD(route.startNodeID));
+            endJSON = JSON.stringify(this.scUtility.extractXYD(route.endNodeID));
+
+            return (nodeIDJSON === startJSON || nodeIDJSON === endJSON)
+        },
+
+        drawRouteDiv(parentID,childID, isTerminalNode = false)
+        {
+            parentPixelXYD = this.getPixelLocationBasedOnNodeID(parentID);
+            childPixelXYD = this.getPixelLocationBasedOnNodeID(childID);
+
+            angle = 0;
+            spriteOffset = 0;
+            const curveOffset = -100;
+            const straightOffset = -200;
+            const terminalOffset = -300;
+
+            var directionFromTo = parentPixelXYD['d']+childPixelXYD['d'];
+
+            //knowing the origin node d and the destination node d, we can determine whether a straight or curved piece
+            //is required and at what angle it should be rotated to.
+
+            switch(directionFromTo)
+            {
+                case "SW":
+                case "EN":
+                    angle = 270;
+                    spriteOffset = curveOffset;
+                    break;
+                case "SE":
+                case "WN":
+                    angle = 0;
+                    spriteOffset = curveOffset;
+                    break;
+                case "WS":
+                case "NE":
+                    angle = 90;
+                    spriteOffset = curveOffset;
+                    break;
+                case "ES":
+                case "NW":
+                    angle = 180;
+                    spriteOffset = curveOffset;
+                    break;
+                case "EE":
+                case "WW":
+                    angle = 90;
+                    spriteOffset = straightOffset;
+                    break;
+                case "SS":
+                case "NN":
+                    angle = 0;
+                    spriteOffset = straightOffset;
+                    break;
+                
+            }
+            if (isTerminalNode) spriteOffset = terminalOffset;
+            
+            var routeDiv = document.createElement("div");
+            var styles =  'transform: rotate('+ angle +'deg); '
+                        + 'top: ' + parentPixelXYD['y'] + 'px; '
+                        + 'left: ' + parentPixelXYD['x'] + 'px; '
+                        + 'background-position: ' + spriteOffset+ 'px 0px;';
+
+            routeDiv.setAttribute('style', styles);
+            routeDiv.setAttribute('class', 'route_line');
+            $('wrapper').appendChild(routeDiv);
+        },
+
+        getPixelLocationBasedOnNodeID(nodeID)
         {
             xOrigin = 42;
             yOrigin = 45;
 
             parsedNodeID = this.scUtility.extractXYD(nodeID);
-
-            //move train calc
-            if (fromTopLeft)
-            {
-                return {
-                    'x': parseInt(xOrigin + parsedNodeID['x']*100),
-                    'y': parseInt(yOrigin + parsedNodeID['y']*100),
-                };
-            }
-
-            //otherwise this is routing line calc.
-
-            xOffset =0;
-            yOffset =0;
-
-            switch(parsedNodeID['d'])
-            {
-                case "N":
-                    yOffset = -25;
-                    break;
-                case "E":
-                    xOffset = 25;
-                    break;
-                case "S":
-                    yOffset = 25;
-                    break;
-                case "W":
-                    xOffset = -25;
-                    break;
-            }
-
-            return {
-                //50 centers the location in the tile
-                'x': parseInt(xOrigin + 50 + xOffset + parsedNodeID['x']*100),
-                'y': parseInt(yOrigin + 50 +yOffset + parsedNodeID['y']*100),
-            };
             
+            return {
+                'x': parseInt(xOrigin + parsedNodeID['x']*100),
+                'y': parseInt(yOrigin + parsedNodeID['y']*100),
+                'd': parsedNodeID['d']
+            };
         },
     });
 });

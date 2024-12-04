@@ -141,8 +141,11 @@ class scRoute
         $mergedRoute->routeNodes = array_merge($this->routeNodes,$otherRoute->routeNodes);
         $mergedRoute->isComplete = ($this->isComplete || $otherRoute->isComplete);
 
-        //IMPORTANT: For this to work, we now need to alter the last node of the original route.
-        $mergedRoute->routeNodes[$this->endNodeID.'_'.$this->routeID] = $otherRoute->startNodeID.'_'.$otherRoute->routeID;
+        //IMPORTANT: For this to work, we now need to alter the last node of the original route to point to the child of the start of the other route.
+        $mergedRoute->routeNodes[$this->endNodeID.'_'.$this->routeID] = $otherRoute->routeNodes[$otherRoute->startNodeID.'_'.$otherRoute->routeID];
+
+        //remove the start node of the other route.
+        unset($mergedRoute->routeNodes[$otherRoute->startNodeID.'_'.$otherRoute->routeID]);
         return $mergedRoute;
 
     }

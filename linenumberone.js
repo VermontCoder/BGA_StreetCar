@@ -738,7 +738,7 @@ function (dojo, declare) {
 
                 curNode = moveRoute.routeNodes[curNode];
                 //move train to next spot.
-                curNodeXY = this.scRouting.getPixelLocationBasedOnNodeID(curNode, true);
+                curNodeXY = this.scRouting.getPixelLocationBasedOnNodeID(curNode);
                 anim = this.slideToObjectPos(trainDiv, "board", curNodeXY['x'], curNodeXY['y']);
                 anims.push(anim);
             }

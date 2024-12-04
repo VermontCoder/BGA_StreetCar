@@ -1470,6 +1470,23 @@ namespace {
          */
         function applyDbUpgradeToAllDB(string $sql): void {
         }
+
+        /**
+         * For authorized games using external API only.
+         */
+        function getGenericGameInfos(string $api, array $args = []) : array {
+            return [];
+        }
+
+        /**
+         * Return the BGA environment this table is running on.
+         * This should be used for debug purpose only.
+         * 
+         * @return "studio" or "prod"
+         */
+        static function getBgaEnvironment(): string {
+            return '';
+        }
     }
 
     /** An integer. */
