@@ -18,7 +18,6 @@ return declare("bgagame.scRouting", null,
             this.nesw = ["N","E","S","W"];
             this.game = game;
             this.scUtility = game.scUtility;
-            this.scLines = game.scLines;
             this.scEventHandlers = game.scEventHandlers;
             
             this.updateRoutes(routes);
@@ -54,6 +53,12 @@ return declare("bgagame.scRouting", null,
                     childID = routeNodes[parentID];
                     
                     this.drawRouteDiv(parentID,childID, this.isTerminalNode(this.curRoute,parentID));
+
+                    //There will be a terminal node that doesn't have a child and so won't appear as a key.
+                    if (this.isTerminalNode(this.curRoute, childID))
+                    {
+                        this.drawRouteDiv(childID,null, true);
+                    }
                 }
             }
         },
@@ -78,46 +83,66 @@ return declare("bgagame.scRouting", null,
             const straightOffset = -200;
             const terminalOffset = -300;
 
-            var directionFromTo = parentPixelXYD['d']+childPixelXYD['d'];
-
-            //knowing the origin node d and the destination node d, we can determine whether a straight or curved piece
-            //is required and at what angle it should be rotated to.
-
-            switch(directionFromTo)
+            if (isTerminalNode)
             {
-                case "SW":
-                case "EN":
-                    angle = 270;
-                    spriteOffset = curveOffset;
-                    break;
-                case "SE":
-                case "WN":
-                    angle = 0;
-                    spriteOffset = curveOffset;
-                    break;
-                case "WS":
-                case "NE":
-                    angle = 90;
-                    spriteOffset = curveOffset;
-                    break;
-                case "ES":
-                case "NW":
-                    angle = 180;
-                    spriteOffset = curveOffset;
-                    break;
-                case "EE":
-                case "WW":
-                    angle = 90;
-                    spriteOffset = straightOffset;
-                    break;
-                case "SS":
-                case "NN":
-                    angle = 0;
-                    spriteOffset = straightOffset;
-                    break;
-                
+                spriteOffset = terminalOffset;
+
+                if (childID == null)
+                {
+                    //This is a childless node. The direction is from the 'd' in the node.
+                    angle = this.scUtility.getRotationFromDirection(parentPixelXYD['d']);
+                }
+                else
+                {
+                    //This is a parent node. The end piece is angled based on the 180 from the entry direction to the child.
+                    angle = this.scUtility.getRotationFromDirection(childPixelXYD['d']);
+                    angle = (angle+180)%360;
+                }
             }
-            if (isTerminalNode) spriteOffset = terminalOffset;
+            else
+            {
+
+                var directionFromTo = parentPixelXYD['d']+childPixelXYD['d'];
+
+                //knowing the origin node d and the destination node d, we can determine whether a straight or curved piece
+                //is required and at what angle it should be rotated to.
+
+                switch(directionFromTo)
+                {
+                    case "SW":
+                    case "EN":
+                        angle = 270;
+                        spriteOffset = curveOffset;
+                        break;
+                    case "SE":
+                    case "WN":
+                        angle = 0;
+                        spriteOffset = curveOffset;
+                        break;
+                    case "WS":
+                    case "NE":
+                        angle = 90;
+                        spriteOffset = curveOffset;
+                        break;
+                    case "ES":
+                    case "NW":
+                        angle = 180;
+                        spriteOffset = curveOffset;
+                        break;
+                    case "EE":
+                    case "WW":
+                        angle = 90;
+                        spriteOffset = straightOffset;
+                        break;
+                    case "SS":
+                    case "NN":
+                        angle = 0;
+                        spriteOffset = straightOffset;
+                        break;
+                    
+                }
+            }   
+            
             
             var routeDiv = document.createElement("div");
             var styles =  'transform: rotate('+ angle +'deg); '
@@ -132,6 +157,7 @@ return declare("bgagame.scRouting", null,
 
         getPixelLocationBasedOnNodeID(nodeID)
         {
+            if (nodeID==null) return null;
             xOrigin = 42;
             yOrigin = 45;
 

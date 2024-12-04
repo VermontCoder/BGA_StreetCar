@@ -19,7 +19,6 @@
     "dojo","dojo/_base/declare", 
     "ebg/core/gamegui",
     "ebg/counter",
-    g_gamethemeurl + "modules/js/scLines.js",
     g_gamethemeurl + "modules/js/scUtility.js",
     g_gamethemeurl + "modules/js/scEventHandlers.js",
     g_gamethemeurl + "modules/js/scRouting.js"
@@ -52,7 +51,6 @@ function (dojo, declare) {
         setup: function( gamedatas )
         {
             this.nesw = ["N","E","S","W"];
-            this.scLines =  new bgagame.scLines();
             this.scUtility = new bgagame.scUtility();
             this.scEventHandlers = new bgagame.scEventHandlers(this);
             this.scRouting = new bgagame.scRouting(this,gamedatas.routes);
@@ -725,7 +723,6 @@ function (dojo, declare) {
             //only execute if the current node has a child in the route.
             while(moveRoute.routeNodes.hasOwnProperty(curNode))
             {
-                
                 //rotate train, if necessary
                 newRotation = this.getTrainRotation(curNode, moveRoute);
 
