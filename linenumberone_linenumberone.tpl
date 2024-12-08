@@ -1,36 +1,17 @@
 {OVERALL_GAME_HEADER}
 
-<!-- 
---------
--- BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
--- LineNumberOne implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
--- 
--- This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
--- See http://en.boardgamearena.com/#!doc/Studio for more information.
--------
-
-    linenumberone_linenumberone.tpl
+<div id="wrapper" style="transform-origin: top left; translateX:-100%;">
     
-    This is the HTML template of your game.
-    
-    Everything you are writing in this file will be displayed in the HTML page of your game user interface,
-    in the "main game zone" of the screen.
-    
-    You can use in this template:
-    _ variables, with the format {MY_VARIABLE_ELEMENT}.
-    _ HTML block, with the BEGIN/END format
-    
-    See your "view" PHP file to check how to set variables and control blocks
-    
-    Please REMOVE this comment before publishing your game on BGA
--->
-<div id="wrapper">
-    <div id="stack_icon_wrapper" class="stack_icon">
-        <div id="stack_icon" class="over">
-            <div id="stack_count" class="stack_count">99</div>
-        </div>
-    </div>
     <div id="board" class="board_wrap bg_img"> 
+        <div id="stack_icon_wrapper" class="stack_icon">
+            <div id="stack_icon" class="over">
+                <div id="stack_count" class="stack_count">99</div>
+            </div>
+        </div>
+        <div id="zoom_controls" class="zoom_controls">
+            <div id="zoom_in" class="zoom_in_icon"></div>
+            <div id="zoom_out" class="zoom_out_icon"></div>
+        </div>
         <!-- BEGIN board -->
             <div id="square_{X}_{Y}" class="square" style="left: {LEFT}px; top: {TOP}px;">
                 <div id="stops_{X}_{Y}" class="stops" style="left: 0px; top: 0px;">
