@@ -55,23 +55,10 @@ function (dojo, declare) {
             this.scUtility = new bgagame.scUtility();
             this.scEventHandlers = new bgagame.scEventHandlers(this);
             this.scRouting = new bgagame.scRouting(this,gamedatas.routes);
+            //console.log('window: ',JSON.stringify(window));
+            this.scZoom = new bgagame.scZoom('wrapper','zoom_in','zoom_out');
             
-            //this.scZoom = new bgagame.scZoom('wrapper','zoom_in_icon','zoom_out_icon');
             
-            //Initialize zoom controls
-            this.zoomLevels = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
-            if (localStorage.zoomLevelIdx)
-            {
-                this.zoomLevelIdx = Number(localStorage.getItem('zoomLevelIdx'));
-            }
-            else
-            {
-                this.zoomLevelIdx = 6;
-                localStorage.setItem('zoomLevelIdx', String(this.zoomLevelIdx));
-            }
-            
-            dojo.connect($('zoom_in'), 'onclick', this, 'zoomIn');
-            dojo.connect($('zoom_out'), 'onclick', this, 'zoomOut');
             console.log("SETUP",gamedatas);
             // Setting up player boards
             for( var player_id in gamedatas.players )
@@ -732,7 +719,8 @@ function (dojo, declare) {
             trainDiv =  "train_"+player_id;
             anims = new Array();
 
-            dojo.style('wrapper','transform','scale(1)');
+            curZoom = this.scZoom.zoomLevelIdx;
+            this.scZoom.setZoom(this.scZoom.zoomLevels.length-1, false);
             
             activePlayer = this.gamedatas.gamestate.args.players.filter(p =>parseInt(p.id)==player_id)[0];
             curTrainRotation = this.scUtility.getRotationFromDirection(activePlayer.traindirection);
@@ -766,7 +754,7 @@ function (dojo, declare) {
             }
 
             dojo.fx.chain(anims).play();
-            dojo.style('wrapper','transform','scale(.5)');
+            this.scZoom.setZoom(curZoom, false);
         },
         
 
@@ -838,25 +826,6 @@ function (dojo, declare) {
         onSelectTrainDestination(evt)
         {
             this.scEventHandlers.onSelectTrainDestination(evt, this.selectedNodes);
-        },
-
-        zoomIn()
-        {
-            this.zoomLevelIdx = Number(localStorage.getItem('zoomLevelIdx'));
-            if (this.zoomLevelIdx -1 < 0) return;
-            this.zoomLevelIdx=--this.zoomLevelIdx;
-            dojo.style('wrapper', 'transform','scale('+this.zoomLevels[this.zoomLevelIdx]+')');
-            localStorage.setItem('zoomLevelIdx', String(this.zoomLevelIdx));
-            
-        },
-
-        zoomOut()
-        {
-            this.zoomLevelIdx = Number(localStorage.getItem('zoomLevelIdx'));
-            if (this.zoomLevelIdx + 1 > this.zoomLevels.length-1) return;
-            this.zoomLevelIdx = ++this.zoomLevelIdx;
-            dojo.style('wrapper', 'transform','scale('+this.zoomLevels[this.zoomLevelIdx]+')');
-            localStorage.setItem('zoomLevelIdx', String(this.zoomLevelIdx));
         },
    });             
 });
