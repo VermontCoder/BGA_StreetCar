@@ -301,6 +301,9 @@
 }
 
 .track_tile_back_animation {
+  position: absolute;
+  top: 0px;
+  right: 0px;
   width: 100px;
   height: 100px;
   border-width: 1px;

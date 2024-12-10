@@ -122,7 +122,7 @@ function (dojo, declare) {
             
             switch( stateName )
             {
-                case "placeTrack":
+                case "firstAction":
                     this.selectedTrack = null;
                     this.isFirstSelection = true;
                     this.firstPlacementData = {};
@@ -236,7 +236,7 @@ function (dojo, declare) {
             {            
                 switch( stateName )
                 {
-                    case 'placeTrack':
+                    case 'firstAction':
                         if (this.scRouting.curRoute != null && this.scRouting.curRoute.isComplete)
                         {
                             this.addActionButton( 'begin_trip_button', _('Begin Inaugural Trip'), 'onBeginTrip');
@@ -255,36 +255,36 @@ function (dojo, declare) {
        /**
         * Send Placed Tiles to Server for recording
         */
-        sendMovesToServer()
+        sendTrackPlacementToServer()
         {
-            availableCardsOwner1 = this.firstPlacementData.selectedTrack.player_id;
-            availableCards1 = this.gamedatas.gamestate.args.players.filter(p =>parseInt(p.id)==availableCardsOwner1)[0]['available_cards'];
+            availableCardsOwner = this.selectedTrack.player_id;
+            availableCards = this.gamedatas.gamestate.args.players.filter(p =>parseInt(p.id)==availableCardsOwner)[0]['available_cards'];
             
-            availableCardsOwner2 = this.selectedTrack.player_id;
-            availableCards2 = this.gamedatas.gamestate.args.players.filter(p =>parseInt(p.id)==availableCardsOwner2)[0]['available_cards'];
+            // availableCardsOwner2 = this.selectedTrack.player_id;
+            // availableCards2 = this.gamedatas.gamestate.args.players.filter(p =>parseInt(p.id)==availableCardsOwner2)[0]['available_cards'];
 
 
             //list of available cards cannot be sent as [0,2,3...], but as a comma delimited string of nums.
             //So we need to strip the brackets
-            availableCards1 = availableCards1.slice(1,availableCards1.length-1);
-            availableCards2 = availableCards2.slice(1,availableCards2.length-1);
+            availableCards = availableCards.slice(1,availableCards.length-1);
+            //availableCards2 = availableCards2.slice(1,availableCards2.length-1);
 
             paramList =
             {   
-                r1 : this.firstPlacementData.rotation,
-                x1 : this.firstPlacementData.posx,
-                y1 : this.firstPlacementData.posy,
-                c1 : this.firstPlacementData.selectedTrack.card,
-                directions_free1 : this.firstPlacementData.directions_free,
-                availableCards1 : availableCards1,
-                availableCardsOwner1  : availableCardsOwner1,
-                r2 : this.rotation,
-                x2 : this.posx,
-                y2 : this.posy,
-                c2 : this.selectedTrack.card,
-                directions_free2 : this.directions_free,
-                availableCards2 : availableCards2,
-                availableCardsOwner2  : availableCardsOwner2,
+                // r1 : this.firstPlacementData.rotation,
+                // x1 : this.firstPlacementData.posx,
+                // y1 : this.firstPlacementData.posy,
+                // c1 : this.firstPlacementData.selectedTrack.card,
+                // directions_free1 : this.firstPlacementData.directions_free,
+                // availableCards1 : availableCards1,
+                // availableCardsOwner1  : availableCardsOwner1,
+                r1 : this.rotation,
+                x1 : this.posx,
+                y1 : this.posy,
+                c1 : this.selectedTrack.card,
+                directions_free : this.directions_free,
+                availableCards : availableCards,
+                availableCardsOwner  : availableCardsOwner,
             };
             
             //clear buttons
@@ -300,19 +300,19 @@ function (dojo, declare) {
                 rotate:paramList.r1
             } ) , 'square_'+paramList.x1+"_"+paramList.y1);
 
-            dojo.place( this.format_block( 'jstpl_track', {
-                id: "board_"+paramList.c2,
-                offsetx:-parseInt(paramList.c2)*100,
-                rotate:paramList.r2
-            } ) , 'square_'+paramList.x2+"_"+paramList.y2);
+            // dojo.place( this.format_block( 'jstpl_track', {
+            //     id: "board_"+paramList.c2,
+            //     offsetx:-parseInt(paramList.c2)*100,
+            //     rotate:paramList.r2
+            // } ) , 'square_'+paramList.x2+"_"+paramList.y2);
 
             //remove temp track
-            dojo.destroy(this.scUtility.getPlacedTrackId(true));
-            dojo.destroy(this.scUtility.getPlacedTrackId(false));
+            dojo.destroy('placed_track');
+            //dojo.destroy(this.scUtility.getPlacedTrackId(false));
 
             //clear firstPlacementData
             this.firstPlacementData = {};
-            this.ajaxcall( "/linenumberone/linenumberone/placeTracks.html",paramList, this, function( result ) {} );
+            this.ajaxcall( "/linenumberone/linenumberone/placeTrack.html",paramList, this, function( result ) {} );
         },
 
         /**
@@ -599,78 +599,71 @@ function (dojo, declare) {
         // TODO: from this point and below, you can write your game notifications handling methods
         notif_placedTrack: function( notif )
         {
-            //placed tiles is an array with the following indexes corresponding to the following data.
-            // 0 - card ID
-            // 1 - rotation
-            // 2 - player id source of tiles
-            // 3 - square ID of where the tiles are going
-            placedTiles = notif.args.placedTiles;
+            placedTile = notif.args.placedTile;
 
             //animate track placement for non-active players
             if (!this.isCurrentPlayerActive())
             {
-                
-                for(i=0;i<placedTiles.length;i++)
+                //put new track on board.
+                dojo.place( this.format_block( 'jstpl_track', 
                 {
-                    //put new track on board.
-                    dojo.place( this.format_block( 'jstpl_track', 
-                    {
-                        id: 'placing_'+i,
-                        offsetx:-100* placedTiles[i]['card'],
-                        rotate:placedTiles[i]['rotation']
-                    } ) , 'overall_player_board_'+placedTiles[i]['ownerID']);
+                    id: 'placing',
+                    offsetx:-100* placedTile['card'],
+                    rotate:placedTile['rotation']
+                } ) , 'overall_player_board_'+placedTile['ownerID']);
 
-                    dojo.style('placing_'+i,'z-index',1000);
-                    this.slideToObjectAndDestroy('placing_'+i,placedTiles[i]['destination'])
-                }
+                dojo.style('placing','z-index',1000);
+                this.slideToObjectAndDestroy('placing',placedTile['destination']);
             }
 
             //animate tiles coming from board to player board for non-current players.
-            for(i=0;i<placedTiles.length;i++)
+           
+            //check to see if new tiles to player's hand are coming from the board or the stack
+            //animate appropriately.
+            underlyingTrack = dojo.query('#'+placedTile['destination']+ ' > .track');
+            destination = 'overall_player_board_'+placedTile['ownerID'];
+                
+            if (!this.isCurrentPlayerActive() && underlyingTrack.length > 0)
             {
-                //check to see if new tiles to player's hand are coming from the board or the stack
-                //animate appropriately.
-                underlyingTrack = dojo.query('#'+placedTiles[i]['destination']+ ' > .track');
-                destination = 'overall_player_board_'+placedTiles[i]['ownerID'];
-                    
-                if (!this.isCurrentPlayerActive() && underlyingTrack.length > 0)
-                {
-                    //tile is coming from board. Already animated for current player
-                    //extract data about underlying tile and move the copy. Moving current tile is proving buggy.
-                    sourceXY = this.scUtility.extractXY(placedTiles[i]['destination']);
-                    sourceRotation = this.gamedatas.gamestate.args.rotations[sourceXY.x][sourceXY.y];
-                    sourceCard = this.gamedatas.gamestate.args.tracks[sourceXY.x][sourceXY.y];
+                //tile is coming from board. Already animated for current player
+                //extract data about underlying tile and move the copy. Moving current tile is proving buggy.
+                sourceXY = this.scUtility.extractXY(placedTile['destination']);
+                sourceRotation = this.gamedatas.gamestate.args.rotations[sourceXY.x][sourceXY.y];
+                sourceCard = this.gamedatas.gamestate.args.tracks[sourceXY.x][sourceXY.y];
 
-                    //place a copy of the tile on the square and slide that for the animation.
-                    dojo.place( this.format_block( 'jstpl_track', 
-                        {
-                            id: 'replacing_'+i,
-                            offsetx:-100* sourceCard,
-                            rotate: sourceRotation
-                        } ) , placedTiles[i]['destination']);
-    
-                        dojo.style('replacing_'+i,'z-index',1000);
-                        this.slideToObjectAndDestroy('replacing_'+i,destination);
-                }
+                //place a copy of the tile on the square and slide that for the animation.
+                dojo.place( this.format_block( 'jstpl_track', 
+                    {
+                        id: 'replacing',
+                        offsetx:-100* sourceCard,
+                        rotate: sourceRotation
+                    } ) , placedTile['destination']);
+
+                    dojo.style('replacing','z-index',1000);
+                    this.slideToObjectAndDestroy('replacing',destination);
             }
+            
 
             //animate tiles coming from stack to player board - all players
-            numFromStack = placedTiles.length >0 ? placedTiles[0]['numFromStack'] : 0;
+            //numFromStack = placedTiles.length >0 ? placedTiles[0]['numFromStack'] : 0;
 
-            for (i=0; i< numFromStack;i++)
-            {
-                destination = 'overall_player_board_'+placedTiles[i]['ownerID'];
+            // for (i=0; i< numFromStack;i++)
+            // {
+                destination = 'overall_player_board_'+placedTile['ownerID'];
                 
                 dojo.place( this.format_block( 'jstpl_track_tile_back_animation', 
                 {
-                    id: 'tile_back_'+i,
-                } ) , 'stack_icon');
+                    id: 'tile_back',
+                } ) , 'wrapper');//stack_icon');
                 
-                this.slideToObjectAndDestroy('tile_back_'+i,destination);
-            }
+                //curZoom = this.scZoom.zoomLevelIdx;
+                //this.scZoom.setZoom(this.scZoom.zoomLevels.length-1, false);
+                this.slideToObjectAndDestroy('tile_back',destination);
+                //this.scZoom.setZoom(curZoom, false);
+            //}
 
-
-
+           
+            
             //update global gamestate
             this.gamedatas.gamestate.args.stops=notif.args.stops;
             this.gamedatas.gamestate.args.rotations=notif.args.rotations;

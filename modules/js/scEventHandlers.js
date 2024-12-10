@@ -43,7 +43,7 @@ define([
             dojo.destroy('place_card_action_button'); //cannot place an unplaced track.
             dojo.query( '.playertrack' ).removeClass('trackselected')
             
-            placedTrackID = this.scUtility.getPlacedTrackId(this.game.isFirstSelection); //tile on board
+            placedTrackID = 'placed_track'; //tile on board
            //if this is a reselection of tile, show the animation of the tile returning to the playerboard.
             if (this.game.selectedTrack != null && $(placedTrackID))
             {
@@ -82,7 +82,7 @@ define([
             // Stop this event propagation
             dojo.stopEvent( evt );
             
-            if( !this.game.checkAction( 'placeTrack' ))
+            if( !this.game.checkAction( 'firstAction' ))
             {
                 return;
             }
@@ -100,11 +100,11 @@ define([
             }
 
             var coords = evt.currentTarget.id.split('_');
-            if (coords[1] == this.game.firstPlacementData.posx && coords[2]== this.game.firstPlacementData.posy)
-            {
-                this.game.showMessage( _("You cannot play on your first placement."), 'error');	
-                return;
-            }
+            // if (coords[1] == this.game.firstPlacementData.posx && coords[2]== this.game.firstPlacementData.posy)
+            // {
+            //     this.game.showMessage( _("You cannot play on your first placement."), 'error');	
+            //     return;
+            // }
             
             let click_x = parseInt(coords[1]);
             let click_y = parseInt(coords[2]);
@@ -127,7 +127,7 @@ define([
             this.game.posx = click_x;
             this.game.posy = click_y;
 
-            placedTrackID = this.scUtility.getPlacedTrackId(this.game.isFirstSelection);
+            placedTrackID = 'placed_track';
             
             if(!$(placedTrackID))
             {
@@ -189,7 +189,8 @@ define([
             badDirections = this.fitTrack(this.game.gamedatas.tracks[this.game.selectedTrack.card][0],
                 this.game.rotation, parseInt(this.game.posx), parseInt(this.game.posy));
 
-            dojo.addClass(this.scUtility.getPlacedTrackId(this.game.isFirstSelection),this.game.isFirstSelection ? 'track_placement' : 'track_placement2');
+            //dojo.addClass(this.scUtility.getPlacedTrackId(this.game.isFirstSelection),this.game.isFirstSelection ? 'track_placement' : 'track_placement2');
+            dojo.addClass('placed_track', 'track_placement');
             borderColorString = '';
             if (badDirections.includes('x'))
             {
@@ -215,7 +216,8 @@ define([
                 });
             }
             
-            dojo.style(this.scUtility.getPlacedTrackId(this.game.isFirstSelection),"border-color",borderColorString.trimEnd());
+            // dojo.style(this.scUtility.getPlacedTrackId(this.game.isFirstSelection),"border-color",borderColorString.trimEnd());
+            dojo.style('placed_track',"border-color",borderColorString.trimEnd());
            
             return badDirections;
         },
@@ -310,57 +312,57 @@ define([
          */
         showPlaceCardActionButton(badDirections)
         {
-            dojo.destroy("illegalPlacementMsg"); //delete this if present. might be present if placed below.
+            //dojo.destroy("illegalPlacementMsg"); //delete this if present. might be present if placed below.
 
             if (badDirections.includes('x')) return; //case where player tried to place on non-conforming space.
-            if (this.game.isFirstSelection && badDirections.length <= 1)
-            {
-                //Allow the placement with one bad direction. The user could fix it next placement.
-                this.game.addActionButton( 'place_card_action_button', _('Place track'), () => this.onPlacedCard() );
+            // if (this.game.isFirstSelection && badDirections.length <= 1)
+            // {
+                // //Allow the placement with one bad direction. The user could fix it next placement.
+                // this.game.addActionButton( 'place_card_action_button', _('Place track'), () => this.onPlacedCard() );
 
-                if (badDirections.length == 1)
-                {
-                    //display warning
-                    dojo.place("<div id='illegalPlacementMsg'> This is an illegal placement, so your next tile placement must make it legal for it to be allowed.</div>","pagemaintitletext");
-                }
+                // if (badDirections.length == 1)
+                // {
+                //     //display warning
+                //     dojo.place("<div id='illegalPlacementMsg'> This is an illegal placement, so your next tile placement must make it legal for it to be allowed.</div>","pagemaintitletext");
+                // }
                 
+            //     return;
+            // }
+
+            if (badDirections.length == 0)// && this.game.firstPlacementData.badDirections.length == 0)
+            {
+                this.game.addActionButton( 'place_card_action_button', _('Place track'), () => this.onPlacedCard() );
                 return;
             }
 
-            if (badDirections.length == 0 && this.game.firstPlacementData.badDirections.length == 0)
-            {
-                this.game.addActionButton( 'place_card_action_button', _('Place track'), () => this.onPlacedCard() );
-                return;
-            }
+            // if (badDirections.length == 0 && this.game.firstPlacementData.badDirections.length == 1)
+            // {
+            //     //This is a special case - only show the place button *if* the badDirection of the first tile points at the 2nd tile.
+            //     //If so, then the new placement fixed the problem (because it doesn't have any bad sides)
+            //     showPlaceActionButton = false;
+            //     switch(this.game.firstPlacementData.badDirections[0])
+            //     {
+            //         case "N":
+            //             showPlaceActionButton = (this.game.posx == this.game.firstPlacementData.posx) && (this.game.posy == this.game.firstPlacementData.posy-1);
+            //             break;
+            //         case "E":
+            //             showPlaceActionButton = (this.game.posx  == this.game.firstPlacementData.posx+ 1) && (this.game.posy == this.game.firstPlacementData.posy);
+            //             break;
+            //         case "S":
+            //             showPlaceActionButton = (this.game.posx == this.game.firstPlacementData.posx) && (this.game.posy == this.game.firstPlacementData.posy+1);
+            //             break;
+            //         case "W":
+            //             showPlaceActionButton = (this.game.posx  == this.game.firstPlacementData.posx- 1) && (this.game.posy == this.game.firstPlacementData.posy);
+            //     }
 
-            if (badDirections.length == 0 && this.game.firstPlacementData.badDirections.length == 1)
-            {
-                //This is a special case - only show the place button *if* the badDirection of the first tile points at the 2nd tile.
-                //If so, then the new placement fixed the problem (because it doesn't have any bad sides)
-                showPlaceActionButton = false;
-                switch(this.game.firstPlacementData.badDirections[0])
-                {
-                    case "N":
-                        showPlaceActionButton = (this.game.posx == this.game.firstPlacementData.posx) && (this.game.posy == this.game.firstPlacementData.posy-1);
-                        break;
-                    case "E":
-                        showPlaceActionButton = (this.game.posx  == this.game.firstPlacementData.posx+ 1) && (this.game.posy == this.game.firstPlacementData.posy);
-                        break;
-                    case "S":
-                        showPlaceActionButton = (this.game.posx == this.game.firstPlacementData.posx) && (this.game.posy == this.game.firstPlacementData.posy+1);
-                        break;
-                    case "W":
-                        showPlaceActionButton = (this.game.posx  == this.game.firstPlacementData.posx- 1) && (this.game.posy == this.game.firstPlacementData.posy);
-                }
-
-                if (showPlaceActionButton)
-                {
-                    this.game.addActionButton( 'place_card_action_button', _('Place track'), () => this.onPlacedCard() );
-                    return;
-                }
+            //     if (showPlaceActionButton)
+            //     {
+            //         this.game.addActionButton( 'place_card_action_button', _('Place track'), () => this.onPlacedCard() );
+            //         return;
+            //     }
                 
                 
-            }
+            // }
 
             //none of these are valid - do not show place card
             dojo.destroy('place_card_action_button');
@@ -415,15 +417,15 @@ define([
                 this.game.updatePlayers(this.game.gamedatas.gamestate.args.players);
             }
 
-            if (this.game.isFirstSelection)
-            {
+            // if (this.game.isFirstSelection)
+            // {
                 //save data from first placement
-                this.game.firstPlacementData.directions_free = directions_free;
-                this.game.firstPlacementData.rotation = this.game.rotation;
-                this.game.firstPlacementData.selectedTrack = this.game.selectedTrack;
-                this.game.firstPlacementData.posx = this.game.posx;
-                this.game.firstPlacementData.posy = this.game.posy;
-                this.game.firstPlacementData.badDirections = this.fitCardOnBoard();
+                // this.game.firstPlacementData.directions_free = directions_free;
+                // this.game.firstPlacementData.rotation = this.game.rotation;
+                // this.game.firstPlacementData.selectedTrack = this.game.selectedTrack;
+                // this.game.firstPlacementData.posx = this.game.posx;
+                // this.game.firstPlacementData.posy = this.game.posy;
+                // this.game.firstPlacementData.badDirections = this.fitCardOnBoard();
 
                 //write selected track data to underlying board
                 this.game.gamedatas.gamestate.args.board[this.game.posx][this.game.posy]= directions_free;
@@ -432,26 +434,25 @@ define([
 
 
                 //reset so user can select another piece
-                this.game.selectedTrack = null;
-                this.game.rotation = 0;
+                // this.game.selectedTrack = null;
+                // this.game.rotation = 0;
 
-                this.game.isFirstSelection = false;
+                // this.game.isFirstSelection = false;
 
                 //make the tile unrotatable.
                 dojo.disconnect(this.rotationClickHandler);
 
                 //add ability to reset turn
-                if(!$('reset_button'))
-                {
-                    this.game.addActionButton('reset_button', _('Reset'), () => this.onReset());
-                }
-            }
-            else
-            {
+                // if(!$('reset_button'))
+                // {
+                //     this.game.addActionButton('reset_button', _('Reset'), () => this.onReset());
+                // }
+            // }
+            // else
+            // {
                 this.game.directions_free = directions_free; //pass this along
-                //Since this the 2nd placement, we are good to go.
-                this.game.sendMovesToServer();
-            } 
+                this.game.sendTrackPlacementToServer();
+            //} 
  
              
          },

@@ -36,25 +36,27 @@ class action_linenumberone extends APP_GameAction
       self::trace("Complete reinitialization of board game");
     }
   }
-  public function placeTracks()
+
+  //public function placeTracks()
+  public function placeTrack()
   {
     self::setAjaxMode();
     $r1 = self::getArg("r1", AT_posint, true);
     $x1 = self::getArg("x1", AT_posint, true);
     $y1 = self::getArg("y1", AT_posint, true);
     $c1 = self::getArg("c1", AT_posint, true);
-    $directions_free1 = self::getArg("directions_free1", AT_alphanum, true);
-    $availableCards1 = self::getArg("availableCards1",AT_numberlist, true);
-    $availableCardsOwner1 = self::getArg("availableCardsOwner1", AT_posint, true);
-    $r2 = self::getArg("r2", AT_posint, true);
-    $x2 = self::getArg("x2", AT_posint, true);
-    $y2 = self::getArg("y2", AT_posint, true);
-    $c2 = self::getArg("c2", AT_posint, true);
-    $directions_free2 = self::getArg("directions_free2", AT_alphanum, true);
-    $availableCards2 = self::getArg("availableCards2",AT_numberlist, true);
-    $availableCardsOwner2 = self::getArg("availableCardsOwner2", AT_posint, true);
+    $directions_free = self::getArg("directions_free", AT_alphanum, true);
+    $availableCards = self::getArg("availableCards",AT_numberlist, true);
+    $availableCardsOwner = self::getArg("availableCardsOwner", AT_posint, true);
+    // $r2 = self::getArg("r2", AT_posint, true);
+    // $x2 = self::getArg("x2", AT_posint, true);
+    // $y2 = self::getArg("y2", AT_posint, true);
+    // $c2 = self::getArg("c2", AT_posint, true);
+    // $directions_free2 = self::getArg("directions_free2", AT_alphanum, true);
+    // $availableCards2 = self::getArg("availableCards2",AT_numberlist, true);
+    // $availableCardsOwner2 = self::getArg("availableCardsOwner2", AT_posint, true);
     
-    $result = $this->game->placeTracks($r1, $x1, $y1, $c1, $directions_free1, $availableCards1, $availableCardsOwner1, $r2, $x2, $y2, $c2, $directions_free2, $availableCards2, $availableCardsOwner2);
+    $result = $this->game->placeTrack($r1, $x1, $y1, $c1, $directions_free, $availableCards, $availableCardsOwner);//, $r2, $x2, $y2, $c2, $directions_free2, $availableCards2, $availableCardsOwner2);
     self::ajaxResponse();
   }
 

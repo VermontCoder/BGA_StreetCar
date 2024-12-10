@@ -63,12 +63,12 @@ $machinestates = array(
     ),
 
     10 => array(
-        "name" => "placeTrack",
+        "name" => "firstAction",
         "description" => clienttranslate('${actplayer} must play a track part.'),
         "descriptionmyturn" => clienttranslate('${you} must play a track part.'),
         "type" => "activeplayer",
         "args" => "argPlayerTurn",
-        "possibleactions" => array('placeTrack','placeTrain'),
+        "possibleactions" => array('firstAction','placeTrain'),
         "transitions" => array("nextPlayer" => 11, "rollDice" => 12, "zombiePass" => 11)
     ),
 
@@ -77,7 +77,7 @@ $machinestates = array(
         "type" => "game",
         "action" => "stNextPlayer",
         "updateGameProgression" => true,
-        "transitions" => array("placeTrack" => 10, "rollDice" => 12, "cantPlay" => 11, "endGame" => 99)
+        "transitions" => array("firstAction" => 10, "rollDice" => 12, "cantPlay" => 11, "endGame" => 99)
     ),
     12 => array(
         "name" => "rollDice",

@@ -403,7 +403,7 @@ class LineNumberOne extends Table
         $players = self::getPlayersWithIDKey();
 
         if ($players[$player_id]['trainposition'] == NULL) {
-            $this->gamestate->nextState('placeTrack');
+            $this->gamestate->nextState('firstAction');
         } else {
             $this->gamestate->nextState('rollDice');
         }
@@ -425,9 +425,9 @@ class LineNumberOne extends Table
      * @param integer $x1 x Coord of first placed track
      * @param integer $y1 y Coord of first placed track
      * @param integer $c1 cardid of first placed track
-     * @param string $directions_free1 sides of placed track that have a track emerging from them. NWSE.
-     * @param string $availableCards1 what cards are remaining after the placement of these cards.
-     * @param integer $availableCardsOwner1 which player's deck are we looking at?
+     * @param string $directions_free sides of placed track that have a track emerging from them. NWSE.
+     * @param string $availableCards what cards are remaining after the placement of these cards.
+     * @param integer $availableCardsOwner which player's deck are we looking at?
      * @param integer $r2 rotation of 2nd placed track
      * @param integer $x2 x Coord of 2nd placed track
      * @param integer $y2 y Coord of 2nd placed track
@@ -436,30 +436,30 @@ class LineNumberOne extends Table
      * @param string $availableCards2 what cards are remaining after the placement of these cards.
      * @param integer $availableCardsOwner2 which player's deck are we looking at?
      */
-    function placeTracks($r1, $x1, $y1, $c1, $directions_free1, $availableCards1, $availableCardsOwner1, $r2, $x2, $y2, $c2, $directions_free2, $availableCards2, $availableCardsOwner2)
+    function placeTrack($r1, $x1, $y1, $c1, $directions_free, $availableCards, $availableCardsOwner) //, $r2, $x2, $y2, $c2, $directions_free2, $availableCards2, $availableCardsOwner2)
     {
-        $this->checkAction('placeTrack');
+        $this->checkAction('firstAction');
         //available cards comes in as a comma delimited string of numbers. Convert to array
-        $availableCards1 = array_map('intval', explode(',', $availableCards1));
-        $availableCards2 = array_map('intval', explode(',', $availableCards2));
+        $availableCards = array_map('intval', explode(',', $availableCards));
+        //$availableCards2 = array_map('intval', explode(',', $availableCards2));
 
         //We need to report back how many came from the stack so we can animate this.
-        $numFilled1 = $this->updateAndRefillAvailableCards($availableCards1, $availableCardsOwner1);
+        $numFilled = $this->updateAndRefillAvailableCards($availableCards, $availableCardsOwner);
         $numFilled2 = 0;
         //only update 2nd set of cards if the cards of two different players have been altered.
-        if ($availableCardsOwner1 != $availableCardsOwner2) {
-            $numFilled2 = $this->updateAndRefillAvailableCards($availableCards2, $availableCardsOwner2);
-        }
+        // if ($availableCardsOwner1 != $availableCardsOwner2) {
+        //     $numFilled2 = $this->updateAndRefillAvailableCards($availableCards2, $availableCardsOwner2);
+        // }
 
-        $numFilled = $numFilled1 + $numFilled2;
+        //$numFilled = $numFilled1 + $numFilled2;
 
         $stopToAdd = $this->addStop($x1, $y1);
-        $this->insertPiece($x1, $y1, $r1, $c1, $directions_free1, $stopToAdd);
+        $this->insertPiece($x1, $y1, $r1, $c1, $directions_free, $stopToAdd);
 
-        $stopToAdd = $this->addStop($x2, $y2);
-        $this->insertPiece($x2, $y2, $r2, $c2, $directions_free2, $stopToAdd);
+        // $stopToAdd = $this->addStop($x2, $y2);
+        // $this->insertPiece($x2, $y2, $r2, $c2, $directions_free2, $stopToAdd);
 
-        $tileLocations=json_encode(array_values([$x1.'_'.$y1,$x2.'_'.$y2]));
+        $tileLocations=json_encode(array_values([$x1.'_'.$y1]));
 
         //record location of placed pieces in database
         $sql = "UPDATE `player` SET `lasttileplacementlocation`='".$tileLocations."' WHERE `player_id`= ". self::getActivePlayerId();
@@ -471,12 +471,12 @@ class LineNumberOne extends Table
         //In the notify, inform the other players of which tiles were placed where for the animation
         //We are not concerned with final state from this data, that is coming across in other data field.
 
-        $placedTiles = [];
-        $placedTileDestination1 = 'square_' . scUtility::xy2key($x1, $y1);
-        $placedTileDestination2 = 'square_' . scUtility::xy2key($x2, $y2);
+        //$placedTiles = [];
+        $placedTileDestination = 'square_' . scUtility::xy2key($x1, $y1);
+        //$placedTileDestination2 = 'square_' . scUtility::xy2key($x2, $y2);
 
-        $placedTiles[] = ['card' => $c1, 'rotation' => $r1, 'ownerID' => $availableCardsOwner1, 'destination' => $placedTileDestination1, 'numFromStack' => $numFilled];
-        $placedTiles[] = ['card' => $c2, 'rotation' => $r2, 'ownerID' => $availableCardsOwner2, 'destination' => $placedTileDestination2, 'numFromStack' => 0];
+        $placedTile = ['card' => $c1, 'rotation' => $r1, 'ownerID' => $availableCardsOwner, 'destination' => $placedTileDestination, 'numFromStack' => $numFilled];
+        //$placedTiles[] = ['card' => $c2, 'rotation' => $r2, 'ownerID' => $availableCardsOwner2, 'destination' => $placedTileDestination2, 'numFromStack' => 0];
 
         self::notifyAllPlayers('placedTrack', clienttranslate('${player_name} placed tracks.'), array(
             'player_name' => $player_name,
@@ -484,7 +484,7 @@ class LineNumberOne extends Table
             'tracks' => self::getTracks(),
             'rotations' => self::getRotation(),
             'stops' => $stops,
-            'placedTiles' => $placedTiles,
+            'placedTile' => $placedTile,
         ));
 
         $players = self::getPlayers();
