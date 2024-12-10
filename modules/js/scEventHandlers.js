@@ -82,7 +82,7 @@ define([
             // Stop this event propagation
             dojo.stopEvent( evt );
             
-            if( !this.game.checkAction( 'firstAction' ))
+            if( !this.game.checkAction( 'placeTrack' ))
             {
                 return;
             }

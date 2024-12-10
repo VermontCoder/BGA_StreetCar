@@ -438,7 +438,9 @@ class LineNumberOne extends Table
      */
     function placeTrack($r1, $x1, $y1, $c1, $directions_free, $availableCards, $availableCardsOwner) //, $r2, $x2, $y2, $c2, $directions_free2, $availableCards2, $availableCardsOwner2)
     {
-        $this->checkAction('firstAction');
+        $this->checkAction('placeTrack');
+        $isFirstAction = $this->gamestate->state()['name'] == 'firstAction';
+        
         //available cards comes in as a comma delimited string of numbers. Convert to array
         $availableCards = array_map('intval', explode(',', $availableCards));
         //$availableCards2 = array_map('intval', explode(',', $availableCards2));
@@ -478,7 +480,7 @@ class LineNumberOne extends Table
         $placedTile = ['card' => $c1, 'rotation' => $r1, 'ownerID' => $availableCardsOwner, 'destination' => $placedTileDestination, 'numFromStack' => $numFilled];
         //$placedTiles[] = ['card' => $c2, 'rotation' => $r2, 'ownerID' => $availableCardsOwner2, 'destination' => $placedTileDestination2, 'numFromStack' => 0];
 
-        self::notifyAllPlayers('placedTrack', clienttranslate('${player_name} placed tracks.'), array(
+        self::notifyAllPlayers('placedTrack', clienttranslate('${player_name} a placed track.'), array(
             'player_name' => $player_name,
             'board' => self::getBoard(),
             'tracks' => self::getTracks(),
@@ -508,11 +510,17 @@ class LineNumberOne extends Table
                 )
             );
         }
-
-        $this->giveExtraTime(self::getActivePlayerID());
-
-        //goto next player
-        $this->gamestate->nextState('nextPlayer');
+       
+        if ($isFirstAction)
+        {
+            $this->gamestate->nextState('secondAction');
+        }
+        else
+        {
+             //goto next player
+             $this->giveExtraTime(self::getActivePlayerID());
+             $this->gamestate->nextState('nextPlayer');
+        }
     }
 
     function placeTrain($linenum, $trainStartNodeID, $trainEndNodeID)

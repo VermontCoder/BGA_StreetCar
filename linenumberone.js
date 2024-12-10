@@ -123,6 +123,7 @@ function (dojo, declare) {
             switch( stateName )
             {
                 case "firstAction":
+                case "secondAction":
                     this.selectedTrack = null;
                     this.isFirstSelection = true;
                     this.firstPlacementData = {};
@@ -237,6 +238,7 @@ function (dojo, declare) {
                 switch( stateName )
                 {
                     case 'firstAction':
+                    case 'secondAction':
                         if (this.scRouting.curRoute != null && this.scRouting.curRoute.isComplete)
                         {
                             this.addActionButton( 'begin_trip_button', _('Begin Inaugural Trip'), 'onBeginTrip');

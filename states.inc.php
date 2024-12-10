@@ -68,7 +68,17 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} must play a track part.'),
         "type" => "activeplayer",
         "args" => "argPlayerTurn",
-        "possibleactions" => array('firstAction','placeTrain'),
+        "possibleactions" => array('placeTrack','placeTrain'),
+        "transitions" => array("secondAction" => 15, "nextPlayer" => 11, "rollDice" => 12, "zombiePass" => 11)
+    ),
+    
+    15 => array(
+        "name" => "secondAction",
+        "description" => clienttranslate('${actplayer} must play a track part.'),
+        "descriptionmyturn" => clienttranslate('${you} must play a track part.'),
+        "type" => "activeplayer",
+        "args" => "argPlayerTurn",
+        "possibleactions" => array('placeTrack','placeTrain'),
         "transitions" => array("nextPlayer" => 11, "rollDice" => 12, "zombiePass" => 11)
     ),
 
