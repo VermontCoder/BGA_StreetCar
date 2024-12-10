@@ -144,7 +144,7 @@ class LineNumberOne extends Table
 
         // Create players
         // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
-        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, available_cards, linenum, goals, goalsfinished, trainposition, traindirection, endnodeids, dice, diceused, lasttileplacementlocation) VALUES ";
+        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, available_cards, linenum, goals, goalsfinished, trainposition, traindirection, endnodeids, dice, diceused, lasttileplacementinformation) VALUES ";
         $values = array();
         $cardindex = 0;
         foreach ($players as $player_id => $player) {
@@ -305,13 +305,13 @@ class LineNumberOne extends Table
     //@return array
     function getPlayers()
     {
-        $players = self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, traindirection,goals,goalsfinished,trainposition, endnodeids, laststopnodeid, dice, diceused, lasttileplacementlocation
+        $players = self::getObjectListFromDB("SELECT player_no play, player_id id, player_color color, player_name, player_score score, available_cards, linenum, traindirection,goals,goalsfinished,trainposition, endnodeids, laststopnodeid, dice, diceused, lasttileplacementinformation
                                            FROM player");
         for ($i = 0; $i < count($players); $i++) {
             $players[$i]['goals'] = json_decode($players[$i]['goals']);
             $players[$i]['goalsfinished'] = json_decode($players[$i]['goalsfinished']);
             $players[$i]['endnodeids'] = json_decode($players[$i]['endnodeids']);
-            $players[$i]['lasttileplacementlocation'] = json_decode($players[$i]['lasttileplacementlocation']);
+            $players[$i]['lasttileplacementinformation'] = json_decode($players[$i]['lasttileplacementinformation']);
         }
         return $players;
     }
@@ -440,45 +440,51 @@ class LineNumberOne extends Table
     {
         $this->checkAction('placeTrack');
         $isFirstAction = $this->gamestate->state()['name'] == 'firstAction';
-        
+
         //available cards comes in as a comma delimited string of numbers. Convert to array
         $availableCards = array_map('intval', explode(',', $availableCards));
-        //$availableCards2 = array_map('intval', explode(',', $availableCards2));
 
         //We need to report back how many came from the stack so we can animate this.
         $numFilled = $this->updateAndRefillAvailableCards($availableCards, $availableCardsOwner);
-        $numFilled2 = 0;
-        //only update 2nd set of cards if the cards of two different players have been altered.
-        // if ($availableCardsOwner1 != $availableCardsOwner2) {
-        //     $numFilled2 = $this->updateAndRefillAvailableCards($availableCards2, $availableCardsOwner2);
-        // }
 
         //$numFilled = $numFilled1 + $numFilled2;
 
         $stopToAdd = $this->addStop($x1, $y1);
         $this->insertPiece($x1, $y1, $r1, $c1, $directions_free, $stopToAdd);
 
-        // $stopToAdd = $this->addStop($x2, $y2);
-        // $this->insertPiece($x2, $y2, $r2, $c2, $directions_free2, $stopToAdd);
+        $placedTileDestination = 'square_' . scUtility::xy2key($x1, $y1);
 
-        $tileLocations=json_encode(array_values([$x1.'_'.$y1]));
-
-        //record location of placed pieces in database
-        $sql = "UPDATE `player` SET `lasttileplacementlocation`='".$tileLocations."' WHERE `player_id`= ". self::getActivePlayerId();
-        self::DbQuery($sql);
+        $placedTile = ['card' => $c1, 'rotation' => $r1, 'ownerID' => $availableCardsOwner, 'destination' => $placedTileDestination, 'numFromStack' => $numFilled];
+        $placedTiles = [];
 
         $player_name = self::getActivePlayerName();
+        $player_id =self::getActivePlayerId();
+
+        if (!$isFirstAction)
+        {
+            //we need to pull the previous information and add this to the new information
+            $players=$this->getPlayersWithIDKey();
+            $placedTiles = $players[$player_id]['lasttileplacementinformation'];
+
+            if ($placedTiles == null)
+            {
+                //There was an exchange first. There is only this tile placement.
+                $placedTiles = [];
+            }
+        }
+            
+        $placedTiles[] = $placedTile;    
+
+        //record location of placed pieces in database
+        $sql = "UPDATE `player` SET `lasttileplacementinformation`='".json_encode($placedTiles)."' WHERE `player_id`= ". $player_id;
+        self::DbQuery($sql);
+
+        
         $stops = self::getStops();
 
         //In the notify, inform the other players of which tiles were placed where for the animation
         //We are not concerned with final state from this data, that is coming across in other data field.
 
-        //$placedTiles = [];
-        $placedTileDestination = 'square_' . scUtility::xy2key($x1, $y1);
-        //$placedTileDestination2 = 'square_' . scUtility::xy2key($x2, $y2);
-
-        $placedTile = ['card' => $c1, 'rotation' => $r1, 'ownerID' => $availableCardsOwner, 'destination' => $placedTileDestination, 'numFromStack' => $numFilled];
-        //$placedTiles[] = ['card' => $c2, 'rotation' => $r2, 'ownerID' => $availableCardsOwner2, 'destination' => $placedTileDestination2, 'numFromStack' => 0];
 
         self::notifyAllPlayers('placedTrack', clienttranslate('${player_name} a placed track.'), array(
             'player_name' => $player_name,
@@ -563,7 +569,7 @@ class LineNumberOne extends Table
             $trainEndNodeIDs = [$trainEndNodeID, $nodes[1][0]];
         }
 
-        $sql = "UPDATE `player` SET trainposition='" . $trainStartNodeID . "', traindirection='" . $traindirection . "', endnodeids='" . json_encode(array_values($trainEndNodeIDs)) . "', laststopnodeid='" . $trainStartNodeID . "', lasttileplacementlocation = NULL where player_id=" . $player_id;
+        $sql = "UPDATE `player` SET trainposition='" . $trainStartNodeID . "', traindirection='" . $traindirection . "', endnodeids='" . json_encode(array_values($trainEndNodeIDs)) . "', laststopnodeid='" . $trainStartNodeID . "', lasttileplacementinformation = NULL where player_id=" . $player_id;
         self::DbQuery($sql);
 
         self::notifyAllPlayers('placedTrain', clienttranslate('${player_name} placed a train.'), array(
@@ -1024,6 +1030,12 @@ class LineNumberOne extends Table
         {
             //Add the new cards!
             $this->addCardsToDBStack([0,0,0,0,1,1,1,2,2,2,3,3,3,4,4,5,5,6,6,7,7,8,9,10,11]);
+        }
+
+        if( $from_version <= 2412081800 )
+        {
+            //Need to make column bigger to accomodate more information about lasttile.
+            self::applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player CHANGE COLUMN `lasttileplacementlocation` `lasttileplacementinformation` VARCHAR(255) DEFAULT NULL;");
         }
     }
 

@@ -378,12 +378,12 @@ function (dojo, declare) {
                 let highlightClass = 'highlight_'+player.color;
                 dojo.query('.'+highlightClass).removeClass(highlightClass);
 
-                if(player.id != this.player_id && player.lasttileplacementlocation != null) 
+                if(player.id != this.player_id && player.lasttileplacementinformation != null) 
                 {
                     //Show highlighting
-                    for (i=0; i < player.lasttileplacementlocation.length; i++)
+                    for (i=0; i < player.lasttileplacementinformation.length; i++)
                     {
-                        dojo.query('#square_'+player.lasttileplacementlocation[i]+ '> .track').addClass(highlightClass);
+                        dojo.query('#'+player.lasttileplacementinformation[i]['destination']+ '> .track').addClass(highlightClass);
                     }
                 }
             }
@@ -646,24 +646,13 @@ function (dojo, declare) {
             }
             
 
-            //animate tiles coming from stack to player board - all players
-            //numFromStack = placedTiles.length >0 ? placedTiles[0]['numFromStack'] : 0;
-
-            // for (i=0; i< numFromStack;i++)
-            // {
-                destination = 'overall_player_board_'+placedTile['ownerID'];
+            destination = 'overall_player_board_'+placedTile['ownerID'];
+            
+            dojo.place( this.format_block( 'jstpl_track_tile_back_animation', 
+            {
+                id: 'tile_back',
+            } ) , 'wrapper');
                 
-                dojo.place( this.format_block( 'jstpl_track_tile_back_animation', 
-                {
-                    id: 'tile_back',
-                } ) , 'wrapper');//stack_icon');
-                
-                //curZoom = this.scZoom.zoomLevelIdx;
-                //this.scZoom.setZoom(this.scZoom.zoomLevels.length-1, false);
-                this.slideToObjectAndDestroy('tile_back',destination);
-                //this.scZoom.setZoom(curZoom, false);
-            //}
-
            
             
             //update global gamestate
