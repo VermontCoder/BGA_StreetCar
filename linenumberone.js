@@ -80,8 +80,8 @@ function (dojo, declare) {
             this.rotation = 0;
             this.selectedTrack = null;
             this.firstPlacementData = {};
-            this.isFirstSelection = true;
             this.traceTrack = false;
+            
 
             // show stops
 
@@ -124,10 +124,33 @@ function (dojo, declare) {
             {
                 case "firstAction":
                 case "secondAction":
+                    var activePlayer = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.getActivePlayerId())[0];
+                    var lastTilePlacementInformation = activePlayer['lasttileplacementinformation'];
+
                     this.selectedTrack = null;
-                    this.isFirstSelection = true;
-                    this.firstPlacementData = {};
                     this.rotation = 0;
+                    if (lastTilePlacementInformation == null || stateName == 'firstAction')
+                    {
+                        this.firstPlacementData = null;
+                    }
+                    else
+                    {
+                         // r1 : this.firstPlacementData.rotation,
+                // x1 : this.firstPlacementData.posx,
+                // y1 : this.firstPlacementData.posy,
+                // c1 : this.firstPlacementData.selectedTrack.card,
+                // directions_free1 : this.firstPlacementData.directions_free,
+                        firstSelectedTrack =  {domID: 'track_',
+                            card: lastTilePlacementInformation[0].card,
+                            player_id: lastTilePlacementInformation[0].ownerID};
+                            
+                        this.firstPlacementData = {rotation : lastTilePlacementInformation[0].rotation,
+                                                posx: this.scUtility.extractXY(lastTilePlacementInformation[0].destination)['x'],
+                                                posy: this.scUtility.extractXY(lastTilePlacementInformation[0].destination)['y'],
+                                                selectedTrack: firstSelectedTrack,
+                                                directions_free: this.scUtility.getDirections_free(firstSelectedTrack, lastTilePlacementInformation[0].rotation) };
+                    }
+                    
 
                     //delay this to allow for animations.
                     setTimeout(function() {this.updateBoardState(args.args.players, args.args.stackCount)}.bind(this),450);

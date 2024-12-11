@@ -428,13 +428,7 @@ class LineNumberOne extends Table
      * @param string $directions_free sides of placed track that have a track emerging from them. NWSE.
      * @param string $availableCards what cards are remaining after the placement of these cards.
      * @param integer $availableCardsOwner which player's deck are we looking at?
-     * @param integer $r2 rotation of 2nd placed track
-     * @param integer $x2 x Coord of 2nd placed track
-     * @param integer $y2 y Coord of 2nd placed track
-     * @param integer $c2 cardid of 2nd placed track
-     * @param string $directions_free2 sides of 2nd placed track that have a track emerging from them. NWSE.
-     * @param string $availableCards2 what cards are remaining after the placement of these cards.
-     * @param integer $availableCardsOwner2 which player's deck are we looking at?
+   
      */
     function placeTrack($r1, $x1, $y1, $c1, $directions_free, $availableCards, $availableCardsOwner) //, $r2, $x2, $y2, $c2, $directions_free2, $availableCards2, $availableCardsOwner2)
     {
