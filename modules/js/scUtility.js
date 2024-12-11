@@ -53,17 +53,6 @@ return declare("bgagame.scUtility", null, {
             }
         },
 
-
-        /**
-         * The first placed track id is _0, the other _1
-         * @param {*} isFirstSelection 
-         * @returns {String} id for placed Track.
-         */
-        // getPlacedTrackId(isFirstSelection)
-        // {
-        //     return 'placed_track_' + (isFirstSelection ? "0" : "1");
-        // },
-
         /**
          * Returns True if tile coords are on the board, not the border.
          * @param {Int} row 

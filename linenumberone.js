@@ -124,47 +124,48 @@ function (dojo, declare) {
             {
                 case "firstAction":
                 case "secondAction":
-                    var activePlayer = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.getActivePlayerId())[0];
-                    var lastTilePlacementInformation = activePlayer['lasttileplacementinformation'];
-
                     this.selectedTrack = null;
                     this.rotation = 0;
-                    if (lastTilePlacementInformation == null || stateName == 'firstAction')
-                    {
-                        this.firstPlacementData = null;
-                    }
-                    else
-                    {
-                         // r1 : this.firstPlacementData.rotation,
-                // x1 : this.firstPlacementData.posx,
-                // y1 : this.firstPlacementData.posy,
-                // c1 : this.firstPlacementData.selectedTrack.card,
-                // directions_free1 : this.firstPlacementData.directions_free,
-                        firstSelectedTrack =  {domID: 'track_',
-                            card: lastTilePlacementInformation[0].card,
-                            player_id: lastTilePlacementInformation[0].ownerID};
-                            
-                        this.firstPlacementData = {rotation : lastTilePlacementInformation[0].rotation,
-                                                posx: this.scUtility.extractXY(lastTilePlacementInformation[0].destination)['x'],
-                                                posy: this.scUtility.extractXY(lastTilePlacementInformation[0].destination)['y'],
-                                                selectedTrack: firstSelectedTrack,
-                                                directions_free: this.scUtility.getDirections_free(firstSelectedTrack, lastTilePlacementInformation[0].rotation) };
-                    }
-                    
 
+                    if (this.isCurrentPlayerActive())
+                    {
+                        var activePlayer = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.getActivePlayerId())[0];
+                        var lastTilePlacementInformation = activePlayer['lasttileplacementinformation'];
+
+                        
+                        if (lastTilePlacementInformation == null || stateName == 'firstAction')
+                        {
+                            this.firstPlacementData = null;
+                        }
+                        else
+                        {
+                            firstSelectedTrack =  {domID: 'track_',
+                                card: parseInt(lastTilePlacementInformation[0].card),
+                                player_id: lastTilePlacementInformation[0].ownerID};
+                                
+                            this.firstPlacementData = {rotation : parseInt(lastTilePlacementInformation[0].rotation),
+                                                    posx: this.scUtility.extractXY(lastTilePlacementInformation[0].destination)['x'],
+                                                    posy: this.scUtility.extractXY(lastTilePlacementInformation[0].destination)['y'],
+                                                    selectedTrack: firstSelectedTrack,
+                                                    directions_free: this.scUtility.getDirections_free(firstSelectedTrack, lastTilePlacementInformation[0].rotation) };
+                            
+                            this.firstPlacementData.badDirections = this.scEventHandlers.fitCardOnBoard(lastTilePlacementInformation[0].destination,
+                                this.firstPlacementData.selectedTrack.card, 
+                                this.firstPlacementData.rotation,
+                                this.firstPlacementData.posx,
+                                this.firstPlacementData.posy);
+                        }
+                        //clear out previous clickhandlers, if they exist
+                        this.scEventHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
+                            //do it this way so we can later destroy the click handlers.
+                        for(x=1;x<=12;x++)
+                            for(y=1;y<=12;y++)
+                            { 
+                                this.scEventHandlers.onPlaceCardHandlers.push(dojo.connect($('square_'+x+'_'+y), 'onclick', this, 'onPlaceCard'));
+                            }
+                    }
                     //delay this to allow for animations.
                     setTimeout(function() {this.updateBoardState(args.args.players, args.args.stackCount)}.bind(this),450);
-
-                    //clear out previous clickhandlers, if they exist
-                    this.scEventHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
-                     //do it this way so we can later destroy the click handlers.
-                    for(x=1;x<=12;x++)
-                        for(y=1;y<=12;y++)
-                        { 
-                            this.scEventHandlers.onPlaceCardHandlers.push(dojo.connect($('square_'+x+'_'+y), 'onclick', this, 'onPlaceCard'));
-                        }
-                            
-                    
                     break;
                 case "rollDice":
                     console.log('rollDice');
@@ -251,8 +252,6 @@ function (dojo, declare) {
             { 
                 
                 dojo.place("<div id='extra_actions' class='extra_actions'></div>",'generalactions');
-                // j = this.format_block(jstpl_dice, {});
-                // alert(JSON.stringify(j));
                 dojo.place('<div id="dice" class="dice"></div>','extra_actions');
             }
                       
@@ -284,25 +283,13 @@ function (dojo, declare) {
         {
             availableCardsOwner = this.selectedTrack.player_id;
             availableCards = this.gamedatas.gamestate.args.players.filter(p =>parseInt(p.id)==availableCardsOwner)[0]['available_cards'];
-            
-            // availableCardsOwner2 = this.selectedTrack.player_id;
-            // availableCards2 = this.gamedatas.gamestate.args.players.filter(p =>parseInt(p.id)==availableCardsOwner2)[0]['available_cards'];
-
 
             //list of available cards cannot be sent as [0,2,3...], but as a comma delimited string of nums.
             //So we need to strip the brackets
             availableCards = availableCards.slice(1,availableCards.length-1);
-            //availableCards2 = availableCards2.slice(1,availableCards2.length-1);
 
             paramList =
             {   
-                // r1 : this.firstPlacementData.rotation,
-                // x1 : this.firstPlacementData.posx,
-                // y1 : this.firstPlacementData.posy,
-                // c1 : this.firstPlacementData.selectedTrack.card,
-                // directions_free1 : this.firstPlacementData.directions_free,
-                // availableCards1 : availableCards1,
-                // availableCardsOwner1  : availableCardsOwner1,
                 r1 : this.rotation,
                 x1 : this.posx,
                 y1 : this.posy,
@@ -325,18 +312,17 @@ function (dojo, declare) {
                 rotate:paramList.r1
             } ) , 'square_'+paramList.x1+"_"+paramList.y1);
 
-            // dojo.place( this.format_block( 'jstpl_track', {
-            //     id: "board_"+paramList.c2,
-            //     offsetx:-parseInt(paramList.c2)*100,
-            //     rotate:paramList.r2
-            // } ) , 'square_'+paramList.x2+"_"+paramList.y2);
-
             //remove temp track
             dojo.destroy('placed_track');
-            //dojo.destroy(this.scUtility.getPlacedTrackId(false));
 
-            //clear firstPlacementData
-            this.firstPlacementData = {};
+            //remove highlighting from previous placement, if it is there
+            if (this.firstPlacementData != null)
+            {
+                firstPlacementDiv = 'square_'+this.firstPlacementData.posx+'_'+this.firstPlacementData.posy;
+                dojo.style(firstPlacementDiv,"border-color",null);
+                dojo.removeClass(firstPlacementDiv,'track_placement');
+            }
+
             this.ajaxcall( "/linenumberone/linenumberone/placeTrack.html",paramList, this, function( result ) {} );
         },
 
@@ -676,7 +662,7 @@ function (dojo, declare) {
                 id: 'tile_back',
             } ) , 'wrapper');
                 
-           
+            this.slideToObjectAndDestroy('tile_back',destination);
             
             //update global gamestate
             this.gamedatas.gamestate.args.stops=notif.args.stops;

@@ -104,6 +104,8 @@ $gameinfos = array(
         'max' => null
     ),
 
+    'db_undo_support' => true,
+
 
     //////// BGA SANDBOX ONLY PARAMETERS (DO NOT MODIFY)
 
