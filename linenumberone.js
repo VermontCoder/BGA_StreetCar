@@ -633,13 +633,9 @@ function (dojo, declare) {
             }
 
             //animate tiles coming from board to player board for non-current players.
-           
-            //check to see if new tiles to player's hand are coming from the board or the stack
-            //animate appropriately.
-            underlyingTrack = dojo.query('#'+placedTile['destination']+ ' > .track');
             destination = 'overall_player_board_'+placedTile['ownerID'];
                 
-            if (!this.isCurrentPlayerActive() && underlyingTrack.length > 0)
+            if (!this.isCurrentPlayerActive() && notif.args.isSwap)
             {
                 //tile is coming from board. Already animated for current player
                 //extract data about underlying tile and move the copy. Moving current tile is proving buggy.
@@ -660,15 +656,19 @@ function (dojo, declare) {
             }
             
 
-            destination = 'overall_player_board_'+placedTile['ownerID'];
             
-            dojo.place( this.format_block( 'jstpl_track_tile_back_animation', 
+            //animate tile coming from stack to player board - after secondAction
+            if (this.gamedatas.gamestate.name != "firstAction" && !notif.args.isSwap)
             {
-                id: 'tile_back',
-            } ) , 'wrapper');
-                
-            this.slideToObjectAndDestroy('tile_back',destination);
-            
+                destination = 'overall_player_board_'+placedTile['ownerID'];
+                dojo.place( this.format_block( 'jstpl_track_tile_back_animation', 
+                {
+                    id: 'tile_back',
+                } ) , 'wrapper');
+                    
+                this.slideToObjectAndDestroy('tile_back',destination);
+            }
+
             //update global gamestate
             this.gamedatas.gamestate.args.stops=notif.args.stops;
             this.gamedatas.gamestate.args.rotations=notif.args.rotations;
@@ -702,9 +702,6 @@ function (dojo, declare) {
             if (this.isCurrentPlayerActive())
             {
                 this.scRouting.curRoute = (notif.args.routes==null) ? null : notif.args.routes[0];
-
-                //TO DO animate train moving using this.scRouting.curRoute = notif.args.moveRoute;
-                
                 this.scRouting.showRoute();
             }
             this.animateTrainMovement(notif.args.player_id,notif.args.moveRoute,notif.args.traindirection);

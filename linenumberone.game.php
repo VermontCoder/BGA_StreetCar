@@ -479,7 +479,6 @@ class LineNumberOne extends Table
         //In the notify, inform the other players of which tiles were placed where for the animation
         //We are not concerned with final state from this data, that is coming across in other data field.
 
-
         self::notifyAllPlayers('placedTrack', clienttranslate('${player_name} a placed track.'), array(
             'player_name' => $player_name,
             'board' => self::getBoard(),
@@ -487,6 +486,7 @@ class LineNumberOne extends Table
             'rotations' => self::getRotation(),
             'stops' => $stops,
             'placedTile' => $placedTile,
+            'isSwap' => $numFilled ==0,
         ));
 
         $players = self::getPlayers();
@@ -804,7 +804,7 @@ class LineNumberOne extends Table
         {
             $newHand = $this->refillHand($available_cards);
         }
-        
+
         $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($newHand)) . "' WHERE player_id = " . $player_id . ";";
         self::DbQuery($sql);
 
