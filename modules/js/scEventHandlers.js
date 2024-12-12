@@ -513,6 +513,8 @@ define([
            dojo.query(".selectable_tile").removeClass('selectable_tile');
            this.onSelectedNodeHandlers.forEach(dojo.disconnect);
 
+           this.game.removeFirstPlacedTrackStyling();
+
             players = this.game.gamedatas.gamestate.args.players;
             linenum = parseInt(players.filter(p =>p.id==this.game.player_id)[0]['linenum']);
             this.game.ajaxcall( "/linenumberone/linenumberone/placeTrain.html",{linenum: linenum, trainStartNodeID: trainStartNodeID, trainEndNodeID: trainEndNodeID}, this.game, function( result ) {} );

@@ -439,7 +439,7 @@ class LineNumberOne extends Table
         $availableCards = array_map('intval', explode(',', $availableCards));
 
         //We need to report back how many came from the stack so we can animate this.
-        $numFilled = $this->updateAndRefillAvailableCards($availableCards, $availableCardsOwner);
+        $numFilled = $this->updateAndRefillAvailableCards($availableCards, $availableCardsOwner, $isFirstAction);
 
         //$numFilled = $numFilled1 + $numFilled2;
 
@@ -796,9 +796,15 @@ class LineNumberOne extends Table
         return scRoute::getShortestRoutes($routes);
     }
 
-    function updateAndRefillAvailableCards($available_cards, $player_id)
+    function updateAndRefillAvailableCards($available_cards, $player_id, $isFirstAction)
     {
-        $newHand = $this->refillHand($available_cards);
+        $newHand = $available_cards;
+        
+        if (!$isFirstAction)
+        {
+            $newHand = $this->refillHand($available_cards);
+        }
+        
         $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($newHand)) . "' WHERE player_id = " . $player_id . ";";
         self::DbQuery($sql);
 
@@ -821,8 +827,10 @@ class LineNumberOne extends Table
         $stackindex += $numNewCards;
         $this->globals->set(STACK_INDEX, $stackindex);
 
+
         //check if we need to refill - stack index will continue to rise even after stack depleted, leading to negative $numNewCards.
         //when that happens, just don't do any refill.
+        
         if ($numNewCards <= 0) return $available_cards;
 
 

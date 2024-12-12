@@ -314,7 +314,14 @@ function (dojo, declare) {
 
             //remove temp track
             dojo.destroy('placed_track');
+            this.removeFirstPlacedTrackStyling();
+            
 
+            this.ajaxcall( "/linenumberone/linenumberone/placeTrack.html",paramList, this, function( result ) {} );
+        },
+
+        removeFirstPlacedTrackStyling()
+        {
             //remove highlighting from previous placement, if it is there
             if (this.firstPlacementData != null)
             {
@@ -322,8 +329,6 @@ function (dojo, declare) {
                 dojo.style(firstPlacementDiv,"border-color",null);
                 dojo.removeClass(firstPlacementDiv,'track_placement');
             }
-
-            this.ajaxcall( "/linenumberone/linenumberone/placeTrack.html",paramList, this, function( result ) {} );
         },
 
         /**
