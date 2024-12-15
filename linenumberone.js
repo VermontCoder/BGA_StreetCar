@@ -139,22 +139,25 @@ function (dojo, declare) {
                         }
                         else
                         {
-                            firstSelectedTrack =  {domID: 'track_',
-                                card: parseInt(lastTilePlacementInformation[0].card),
-                                player_id: lastTilePlacementInformation[0].ownerID};
-                                
+                            // firstSelectedTrack =  {domID: 'track_',
+                            //     card: parseInt(lastTilePlacementInformation[0].card),
+                            //     player_id: lastTilePlacementInformation[0].ownerID};
+
                             this.firstPlacementData = {rotation : parseInt(lastTilePlacementInformation[0].rotation),
                                                     posx: this.scUtility.extractXY(lastTilePlacementInformation[0].destination)['x'],
                                                     posy: this.scUtility.extractXY(lastTilePlacementInformation[0].destination)['y'],
-                                                    selectedTrack: firstSelectedTrack,
-                                                    directions_free: this.scUtility.getDirections_free(firstSelectedTrack, lastTilePlacementInformation[0].rotation) };
+                                                    card: parseInt(lastTilePlacementInformation[0].card)};
+
                             
                             this.firstPlacementData.badDirections = this.scEventHandlers.fitCardOnBoard(lastTilePlacementInformation[0].destination,
-                                this.firstPlacementData.selectedTrack.card, 
-                                this.firstPlacementData.rotation,
+                                this.firstPlacementData.card, 
+                                this.firstPlacementData.rotation, //The card has been rotated already in the database, so we send 0 to fitCardOnBoard
                                 this.firstPlacementData.posx,
                                 this.firstPlacementData.posy);
+
+                            if (this.firstPlacementData.badDirections.length !=0) dojo.destroy('begin_trip_button');
                         }
+
                         //clear out previous clickhandlers, if they exist
                         this.scEventHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
                             //do it this way so we can later destroy the click handlers.
@@ -266,6 +269,7 @@ function (dojo, declare) {
                             this.addActionButton( 'begin_trip_button', _('Begin Inaugural Trip'), 'onBeginTrip');
                         }
                         break;
+
                     case 'rollDice':
                         //These buttons just move us into next state.
                         this.addActionButton( 'roll_dice_button', _('Roll Dice'), 'onRollDice');

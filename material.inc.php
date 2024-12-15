@@ -378,7 +378,7 @@ $this->initialStops = array(
     "row" => 6,
     "col" => 9,
     "building" => 1,
-    "name" => _("Kindergarden"),
+    "name" => _("Kindergarten"),
     "code" => "K"
   ),
   array(

@@ -73,6 +73,7 @@ class scConnectivityGraph
         $dataIdx = $data['rotation']/90;
         $card = $data['card'];
         $connectivityInfo = $this->game->tracks[$card][$dataIdx];
+        
 
         //Iterate through connectivityInfo, creating nodes based on it
         foreach($connectivityInfo as $enteringDirection => $exitingDirections)
@@ -90,8 +91,15 @@ class scConnectivityGraph
                 
                 if (isset($this->board[$targetID]))
                 { 
-                    $targetNodeID = $targetID.'_'.scUtility::get180($exitingDirection);
-                    $connectivityGraph[$curNodeID][] = $targetNodeID;
+                    $directions_free = $this->board[$targetID]['directions_free'];
+                    $targetIDDirection = scUtility::get180($exitingDirection);
+
+                    //check if targetNode can trace back to source node: i.e. this could be a temporary illegal placement.
+                    if (str_contains($directions_free , $targetIDDirection ))
+                    {
+                      $targetNodeID = $targetID.'_'. $targetIDDirection;
+                      $connectivityGraph[$curNodeID][] = $targetNodeID;
+                    }
                 }
             }
         }

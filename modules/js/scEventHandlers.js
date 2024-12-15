@@ -185,11 +185,12 @@ define([
         fitCardOnBoard(cardDivID, card, rotation, posx, posy)
         {
             dojo.destroy('place_card_action_button');
+            directions_free = this.scUtility.getDirections_free(this.game.gamedatas.tracks[card][0], rotation);
 
-            badDirections = this.fitTrack(card, rotation, parseInt(posx), parseInt(posy));
-           
+            badDirections = this.fitTrack(card, rotation, directions_free, parseInt(posx), parseInt(posy));
             dojo.addClass(cardDivID, 'track_placement');
             borderColorString = '';
+
             if (badDirections.includes('x'))
             {
                 //track on board is not compatible with track being placed
@@ -199,10 +200,15 @@ define([
             { 
                 //color border green if the direction is ok, red if not.
                 this.nesw.forEach((direction,idx) => {
-                    //so the borders of the card are *also* rotated.
-                    //that means we have to conform to the rotated position when creating the borderColorString
-                    rotationOffset = rotation/90;
-                    direction = this.nesw[(idx + rotationOffset)%4];
+
+                    if ($(cardDivID).style.transform.includes('rotate'))
+                    {
+                        //so the borders of the card are *also* rotated.
+                        //that means we have to conform to the rotated position when creating the borderColorString
+                        rotationOffset = rotation/90;
+                        direction = this.nesw[(idx + rotationOffset)%4];
+                    }
+
                     if (badDirections.includes(direction))
                     {
                         borderColorString += 'red ';
@@ -223,9 +229,8 @@ define([
         //If yes, an empty array is returned.
         //If no the cardinal directions which are not a good fit are returned.
         //If placed on an existing track and it does not conform to the directions, function returns 'x'
-        fitTrack(card, rotation, x, y)
+        fitTrack(card, rotation, directions_free, x, y)
         {
-            directions_free = this.scUtility.getDirections_free(this.game.gamedatas.tracks[card][0], rotation);
             badDirections = [];
            
             if(this.game.gamedatas.gamestate.args.board[x][y] !='[]') 
