@@ -142,7 +142,7 @@ class scRoute
         $mergedRoute->isComplete = ($this->isComplete || $otherRoute->isComplete);
 
         //IMPORTANT: For this to work, we now need to alter the last node of the original route to point to the child of the start of the other route.
-        $mergedRoute->routeNodes[$this->endNodeID.'_'.$this->routeID] = $otherRoute->routeNodes[$otherRoute->startNodeID.'_'.$otherRoute->routeID];
+        $mergedRoute->routeNodes[$this->_getLastRouteNode()] = $otherRoute->routeNodes[$otherRoute->startNodeID.'_'.$otherRoute->routeID];
 
         //remove the start node of the other route.
         unset($mergedRoute->routeNodes[$otherRoute->startNodeID.'_'.$otherRoute->routeID]);
@@ -150,6 +150,16 @@ class scRoute
 
     }
 
+
+    private function _getLastRouteNode()
+    {
+        if ($this->isEmpty()) return null;
+
+        foreach($this->routeNodes as $node)
+        {
+            if (!isset($this->routeNodes[$node])) return $node;
+        }
+    }
     /**
      * Gets both the stop or terminal on the route, if present, and records a lastStopNodeID to be inserted into the database if this stop or a terminal node is passed through.
      * @return array 'stop' => stop letter on route, null if none, 'lastStopNodeID' => if there was a stop or terminal node on the route, it is recorded here, otherwise null
