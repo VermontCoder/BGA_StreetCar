@@ -387,8 +387,9 @@
 .highlight_ffa500 {margin-top: -2px; margin-left: -2px; z-index: 3; border: 2px dashed #ffa500;}
 .highlight_773300 {margin-top: -2px; margin-left: -2px; z-index: 3; border: 2px dashed #773300;}
 
-#reset {
-  margin-right: 20px;
+#button_undo {
+  background-color: red;
+  background-image: none;
 }
 
 @keyframes blink {

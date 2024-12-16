@@ -403,6 +403,8 @@ class LineNumberOne extends Table
         $players = self::getPlayersWithIDKey();
 
         if ($players[$player_id]['trainposition'] == NULL) {
+                 
+            $this->undoSavepoint();
             $this->gamestate->nextState('firstAction');
         } else {
             $this->gamestate->nextState('rollDice');
@@ -755,6 +757,12 @@ class LineNumberOne extends Table
         } else {
             $this->gamestate->nextState('rollDice');
         }
+    }
+
+    public function undo() {
+        $this->dump('Restoring','');
+        $this->undoRestorePoint();
+        $this->gamestate->nextState('firstAction');
     }
 
     //*********************************************** */

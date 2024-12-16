@@ -69,7 +69,7 @@ $machinestates = array(
         "type" => "activeplayer",
         "args" => "argPlayerTurn",
         "possibleactions" => array('placeTrack','placeTrain'),
-        "transitions" => array("secondAction" => 15, "nextPlayer" => 11, "rollDice" => 12, "zombiePass" => 11)
+        "transitions" => array("secondAction" => 15, "firstAction"=>10, "nextPlayer" => 11, "rollDice" => 12, "zombiePass" => 11)
     ),
     
     15 => array(
@@ -79,7 +79,7 @@ $machinestates = array(
         "type" => "activeplayer",
         "args" => "argPlayerTurn",
         "possibleactions" => array('placeTrack','placeTrain'),
-        "transitions" => array("nextPlayer" => 11, "rollDice" => 12, "zombiePass" => 11)
+        "transitions" => array("nextPlayer" => 11, "firstAction" => 10, "rollDice" => 12, "zombiePass" => 11)
     ),
 
     11 => array(

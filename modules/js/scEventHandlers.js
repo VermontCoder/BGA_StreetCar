@@ -429,14 +429,6 @@ define([
                 //make the tile unrotatable.
                 dojo.disconnect(this.rotationClickHandler);
 
-                //add ability to reset turn
-                // if(!$('reset_button'))
-                // {
-                //     this.game.addActionButton('reset_button', _('Reset'), () => this.onReset());
-                // }
-            // }
-            // else
-            // {
                 this.game.directions_free = directions_free; //pass this along
                 this.game.sendTrackPlacementToServer();
             //} 
@@ -482,7 +474,7 @@ define([
             dojo.destroy('place_card_action_button');
             dojo.destroy('begin_trip_button');
             
-            this.game.addActionButton('reset_button', _('Reset'), () => this.onReset());
+            game.addActionButton('button_undo', _('Undo'), () => this.onUndo(game), undefined, undefined, 'red');
             $('pagemaintitletext').innerHTML = _('Select train starting location.');
 
             //remove click ability on all the board squares
@@ -544,14 +536,24 @@ define([
             scRouting.showRoute();
         },
          /*********************************************************************************** */
-        /*             RESET                                                                  */
+        /*             UNDO                                                                  */
         /*********************************************************************************** */
 
-        onReset()
+        onUndo(game)
         {   
-            //reload page.
-            dojo.destroy('reset_button')
-            location.reload();
+            dojo.destroy('undo_button')
+            game.ajaxcall(
+                "/" + game.game_name + "/" + game.game_name + "/Undo.html",
+                [],
+                game,
+                (result) => {},
+                (err) => {
+                  if (err) return;
+                  $('pagemaintitletext').innerHTML = _("Undo requested...");
+                  dojo.empty("generalactions");
+                },
+                true
+              );
         },
 
         /*********************************************************************************** */

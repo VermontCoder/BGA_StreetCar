@@ -139,10 +139,6 @@ function (dojo, declare) {
                         }
                         else
                         {
-                            // firstSelectedTrack =  {domID: 'track_',
-                            //     card: parseInt(lastTilePlacementInformation[0].card),
-                            //     player_id: lastTilePlacementInformation[0].ownerID};
-
                             this.firstPlacementData = {rotation : parseInt(lastTilePlacementInformation[0].rotation),
                                                     posx: this.scUtility.extractXY(lastTilePlacementInformation[0].destination)['x'],
                                                     posy: this.scUtility.extractXY(lastTilePlacementInformation[0].destination)['y'],
@@ -160,7 +156,8 @@ function (dojo, declare) {
 
                         //clear out previous clickhandlers, if they exist
                         this.scEventHandlers.onPlaceCardHandlers.forEach( dojo.disconnect);
-                            //do it this way so we can later destroy the click handlers.
+                        
+                        //do it this way so we can later destroy the click handlers.
                         for(x=1;x<=12;x++)
                             for(y=1;y<=12;y++)
                             { 
@@ -268,6 +265,11 @@ function (dojo, declare) {
                         {
                             this.addActionButton( 'begin_trip_button', _('Begin Inaugural Trip'), 'onBeginTrip');
                         }
+
+                        if (stateName == 'secondAction')
+                        {
+                            this.addActionButton('button_undo', _('Undo'), () => this.onUndo(), undefined, undefined, 'red');
+                        }
                         break;
 
                     case 'rollDice':
@@ -304,7 +306,7 @@ function (dojo, declare) {
             };
             
             //clear buttons
-            dojo.destroy('reset_button');
+            dojo.destroy('undo_button');
             dojo.destroy('begin_trip_button');
             
             $('pagemaintitletext').innerHTML = 'Sending move to server...';
@@ -800,6 +802,11 @@ function (dojo, declare) {
         onBeginTrip()
         {
             this.scEventHandlers.onBeginTrip(this);
+        },
+
+        onUndo()
+        {
+            this.scEventHandlers.onUndo(this);
         },
 
         onToggleShowRoute(evt)
