@@ -1,5 +1,5 @@
 {OVERALL_GAME_HEADER}
-
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:700">
 <div id="wrapper" style="transform-origin: top left; translateX:-100%;">
     
     <div id="board" class="board_wrap bg_img"> 
