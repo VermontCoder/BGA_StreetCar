@@ -58,7 +58,6 @@ class scTrainDestinationsSolver
             {
                 foreach($storedRoutes as $idx=>$route)
                 {
-                    $this->game->dump('route3',$route);
                     if ($route->endNodeID == $destinationNode)
                     {
                         $moveRoute = scRoute::JSON2Route($route);
@@ -295,10 +294,11 @@ class scTrainDestinationsSolver
         $possibleMoves = [];
         $nextNodeIDs = $this->moveAheadOne($curTrainNodeID,$player,$stops);
 
-        //if moving ahead one results in a win, it will be in the $nextNodeIDs array
+        //if moving ahead one results in a win, it will be in the $nextNodeIDs array and the player will have completed his goals
+        
         $nextMoveWin = array_intersect($nextNodeIDs,$player['endnodeids']);
-
-        if (count($nextMoveWin) > 0 )  return $nextMoveWin; //player has won
+        
+        if (count($nextMoveWin) > 0 && count($player['goals']) ==0) return $nextMoveWin; //player has won
         $stopsLocations = scUtility::getStopsLocations($stops);
 
         foreach($nextNodeIDs as $nextNodeID)
