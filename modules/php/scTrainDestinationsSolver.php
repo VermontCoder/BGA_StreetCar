@@ -121,6 +121,7 @@ class scTrainDestinationsSolver
         $this->game->DbQuery($sql);
 
         //step 5 - return routes and traindirection.
+        $this->game->dump('out3', ['moveRoute'=> $moveRoute, 'routes'=> $routes,'direction'=>$direction]);
 
         return ['moveRoute'=> $moveRoute, 'routes'=> $routes,'direction'=>$direction];
     }
@@ -140,6 +141,14 @@ class scTrainDestinationsSolver
         foreach($possibleAdjacentNodes as $node)
         {
             $altRoute = $this->scRouteFinder->findShortestRoute($moveRoute->startNodeID, $node);
+
+            //check for winning in one move
+            if (scUtility::hasPlayerWon($node,$player))
+            {
+                $moveRoute = $altRoute;
+                return;
+            }
+            
             $altStopOnRoute = $altRoute->getStopOnRoute($stopsLocations);
     
             //if we find a stop on the next node, route this way.
