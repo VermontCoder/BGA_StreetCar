@@ -298,7 +298,11 @@ class scTrainDestinationsSolver
         
         $nextMoveWin = array_intersect($nextNodeIDs,$player['endnodeids']);
         
-        if (count($nextMoveWin) > 0 && count($player['goals']) ==0) return $nextMoveWin; //player has won
+        if (count($nextMoveWin) > 0 && count($player['goals']) ==0)
+        {
+            return array(reset($nextMoveWin)); //player has won
+        }
+         
         $stopsLocations = scUtility::getStopsLocations($stops);
 
         foreach($nextNodeIDs as $nextNodeID)

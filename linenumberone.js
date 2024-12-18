@@ -592,6 +592,7 @@ function (dojo, declare) {
                 
                 this.selectedNodes = [];
                 this.scEventHandlers.onSelectedNodeHandlers.forEach(dojo.disconnect);
+                
                 nodeIDs.forEach(nodeID => {
                     xydNode = this.scUtility.extractXYD(nodeID);
                     this.selectedNodes.push(xydNode); //save direction info.

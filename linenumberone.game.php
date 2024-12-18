@@ -760,7 +760,6 @@ class LineNumberOne extends Table
     }
 
     public function undo() {
-        $this->dump('Restoring','');
         $this->undoRestorePoint();
         $this->gamestate->nextState('firstAction');
     }
