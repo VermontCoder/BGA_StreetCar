@@ -424,21 +424,19 @@ class LineNumberOne extends Table
     {
         $this->checkAction('placeTrack');
         $isFirstAction = $this->gamestate->state()['name'] == 'firstAction';
+        $players=$this->getPlayersWithIDKey();
 
         //available cards comes in as a comma delimited string of numbers. Convert to array
         $availableCards = array_map('intval', explode(',', $availableCards));
 
-        //We need to report back how many came from the stack so we can animate this.
-        $numFilled = $this->updateAndRefillAvailableCards($availableCards, $availableCardsOwner, $isFirstAction);
-
-        //$numFilled = $numFilled1 + $numFilled2;
+        $this->updateAvailableCards($availableCards, $availableCardsOwner);
 
         $stopToAdd = $this->addStop($x1, $y1);
         $this->insertPiece($x1, $y1, $r1, $c1, $directions_free, $stopToAdd);
 
         $placedTileDestination = 'square_' . scUtility::xy2key($x1, $y1);
 
-        $placedTile = ['card' => $c1, 'rotation' => $r1, 'ownerID' => $availableCardsOwner, 'destination' => $placedTileDestination, 'numFromStack' => $numFilled];
+        $placedTile = ['card' => $c1, 'rotation' => $r1, 'ownerID' => $availableCardsOwner, 'destination' => $placedTileDestination];
         $placedTiles = [];
 
         $player_name = self::getActivePlayerName();
@@ -447,14 +445,7 @@ class LineNumberOne extends Table
         if (!$isFirstAction)
         {
             //we need to pull the previous information and add this to the new information
-            $players=$this->getPlayersWithIDKey();
             $placedTiles = $players[$player_id]['lasttileplacementinformation'];
-
-            if ($placedTiles == null)
-            {
-                //There was an exchange first. There is only this tile placement.
-                $placedTiles = [];
-            }
         }
             
         $placedTiles[] = $placedTile;    
@@ -468,6 +459,7 @@ class LineNumberOne extends Table
 
         //In the notify, inform the other players of which tiles were placed where for the animation
         //We are not concerned with final state from this data, that is coming across in other data field.
+        
 
         self::notifyAllPlayers('placedTrack', clienttranslate('${player_name} a placed track.'), array(
             'player_name' => $player_name,
@@ -476,10 +468,12 @@ class LineNumberOne extends Table
             'rotations' => self::getRotation(),
             'stops' => $stops,
             'placedTile' => $placedTile,
-            'isSwap' => $numFilled ==0,
+            'isSwap' => count($availableCards) == count(json_decode($players[$availableCardsOwner]['available_cards']))
         ));
 
+        //this is an now an updated list of player info
         $players = self::getPlayers();
+
         $this->cGraph = new scConnectivityGraph($this);
 
         foreach ($players as $player) {
@@ -507,6 +501,8 @@ class LineNumberOne extends Table
         }
         else
         {
+            $this->refillAllHands($players);
+           
              //goto next player
              $this->giveExtraTime(self::getActivePlayerID());
              $this->gamestate->nextState('nextPlayer');
@@ -791,20 +787,24 @@ class LineNumberOne extends Table
         return scRoute::getShortestRoutes($routes);
     }
 
-    function updateAndRefillAvailableCards($available_cards, $player_id, $isFirstAction)
-    {
-        $newHand = $available_cards;
-        
-        if (!$isFirstAction)
-        {
-            $newHand = $this->refillHand($available_cards);
-        }
-
-        $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($newHand)) . "' WHERE player_id = " . $player_id . ";";
+    function updateAvailableCards($available_cards, $player_id)
+    {   
+        $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($available_cards)) . "' WHERE player_id = " . $player_id . ";";
         self::DbQuery($sql);
+    }
 
-        $numFilled = count($newHand) - count($available_cards);
-        return $numFilled;
+    function refillAllHands($players)
+    {
+        foreach ($players as $player) 
+        {
+            //refill hand
+            $available_cards = json_decode($player['available_cards']);
+
+            $newHand = $this->refillHand($available_cards);
+            if ($newHand != $available_cards) {
+                $this->updateAvailableCards($newHand, $player['id']);
+            }
+        }
     }
 
     function refillHand($available_cards)

@@ -32,7 +32,7 @@ define([
         /*********************************************************************************** */
 
         /**
-         * Fires when player selects a card from the player board (can be someone elses, if stack depleted.)
+         * Fires when player selects a card from the player board (can be someone elses)
          * @param {*} evt - click evt engendering this event.
          * @param {*} game - reference to the game object - not sure why, but we need to pass it.
          */
@@ -92,12 +92,12 @@ define([
                 return;
             }
             
-            stackLen = this.game.gamedatas.gamestate.args.stackCount;
-            if(this.game.selectedTrack.player_id != this.game.getActivePlayerId() && stackLen >0)
-            {
-                this.game.showMessage( _("You cannot play with other player's tiles until the tile stack is depleted."), 'error');	
-                return;
-            }
+            // stackLen = this.game.gamedatas.gamestate.args.stackCount;
+            // if(this.game.selectedTrack.player_id != this.game.getActivePlayerId() && stackLen >0)
+            // {
+            //     this.game.showMessage( _("You cannot play with other player's tiles until the tile stack is depleted."), 'error');	
+            //     return;
+            // }
 
             var coords = evt.currentTarget.id.split('_');
             if ( this.game.firstPlacementData != null && 
@@ -321,6 +321,7 @@ define([
             {
                 //Allow the placement with one bad direction. The user could fix it next placement.
                 this.game.addActionButton( 'place_card_action_button', _('Place track'), () => this.onPlacedCard() );
+                dojo.place('place_card_action_button','generalactions',1);
 
                 if (badDirections.length == 1)
                 {
@@ -336,6 +337,7 @@ define([
                 if (badDirections.length == 0 && this.game.firstPlacementData.badDirections.length == 0)
                 {
                     this.game.addActionButton( 'place_card_action_button', _('Place track'), () => this.onPlacedCard() );
+                    dojo.place('place_card_action_button','generalactions',1);
                     return;
                 }
 
@@ -362,6 +364,7 @@ define([
                     if (showPlaceActionButton)
                     {
                         this.game.addActionButton( 'place_card_action_button', _('Place track'), () => this.onPlacedCard() );
+                        dojo.place('place_card_action_button','generalactions',1);
                         return;
                     }
                     
@@ -473,6 +476,7 @@ define([
             //setup ui to record person's choice of train start
             dojo.destroy('place_card_action_button');
             dojo.destroy('begin_trip_button');
+            dojo.destroy('button_undo');
             
             game.addActionButton('button_undo', _('Undo'), () => this.onUndo(game), undefined, undefined, 'red');
             $('pagemaintitletext').innerHTML = _('Select train starting location.');
@@ -541,7 +545,7 @@ define([
 
         onUndo(game)
         {   
-            dojo.destroy('undo_button')
+            dojo.destroy('button_undo');
             game.ajaxcall(
                 "/" + game.game_name + "/" + game.game_name + "/Undo.html",
                 [],

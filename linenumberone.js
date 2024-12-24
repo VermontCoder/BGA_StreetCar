@@ -306,7 +306,7 @@ function (dojo, declare) {
             };
             
             //clear buttons
-            dojo.destroy('undo_button');
+            dojo.destroy('button_undo');
             dojo.destroy('begin_trip_button');
             
             $('pagemaintitletext').innerHTML = 'Sending move to server...';
