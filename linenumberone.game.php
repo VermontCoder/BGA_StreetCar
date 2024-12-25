@@ -565,6 +565,9 @@ class LineNumberOne extends Table
             $this->globals->set(GAME_PROGRESSION, 50);
         }
 
+        //replenish hands
+
+        $this->refillAllHands(self::getPlayers());
         $this->gamestate->nextState('rollDice');
     }
 
@@ -793,6 +796,9 @@ class LineNumberOne extends Table
         self::DbQuery($sql);
     }
 
+    //** This refills all hands, which should always be done after a player places tiles.
+    /* @param array $players - array of players with full player information from self::getPlayers() - not self::getPlayersWithIDKey()!
+    */
     function refillAllHands($players)
     {
         foreach ($players as $player) 
