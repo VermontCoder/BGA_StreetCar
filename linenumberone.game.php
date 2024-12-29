@@ -300,6 +300,7 @@ class LineNumberOne extends Table
             $players[$i]['goalsfinished'] = json_decode($players[$i]['goalsfinished']);
             $players[$i]['endnodeids'] = json_decode($players[$i]['endnodeids']);
             $players[$i]['lasttileplacementinformation'] = json_decode($players[$i]['lasttileplacementinformation']);
+            $players[$i]['available_cards'] = json_decode($players[$i]['available_cards']);
         }
         return $players;
     }
@@ -384,14 +385,47 @@ class LineNumberOne extends Table
         return $data;
     }
 
+
+
     function stNextPlayer()
     {
         // Active next player
         $player_id = self::activeNextPlayer();
         $players = self::getPlayersWithIDKey();
 
-        if ($players[$player_id]['trainposition'] == NULL) {
-                 
+        //check if player has a tile to play
+        $numChecks = 0;
+        while (!scUtility::canPlayerPlay($players,$player_id,$this)) 
+        {  
+            self::notifyAllPlayers('skippedPlayer', clienttranslate('${player_name}\'s turn has been skipped because they do not have a tile to play.'),
+            array(
+                'player_name' => $players[$player_id]['player_name'],
+                'player_id' => $player_id,
+            ));
+
+            $numChecks++;
+
+            if ($numChecks >= count($players)) 
+            {
+                //game over
+                $this->notifyAllPlayers(
+                    "endOfGame",
+                    clienttranslate('No player can play a tile. Game over!'),
+                    array(
+                        "player_id" => $player_id,
+                        "score_delta" => 0,
+                    )
+                );
+
+                $this->globals->set(GAME_PROGRESSION, 100);
+                $this->gamestate->nextState('gameEnd');
+                return;
+            }
+
+            $player_id = self::activeNextPlayer();
+        }
+
+        if ($players[$player_id]['trainposition'] == NULL) {         
             $this->undoSavepoint();
             $this->gamestate->nextState('firstAction');
         } else {
@@ -420,14 +454,14 @@ class LineNumberOne extends Table
      * @param integer $availableCardsOwner which player's deck are we looking at?
    
      */
-    function placeTrack($r1, $x1, $y1, $c1, $directions_free, $availableCards, $availableCardsOwner) //, $r2, $x2, $y2, $c2, $directions_free2, $availableCards2, $availableCardsOwner2)
+    function placeTrack($r1, $x1, $y1, $c1, $directions_free, $availableCards, $availableCardsOwner) 
     {
         $this->checkAction('placeTrack');
         $isFirstAction = $this->gamestate->state()['name'] == 'firstAction';
         $players=$this->getPlayersWithIDKey();
 
-        //available cards comes in as a comma delimited string of numbers. Convert to array
-        $availableCards = array_map('intval', explode(',', $availableCards));
+        //available cards comes in as _ delimited string of numbers. Convert to array
+        $availableCards = $availableCards == '' ? [] : array_map('intval', explode('_', $availableCards));
 
         $this->updateAvailableCards($availableCards, $availableCardsOwner);
 
@@ -468,15 +502,15 @@ class LineNumberOne extends Table
             'rotations' => self::getRotation(),
             'stops' => $stops,
             'placedTile' => $placedTile,
-            'isSwap' => count($availableCards) == count(json_decode($players[$availableCardsOwner]['available_cards']))
+            'isSwap' => count($availableCards) == count($players[$availableCardsOwner]['available_cards'])
         ));
 
         //this is an now an updated list of player info
-        $players = self::getPlayers();
+        $players = self::getPlayersWithIDKey();
 
         $this->cGraph = new scConnectivityGraph($this);
 
-        foreach ($players as $player) {
+        foreach ($players as $junk => $player) {
             $routes = null;
             if ($player['trainposition'] == null) {
                 $routes = $this->calcRoutes($player, $stops); //these stops are stops located on the board.
@@ -495,18 +529,29 @@ class LineNumberOne extends Table
             );
         }
        
+        
         if ($isFirstAction)
         {
+            if (!scUtility::canPlayerPlay($players,$player_id,$this))
+            { 
+                self::notifyAllPlayers('skippedPlayer', clienttranslate('The 2nd action of ${player_name}\'s turn has been skipped because they do not have a tile to play.'),
+                array(
+                    'player_name' => $players[$player_id]['player_name'],
+                    'player_id' => $player_id,
+                ));
+            }
+
             $this->gamestate->nextState('secondAction');
         }
-        else
-        {
-            $this->refillAllHands($players);
-           
-             //goto next player
-             $this->giveExtraTime(self::getActivePlayerID());
-             $this->gamestate->nextState('nextPlayer');
-        }
+        
+        //turn is over
+        $this->refillAllHands($players);
+        
+        //goto next player
+
+        $this->giveExtraTime(self::getActivePlayerID());
+        $this->gamestate->nextState('nextPlayer');
+        
     }
 
     function placeTrain($linenum, $trainStartNodeID, $trainEndNodeID)
@@ -567,7 +612,7 @@ class LineNumberOne extends Table
 
         //replenish hands
 
-        $this->refillAllHands(self::getPlayers());
+        $this->refillAllHands(self::getPlayersWithIDKey());
         $this->gamestate->nextState('rollDice');
     }
 
@@ -797,16 +842,19 @@ class LineNumberOne extends Table
     }
 
     //** This refills all hands, which should always be done after a player places tiles.
-    /* @param array $players - array of players with full player information from self::getPlayers() - not self::getPlayersWithIDKey()!
+    /* @param array $players - array of players with full player information 
     */
     function refillAllHands($players)
     {
         foreach ($players as $player) 
         {
             //refill hand
-            $available_cards = json_decode($player['available_cards']);
+            $available_cards = $player['available_cards'];
 
             $newHand = $this->refillHand($available_cards);
+
+            sort($newHand);
+            sort($available_cards);
             if ($newHand != $available_cards) {
                 $this->updateAvailableCards($newHand, $player['id']);
             }
@@ -883,7 +931,7 @@ class LineNumberOne extends Table
 
     function insertPiece($x, $y, $r, $c, $directions_free, $stopToAdd)
     {
-        $this->addCardsToDBStack([]);
+        //$this->addCardsToDBStack([]);
         //TBD change to update
         $sql_values = array();
         $sql = '';

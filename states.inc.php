@@ -87,7 +87,7 @@ $machinestates = array(
         "type" => "game",
         "action" => "stNextPlayer",
         "updateGameProgression" => true,
-        "transitions" => array("firstAction" => 10, "rollDice" => 12, "cantPlay" => 11, "endGame" => 99)
+        "transitions" => array("firstAction" => 10, "rollDice" => 12, "cantPlay" => 11, "gameEnd" => 99)
     ),
     12 => array(
         "name" => "rollDice",

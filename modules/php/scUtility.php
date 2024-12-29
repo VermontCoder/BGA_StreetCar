@@ -234,5 +234,37 @@ class scUtility
   {
     return in_array($trainLocationNodeID, $player['endnodeids']) && (count($player['goals']) == 0);
   }
+
+  /**
+   * Determine if a player can play.
+   * @param {*} $players from getPlayersWithID
+   * @param {*} $player_id 
+   * @param {*} $game
+   * @returns bool
+   */
+  public static function canPlayerPlay($players, $player_id, $game)
+  {
+      $game->dump('players:', $players);
+      if ($players[$player_id]['trainposition'] != null || count($players[$player_id]['available_cards']) > 0)
+      {
+          return true;
+      }
+
+      //do any of the other players have tiles the active player can play?
+      foreach ($players as $player_id => $player)
+      {
+          if ($player['trainposition'] != null && count($players[$player_id]['available_cards']) > 0)
+          {
+              return true;
+          }
+      }
+
+      //could player place their train?
+      $routes = $game->calcRoutes($player, $game->getStops());
+
+      if ($routes != null && $routes[0]->isComplete) return true;
+
+      return false;
+  }
 }
 

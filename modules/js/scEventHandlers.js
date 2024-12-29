@@ -390,7 +390,7 @@ define([
              // remove from available cards.
             var player = this.game.gamedatas.gamestate.args.players.filter(p =>p.id==sourceOfCard)[0];
              
-            let availableCards = JSON.parse(player["available_cards"])
+            let availableCards = player["available_cards"];
             var index = availableCards.indexOf(parseInt(this.game.selectedTrack.card));
             if (index !== -1) 
             {
@@ -403,7 +403,7 @@ define([
             if (isReplacing)
             {
                 availableCards.push(parseInt(trackOnBoardID));
-                player["available_cards"] = JSON.stringify(availableCards);
+                player.available_cards = availableCards;
                 tileReturning = dojo.query('#square_'+this.game.posx+'_'+this.game.posy+' > .track')[0];
                 returnAnim = this.game.slideToObject(tileReturning, 'track_'+ sourceOfCard);
 
@@ -420,7 +420,7 @@ define([
             }
             else
             {
-                player["available_cards"] = JSON.stringify(availableCards);                
+                player.available_cards = availableCards;                
                 this.game.updatePlayers(this.game.gamedatas.gamestate.args.players);
             }
 
