@@ -130,7 +130,6 @@ return declare("bgagame.scUtility", null, {
                 idx: parseInt(coords[3]),
             }
         },
-        
 
         getSelectedTrackIDFromDataObj(selectedTrackDataObj)
         {

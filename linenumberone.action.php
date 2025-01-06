@@ -46,7 +46,7 @@ class action_linenumberone extends APP_GameAction
     $y1 = self::getArg("y1", AT_posint, true);
     $c1 = self::getArg("c1", AT_posint, true);
     $directions_free = self::getArg("directions_free", AT_alphanum, true);
-    $availableCards = self::getArg("availableCards",AT_alphanum, true);
+    $availableCards = self::getArg("availableCards",AT_numberlist, true);
     $availableCardsOwner = self::getArg("availableCardsOwner", AT_posint, true);
     
     $this->game->placeTrack($r1, $x1, $y1, $c1, $directions_free, $availableCards, $availableCardsOwner);//, $r2, $x2, $y2, $c2, $directions_free2, $availableCards2, $availableCardsOwner2);

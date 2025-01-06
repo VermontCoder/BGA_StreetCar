@@ -290,10 +290,10 @@ function (dojo, declare) {
             availableCardsOwner = this.selectedTrack.player_id;
             availableCards = this.gamedatas.gamestate.args.players.filter(p =>parseInt(p.id)==availableCardsOwner)[0]['available_cards'];
 
-            //list of available cards cannot be sent as [0,2,3...], but as a '_' delimited string of nums.
-           //commas can't be passed to at_string :(
+            //list of available cards cannot be sent as [0,2,3...], but as a comma delimited string of nums.
+            //So we need to strip the brackets
+            availableCards = availableCards.slice(1,availableCards.length-1);
 
-            availableCardsStr = availableCards.join("_");
             paramList =
             {   
                 r1 : this.rotation,
@@ -301,7 +301,7 @@ function (dojo, declare) {
                 y1 : this.posy,
                 c1 : this.selectedTrack.card,
                 directions_free : this.directions_free,
-                availableCards : availableCardsStr,
+                availableCards : availableCards,
                 availableCardsOwner  : availableCardsOwner,
             };
             
@@ -529,8 +529,9 @@ function (dojo, declare) {
  
              $('goal_'+player.id).innerHTML=html;
  
+             let available_cards = JSON.parse(player["available_cards"])
          
-            player.available_cards.forEach((s,c) => {
+             available_cards.forEach((s,c) => {
                  dojo.place( this.format_block( 'jstpl_track_player', {
                      id: s+"_"+player.id+"_"+c,
                      offsetx:-parseInt(s)*100,
