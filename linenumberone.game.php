@@ -370,6 +370,8 @@ class LineNumberOne extends Table
             'connectivityGraph' => $this->cGraph->connectivityGraph,
         );
     }
+
+    //basically sends all data with every state change.
     function argPlayerTurn()
     {
         return $this->getDataToClient();
