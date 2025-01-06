@@ -384,6 +384,7 @@ class LineNumberOne extends Table
         return $data;
     }
 
+    // called when player is about to take their next turn.
     function stNextPlayer()
     {
         // Active next player
@@ -403,6 +404,8 @@ class LineNumberOne extends Table
     //////////////////////////////////////////////////////////////////////////////
     //////////// Player actions
     //////////// 
+
+    
 
     /*
         Each time a player is doing some game action, one of the methods below is called.
