@@ -386,6 +386,12 @@ class LineNumberOne extends Table
         return $data;
     }
 
+    function argGameEnd()
+    {
+        $data = parent::argGameEnd();
+        return array_merge_recursive($data, $this->getDataToClient());
+    }
+
     // called when player is about to take their next turn.
     function stNextPlayer()
     {

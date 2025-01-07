@@ -195,6 +195,11 @@ function (dojo, declare) {
                     this.updateBoardState(args.args.players, args.args.stackCount);
                     this.showDice(args.args.curDie,args.args.curDieIdx);
                     break;
+                
+                case "gameEnd":
+                    console.log('gameEnd');
+                    this.updateBoardState(args.args.players, args.args.stackCount);
+                    break;
            
                 case 'dummmy':
                     break;
