@@ -377,7 +377,7 @@ class scTrainDestinationsSolver
         {
             $sXYD = scUtility::nodeID2xyd($stationNode);
             $tXYD = scUtility::nodeID2xyd($curTrainNodeID);
-            if ($sXYD['x']==$tXYD['x'] && $sXYD['y']==$tXYD['y'])
+            if ($sXYD['x']==$tXYD['x'] && $sXYD['y']==$tXYD['y'] && $sXYD['d']==$tXYD['d'])
             {
                 unset($stationNodes[$idx]);
             }
