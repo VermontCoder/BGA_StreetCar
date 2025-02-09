@@ -371,7 +371,7 @@ class scTrainDestinationsSolver
 
         //step 2b
         //if the train is on a station, do not break connections from it.
-        //remove those station nodes
+        //remove the station node train is currently on from the list of station nodes.
 
         foreach($stationNodes as $idx=>$stationNode)
         {
