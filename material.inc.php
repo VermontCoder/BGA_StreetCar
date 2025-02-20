@@ -343,84 +343,84 @@ $this->initialStops = array(
     "row" => 1,
     "col" => 8,
     "building" => 1,
-    "name" => _("Automaker"),
+    "name" => clienttranslate("Automaker"),
     "code" => "A"
   ),
   array(
     "row" => 2,
     "col" => 4,
     "building" => 1,
-    "name" => _("Hospital"),
+    "name" => clienttranslate("Hospital"),
     "code" => "H"
   ),
   array(
     "row" => 4,
     "col" => 6,
     "building" => 1,
-    "name" => _("Ice cream parlor"),
+    "name" => clienttranslate("Ice cream parlor"),
     "code" => "I"
   ),
   array(
     "row" => 4,
     "col" => 11,
     "building" => 1,
-    "name" => _("Brewery"),
+    "name" => clienttranslate("Brewery"),
     "code" => "B"
   ),
   array(
     "row" => 5,
     "col" => 1,
     "building" => 1,
-    "name" => _("Gardens"),
+    "name" => clienttranslate("Gardens"),
     "code" => "G"
   ),
   array(
     "row" => 6,
     "col" => 9,
     "building" => 1,
-    "name" => _("Kindergarten"),
+    "name" => clienttranslate("Kindergarten"),
     "code" => "K"
   ),
   array(
     "row" => 7,
     "col" => 4,
     "building" => 1,
-    "name" => _("Museum"),
+    "name" => clienttranslate("Museum"),
     "code" => "M"
   ),
   array(
     "row" => 8,
     "col" => 12,
     "building" => 1,
-    "name" => _("Cathedral"),
+    "name" => clienttranslate("Cathedral"),
     "code" => "C"
   ),
   array(
     "row" => 9,
     "col" => 2,
     "building" => 1,
-    "name" => _("Fire station"),
+    "name" => clienttranslate("Fire station"),
     "code" => "F"
   ),
   array(
     "row" => 9,
     "col" => 7,
     "building" => 1,
-    "name" => _("Library"),
+    "name" => clienttranslate("Library"),
     "code" => "L"
   ),
   array(
     "row" => 11,
     "col" => 9,
     "building" => 1,
-    "name" => _("Department store"),
+    "name" => clienttranslate("Department store"),
     "code" => "D"
   ),
   array(
     "row" => 12,
     "col" => 5,
     "building" => 1,
-    "name" => _("Exhibition"),
+    "name" => clienttranslate("Exhibition"),
     "code" => "E"
   ),
 );
