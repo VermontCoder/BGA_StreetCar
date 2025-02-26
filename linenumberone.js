@@ -64,6 +64,8 @@ function (dojo, declare) {
             for( var player_id in gamedatas.players )
             {
                 var player = gamedatas.players[player_id];
+                player.btnMsg = _('Show Shortest Route');
+                player.completedMsg = _('Completed!');
                          
                 // TODO: Setting up players boards if needed
                 var player_board_div = $('player_board_'+player_id);
