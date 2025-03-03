@@ -536,7 +536,15 @@ define([
                 return;
             }
             this.isShowRoute = this.isShowRoute ? false : true;
-            $(evt.currentTarget.id).innerHTML = this.isShowRoute ? _('Hide Route') : _('Show Shortest Route');
+            if (this.isShowRoute)
+            {
+                $(evt.currentTarget.id).innerHTML = _('Hide Route'); 
+            }
+            else
+            {
+                $(evt.currentTarget.id).innerHTML = _('Show Shortest Route');
+            }
+            
             scRouting.showRoute();
         },
          /*********************************************************************************** */

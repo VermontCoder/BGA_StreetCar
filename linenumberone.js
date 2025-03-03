@@ -64,13 +64,15 @@ function (dojo, declare) {
             for( var player_id in gamedatas.players )
             {
                 var player = gamedatas.players[player_id];
-                player.btnMsg = _('Show Shortest Route');
-                player.completedMsg = _('Completed!');
                          
                 // TODO: Setting up players boards if needed
                 var player_board_div = $('player_board_'+player_id);
 
                 dojo.place( this.format_block('jstpl_player_board', player ), player_board_div );
+
+                //for reasons I do not understand, the translation isn't happening in the template. So I have to do it here.
+                $('completedMsg_'+player_id).innerHTML = _("Completed!");
+                $('shortestRouteButton_'+player_id).innerHTML = _("Show Shortest Route");
 
                 //place player trains. If they are not there, this will simply return without doing anything.
                 this.showTrain(player.linenum,player_id,player.trainposition,player.traindirection);

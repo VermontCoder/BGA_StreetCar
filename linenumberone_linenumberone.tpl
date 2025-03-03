@@ -35,10 +35,10 @@ var jstpl_direction='<div class="direction" id="direction_${px}_${py}_${d}" ></d
 var jstpl_player_board='<div class="boardblock">\
             <div id="top_line" class="container2">\
             <div id="start_${id}" class="linenum"></div>\
-            <div id="completedMsg_${id}" class="completed_msg">${completedMsg}</div>\
+            <div id="completedMsg_${id}" class="completed_msg">_(Completed!)</div>\
             </div>\
             <div id="goal_${id}" class="goalsholder"></div>\
-            <div id="shortestRouteButton_${id}" class="shortestRouteButton" >${btnMsg}</div>\
+            <div id="shortestRouteButton_${id}" class="shortestRouteButton" >_(Show Shortest Route)</div>\
             <div id="track_${id}" class="trackholder"></div>\
             </div>';
             
