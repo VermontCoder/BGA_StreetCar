@@ -1,15 +1,15 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * LineNumberOne implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
+ * Streetcar implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
  * -----
  *
- * linenumberone.js
+ * streetcar.js
  *
- * LineNumberOne user interface script
+ * Streetcar user interface script
  * 
  * In this file, you are describing the logic of your user interface, in Javascript language.
  *
@@ -25,9 +25,9 @@
     g_gamethemeurl + "modules/js/scZoom.js"
 ],
 function (dojo, declare) {
-    return declare("bgagame.linenumberone", ebg.core.gamegui, {
+    return declare("bgagame.streetcar", ebg.core.gamegui, {
         constructor: function(){
-            console.log('linenumberone constructor');
+            console.log('streetcar constructor');
               
             // Here, you can init the global variables of your user interface
             // Example:
@@ -55,7 +55,7 @@ function (dojo, declare) {
             this.scUtility = new bgagame.scUtility();
             this.scEventHandlers = new bgagame.scEventHandlers(this);
             this.scRouting = new bgagame.scRouting(this,gamedatas.routes);
-            //console.log('window: ',JSON.stringify(window));
+            // console.log('window: ',JSON.stringify(window));
             this.scZoom = new bgagame.scZoom('wrapper','zoom_in','zoom_out');
             
             
@@ -332,7 +332,7 @@ function (dojo, declare) {
             this.removeFirstPlacedTrackStyling();
             
 
-            this.ajaxcall( "/linenumberone/linenumberone/placeTrack.html",paramList, this, function( result ) {} );
+            this.ajaxcall( "/streetcar/streetcar/placeTrack.html",paramList, this, function( result ) {} );
         },
 
         removeFirstPlacedTrackStyling()
@@ -358,7 +358,9 @@ function (dojo, declare) {
             curPlayer = null;
             players.forEach(player => {
                 //dojo.empty('track_'+player.id)
-                if(player.id == this.player_id) curPlayer = player;
+                if(player.id == this.player_id){
+                    curPlayer = player;
+                } 
                 this.showPlayerBoard(player);
             });
             

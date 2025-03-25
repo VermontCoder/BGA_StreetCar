@@ -3,27 +3,27 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * LineNumberOne implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
+ * Streetcar implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
  *
  * This code has been produced on the BGA studio platform for use on https://boardgamearena.com.
  * See http://en.doc.boardgamearena.com/Studio for more information.
  * -----
  * 
- * linenumberone.action.php
+ * streetcar.action.php
  *
- * LineNumberOne main action entry point
+ * Streetcar main action entry point
  *
  *
  * In this file, you are describing all the methods that can be called from your
  * user interface logic (javascript).
  *       
  * If you define a method "myAction" here, then you can call it from your javascript code with:
- * this.ajaxcall( "/linenumberone/linenumberone/myAction.html", ...)
+ * this.ajaxcall( "/streetcar/streetcar/myAction.html", ...)
  *
  */
 
 
-class action_linenumberone extends APP_GameAction
+class action_streetcar extends APP_GameAction
 {
   // Constructor: please do not modify
   public function __default()
@@ -32,7 +32,7 @@ class action_linenumberone extends APP_GameAction
       $this->view = "common_notifwindow";
       $this->viewArgs['table'] = self::getArg("table", AT_posint, true);
     } else {
-      $this->view = "linenumberone_linenumberone";
+      $this->view = "streetcar_streetcar";
       self::trace("Complete reinitialization of board game");
     }
   }

@@ -3,13 +3,13 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * LineNumberOne implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
+ * Streetcar implementation : © David Felcan dfelcan@gmail.com, Stefan van der Heijden axecrazy@gmail.com
  * 
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
  * -----
  * 
- * linenumberone.game.php
+ * streetcar.game.php
  *
  * This is the main file for your game logic.
  *
@@ -35,7 +35,7 @@ const CUR_TRAIN_DESTINATIONS_SELECTION = "curTrainDestinationsSelection"; //used
 const GAME_PROGRESSION = "gameProgression";
 const ROUTES_TO_NEXT_STATION = "routesToNextStation";
 
-class LineNumberOne extends Table
+class Streetcar extends Table
 {
     function __construct()
     {
@@ -61,7 +61,7 @@ class LineNumberOne extends Table
     protected function getGameName()
     {
         // Used for translations and stuff. Please do not modify.
-        return "linenumberone";
+        return "streetcar";
     }
 
     /*
@@ -400,7 +400,7 @@ class LineNumberOne extends Table
         $players = self::getPlayersWithIDKey();
 
         if ($players[$player_id]['trainposition'] == NULL) {
-                 
+
             $this->undoSavepoint();
             $this->gamestate->nextState('firstAction');
         } else {
@@ -413,11 +413,11 @@ class LineNumberOne extends Table
     //////////// Player actions
     //////////// 
 
-    
+
 
     /*
         Each time a player is doing some game action, one of the methods below is called.
-        (note: each method below must match an input method in linenumberone.action.php)
+        (note: each method below must match an input method in streetcar.action.php)
     */
 
     /**
@@ -435,7 +435,7 @@ class LineNumberOne extends Table
     {
         $this->checkAction('placeTrack');
         $isFirstAction = $this->gamestate->state()['name'] == 'firstAction';
-        $players=$this->getPlayersWithIDKey();
+        $players = $this->getPlayersWithIDKey();
 
         //available cards comes in as a comma delimited string of numbers. Convert to array
         $availableCards = array_map('intval', explode(',', $availableCards));
@@ -451,29 +451,31 @@ class LineNumberOne extends Table
         $placedTiles = [];
 
         $player_name = self::getActivePlayerName();
-        $player_id =self::getActivePlayerId();
+        $player_id = self::getActivePlayerId();
 
-        if (!$isFirstAction)
-        {
+        if (!$isFirstAction) {
             //we need to pull the previous information and add this to the new information
             $placedTiles = $players[$player_id]['lasttileplacementinformation'];
         }
-            
-        $placedTiles[] = $placedTile;    
+
+        $placedTiles[] = $placedTile;
 
         //record location of placed pieces in database
-        $sql = "UPDATE `player` SET `lasttileplacementinformation`='".json_encode($placedTiles)."' WHERE `player_id`= ". $player_id;
+        $sql = "UPDATE `player` SET `lasttileplacementinformation`='" . json_encode($placedTiles) . "' WHERE `player_id`= " . $player_id;
         self::DbQuery($sql);
 
-        
+
         $stops = self::getStops();
 
         //In the notify, inform the other players of which tiles were placed where for the animation
         //We are not concerned with final state from this data, that is coming across in other data field.
-        
+        $offset = $c1 * -100;
+        $div = "<div class='track' style='background-position: " . $offset . "px 0px;'> </div>";
 
-        self::notifyAllPlayers('placedTrack', clienttranslate('${player_name} a placed track.'), array(
+
+        self::notifyAllPlayers('placedTrack', clienttranslate('${player_name} a placed track. ${div}'), array(
             'player_name' => $player_name,
+            "div" => $div,
             'board' => self::getBoard(),
             'tracks' => self::getTracks(),
             'rotations' => self::getRotation(),
@@ -505,18 +507,15 @@ class LineNumberOne extends Table
                 )
             );
         }
-       
-        if ($isFirstAction)
-        {
+
+        if ($isFirstAction) {
             $this->gamestate->nextState('secondAction');
-        }
-        else
-        {
+        } else {
             $this->refillAllHands($players);
-           
-             //goto next player
-             $this->giveExtraTime(self::getActivePlayerID());
-             $this->gamestate->nextState('nextPlayer');
+
+            //goto next player
+            $this->giveExtraTime(self::getActivePlayerID());
+            $this->gamestate->nextState('nextPlayer');
         }
     }
 
@@ -624,9 +623,13 @@ class LineNumberOne extends Table
         $possibleTrainMoves = $trainDestinationsSolver->getTrainMoves($player, $die);
 
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, $possibleTrainMoves);
+        $offset = ($die - 1) * -80;
 
-        self::notifyAllPlayers('selectedDie', clienttranslate('${player_name} selected die.'), array(
+        $div = '<div class="die" style="background-position: ' . $offset . 'px 0px;"></div>';
+
+        self::notifyAllPlayers('selectedDie', clienttranslate('${player_name} selected die. ${div}'), array(
             'player_name' => self::getActivePlayerName(),
+            'div' => $div,
             'player_id' => $player_id,
             'die' => $die,
             'dieIdx' => $dieIdx,
@@ -757,7 +760,8 @@ class LineNumberOne extends Table
         }
     }
 
-    public function undo() {
+    public function undo()
+    {
         $this->undoRestorePoint();
         $this->gamestate->nextState('firstAction');
     }
@@ -802,7 +806,7 @@ class LineNumberOne extends Table
     }
 
     function updateAvailableCards($available_cards, $player_id)
-    {   
+    {
         $sql = "UPDATE player SET  available_cards = '" . json_encode(array_values($available_cards)) . "' WHERE player_id = " . $player_id . ";";
         self::DbQuery($sql);
     }
@@ -812,8 +816,7 @@ class LineNumberOne extends Table
     */
     function refillAllHands($players)
     {
-        foreach ($players as $player) 
-        {
+        foreach ($players as $player) {
             //refill hand
             $available_cards = json_decode($player['available_cards']);
 
@@ -842,7 +845,7 @@ class LineNumberOne extends Table
 
         //check if we need to refill - stack index will continue to rise even after stack depleted, leading to negative $numNewCards.
         //when that happens, just don't do any refill.
-        
+
         if ($numNewCards <= 0) return $available_cards;
 
 
@@ -1025,35 +1028,30 @@ class LineNumberOne extends Table
 
     function upgradeTableDb($from_version)
     {
-        if( $from_version <= 2411192022 )
-        {
-          // ! important ! Use DBPREFIX_<table_name> for all tables
-          // test first the new column existance since it can exists from a previous call to upgradeTableDb while an undo was performed
-          $result = self::getUniqueValueFromDB("SHOW COLUMNS FROM player LIKE 'lasttileplacementlocation'");
-          if (empty($result))
-              self::applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player ADD `lasttileplacementlocation` VARCHAR(20) DEFAULT NULL;");
+        if ($from_version <= 2411192022) {
+            // ! important ! Use DBPREFIX_<table_name> for all tables
+            // test first the new column existance since it can exists from a previous call to upgradeTableDb while an undo was performed
+            $result = self::getUniqueValueFromDB("SHOW COLUMNS FROM player LIKE 'lasttileplacementlocation'");
+            if (empty($result))
+                self::applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player ADD `lasttileplacementlocation` VARCHAR(20) DEFAULT NULL;");
         }
 
-        if( $from_version == 2411212045 )
-        {
-          // ! important ! Use DBPREFIX_<table_name> for all tables
+        if ($from_version == 2411212045) {
+            // ! important ! Use DBPREFIX_<table_name> for all tables
             self::applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player MODIFY COLUMN `lasttileplacementlocation` VARCHAR(20) DEFAULT NULL;");
         }
 
-        if( $from_version <= 2411261625 )
-        {
+        if ($from_version <= 2411261625) {
             //Add the new cards!
-            $this->addCardsToDBStack([0,0,0,0,1,1,1,2,2,2,3,3,3,4,4,5,5,6,6,7,7,8,9,10,11]);
+            $this->addCardsToDBStack([0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 9, 10, 11]);
         }
 
-        if( $from_version <= 2412081800 )
-        {
+        if ($from_version <= 2412081800) {
             //Need to make column bigger to accomodate more information about lasttile.
             self::applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player CHANGE COLUMN `lasttileplacementlocation` `lasttileplacementinformation` VARCHAR(255) DEFAULT NULL;");
         }
 
-        if( $from_version <= 2412251232 )
-        {
+        if ($from_version <= 2412251232) {
             //fix to make current game work.
             self::applyDbUpgradeToAllDB('UPDATE DBPREFIX_bga_globals SET `value`="[]" WHERE value = JSON_ARRAY("_13_")');
         }
@@ -1076,8 +1074,7 @@ class LineNumberOne extends Table
         //Destroy previous stack, replace with new one.
         self::DbQuery("DELETE from stack;");
 
-        foreach($newStack as $card)
-        {
+        foreach ($newStack as $card) {
             $sql = "INSERT INTO stack (id, card) VALUES ";
             $sql_values[] = "('$stackIdx','$card')";
             $stackIdx++;
