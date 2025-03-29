@@ -326,7 +326,7 @@ define([
                 if (badDirections.length == 1)
                 {
                     //display warning
-                    dojo.place("<div id='illegalPlacementMsg'> This is an illegal placement, so your next tile placement must make it legal for it to be allowed.</div>","pagemaintitletext");
+                    dojo.place("<div id='illegalPlacementMsg'> "+_("This is an illegal placement, so your next tile placement must make it legal for it to be allowed.")+"</div>","pagemaintitletext");
                 }
                 
                 return;
