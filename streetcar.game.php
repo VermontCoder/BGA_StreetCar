@@ -395,9 +395,26 @@ class Streetcar extends Table
     // called when player is about to take their next turn.
     function stNextPlayer()
     {
+
+        //calculate score
+        $players = self::getPlayers();
+        foreach ($players as $player) {
+            $score = 0;
+            if ($player['trainposition'] != null) {
+                $score = 1;
+                $score += count($player['goalsfinished']) * 2;
+                $sql = "UPDATE player SET  player_score = " . $score . " WHERE player_id =" . $player["id"] . ";";
+                self::DbQuery($sql);
+            }
+        }
+        $newScores = self::getCollectionFromDb("SELECT player_id, player_score FROM player", true);
+        self::notifyAllPlayers("newScores", "", array(
+            "scores" => $newScores,
+        ));
         // Active next player
         $player_id = self::activeNextPlayer();
         $players = self::getPlayersWithIDKey();
+
 
         if ($players[$player_id]['trainposition'] == NULL) {
 
@@ -593,7 +610,7 @@ class Streetcar extends Table
         // set dice for this turn
         $throw = scUtility::rollDice(3 - $diceUsed);
         //testing
-        //$throw = [1,4,5];
+        $throw = [3, 4, 5];
         $sql = "UPDATE player SET dice = '" . json_encode(array_values($throw)) . "' WHERE player_id = " . $player_id . ";";
         self::DbQuery($sql);
 
@@ -696,16 +713,29 @@ class Streetcar extends Table
         //check for win condition!!!!
 
         if (scUtility::hasPlayerWon($destinationNode, $player)) {
+
+            // $players = self::getPlayers();
+            // foreach ($players as $player) {
+            $score = $player["score"];
+            $score += 5;
+            $sql = "UPDATE player SET  player_score = " . $score . " WHERE player_id =" . $player["id"] . ";";
+            self::DbQuery($sql);
+            // }
+            $newScores = self::getCollectionFromDb("SELECT player_id, player_score FROM player", true);
+            self::notifyAllPlayers("newScores", clienttranslate('${player_name} wins the game!'), array(
+                "scores" => $newScores,
+                "player_name" => $this->getActivePlayerName()
+            ));
             //game is over
-            $this->notifyAllPlayers(
-                "endOfGame",
-                clienttranslate('${player_name} wins the game!'),
-                array(
-                    "player_name" => $this->getActivePlayerName(),
-                    "player_id" => $player_id,
-                    "score_delta" => 1,
-                )
-            );
+            // $this->notifyAllPlayers(
+            //     "endOfGame",
+            //     clienttranslate('${player_name} wins the game!'),
+            //     array(
+            //         "player_name" => $this->getActivePlayerName(),
+            //         "player_id" => $player_id,
+            //         "score_delta" => 1,
+            //     )
+            // );
 
             $this->globals->set(GAME_PROGRESSION, 100);
             $this->gamestate->nextState('gameEnd');

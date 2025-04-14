@@ -626,10 +626,21 @@ function (dojo, declare) {
             dojo.subscribe( 'selectedDie', this, 'notif_selectedDie');
             dojo.subscribe( 'moveTrain', this, 'notif_moveTrain');
             dojo.subscribe( 'endOfGame', this, 'notif_endOfGame');
+            dojo.subscribe( 'newScores', this, "notif_newScores" );
+            this.notifqueue.setSynchronous( 'newScores', 500 );
             this.notifqueue.setSynchronous( 'endOfGame', 1500 );
             //this.notifqueue.setSynchronous( 'placedTrack', 500 );
         },  
-        
+        notif_newScores: function( notif )
+        {
+            // console.log(">>>>>>>> newscores", notif)
+            for( var player_id in notif.args.scores )
+            {
+                var newScore = notif.args.scores[ player_id ];
+                this.scoreCtrl[ player_id ].toValue( newScore );
+                // console.log(">>", newScore, player_id)
+            }
+        }  ,       
         // TODO: from this point and below, you can write your game notifications handling methods
         notif_placedTrack: function( notif )
         {
