@@ -402,7 +402,7 @@ class Streetcar extends Table
             $score = 0;
             if ($player['trainposition'] != null) {
                 $score = 1;
-                $score += count($player['goalsfinished']) * 2;
+                $score += count($player['goalsfinished']);
                 $sql = "UPDATE player SET  player_score = " . $score . " WHERE player_id =" . $player["id"] . ";";
                 self::DbQuery($sql);
             }
@@ -610,7 +610,7 @@ class Streetcar extends Table
         // set dice for this turn
         $throw = scUtility::rollDice(3 - $diceUsed);
         //testing
-        $throw = [3, 4, 5];
+        // $throw = [3, 4, 5];
         $sql = "UPDATE player SET dice = '" . json_encode(array_values($throw)) . "' WHERE player_id = " . $player_id . ";";
         self::DbQuery($sql);
 
@@ -689,7 +689,7 @@ class Streetcar extends Table
 
         $trainDestinationsSolver = new scTrainDestinationsSolver($this);
 
-        if ($this->globals->get(CUR_DIE) >= 5) {
+        if ($this->globals->get(CUR_DIE) > 5) {
             $routesAndDirection = $trainDestinationsSolver->moveTrainToDestinationPrevStop($destinationNode, $player, $stops);
         } else {
             $routesAndDirection = $trainDestinationsSolver->moveTrainToDestination($destinationNode, $player, $stops);
@@ -717,7 +717,7 @@ class Streetcar extends Table
             // $players = self::getPlayers();
             // foreach ($players as $player) {
             $score = $player["score"];
-            $score += 5;
+            $score += 2;
             $sql = "UPDATE player SET  player_score = " . $score . " WHERE player_id =" . $player["id"] . ";";
             self::DbQuery($sql);
             // }
@@ -783,7 +783,7 @@ class Streetcar extends Table
         $this->globals->set(CUR_DIE_IDX, null);
 
         //finish turn if player had to go back to station or have used all their dice.
-        if ($diceUsed == 3 || $curDie >= 5) {
+        if ($diceUsed == 3 || $curDie > 5) {
             $this->doneWithTurn();
         } else {
             $this->gamestate->nextState('rollDice');

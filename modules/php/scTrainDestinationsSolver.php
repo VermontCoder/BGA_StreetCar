@@ -128,7 +128,7 @@ class scTrainDestinationsSolver
     {
         $dieRoll =  $this->game->globals->get(CUR_DIE);
 
-        if ($dieRoll != 1)
+        if ($dieRoll >= 3)
         // if ($stopOnRoute['lastStopNodeID'] != null && $dieRoll != 1)
         {
             //this situation does not require special processing
@@ -241,7 +241,7 @@ class scTrainDestinationsSolver
         $stops = $this->game->getStops();
 
         switch (intval($die)) {
-            case 1:
+            case 1: //move ahead 2
             case 2: //move ahead 2
                 return $this->moveAheadTwo($curTrainNodeID, $player, $stops);
                 break;
