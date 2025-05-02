@@ -244,7 +244,9 @@ function (dojo, declare) {
             
             switch( stateName )
             {
-            
+                case 'selectTwoSpaceMoveRoute':
+                    //delete the number circles from the tiles.
+                    dojo.query('.number-circle').orphan();
             /* Example:
             
             case 'myGameState':

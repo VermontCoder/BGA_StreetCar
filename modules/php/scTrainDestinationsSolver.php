@@ -180,52 +180,7 @@ class scTrainDestinationsSolver
         return $routesAndDirection;
     }
 
-    private function twoSpaceMoveSpecialProcessing(&$moveRoute, &$stopOnRoute, $player, $stops, $stopsLocations)
-    {
-        $dieRoll =  $this->game->globals->get(CUR_DIE);
-
-        if ($dieRoll >= 3)
-        // if ($stopOnRoute['lastStopNodeID'] != null && $dieRoll != 1)
-        {
-            //this situation does not require special processing
-            return;
-        }
-
-        $possibleAdjacentNodes = $this->moveAheadOne($moveRoute->startNodeID, $player, $stops);
-        foreach ($possibleAdjacentNodes as $node) {
-            $altRoute = $this->scRouteFinder->findShortestRoute($moveRoute->startNodeID, $node);
-
-            //check for winning in one move
-            if (scUtility::hasPlayerWon($node, $player)) {
-                $moveRoute = $altRoute;
-                return;
-            }
-
-            $altStopOnRoute = $altRoute->getStopOnRoute($stopsLocations);
-
-            //if we find a stop on the next node, route this way.
-            if ($altStopOnRoute['lastStopNodeID'] != null) {
-                //this might be the node we are looking for
-                $altRoutePart2 = $this->scRouteFinder->findShortestRoute($node, $moveRoute->endNodeID);
-
-                //This route needs to be length 1. If not, this is further than two squares, so its no good.
-                if ($altRoutePart2->getLength() != 1) continue;
-
-                //now that we know this is a good route, check for a stop at the end.
-                $altStopOnRoutePart2 = $altRoutePart2->getStopOnRoute($stopsLocations);
-
-                //if there is a stop at the end of the move, this is the stop we need to return.
-                //This situation happens if you get a two move die roll just before entering a terminal.
-                //The first tile in the terminal becomes the $altStopOnRoute and the 2nd is $altstopOnRoutePart2
-                $stopOnRoute = $altStopOnRoutePart2['lastStopNodeID'] != null ? $altStopOnRoutePart2 : $altStopOnRoute;
-                $moveRoute = $altRoute->merge($altRoutePart2);
-                return;
-            }
-        }
-
-        //alt routes didn't have any stops either.
-        return;
-    }
+    
 
     /**
      * This is the same purpose as the moveTrainToDestination above, but for moving back to previous stop

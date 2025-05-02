@@ -93,7 +93,7 @@ class action_streetcar extends APP_GameAction
 
   public function selectTwoSpaceMoveRoute()
   {
-    $routeIdx = self::getArg("route", AT_posint, true);
+    $routeIdx = self::getArg("routeIdx", AT_posint, true);
     $this->game->selectTwoSpaceMoveRoute($routeIdx);
     self::ajaxResponse();
   }
