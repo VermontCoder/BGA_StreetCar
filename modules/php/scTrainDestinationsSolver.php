@@ -134,6 +134,8 @@ class scTrainDestinationsSolver
         $this->cGraph = new scConnectivityGraph($this->game);
         $this->scRouteFinder = new scRouteFinder($this->cGraph);
 
+        $stopLocations = scUtility::getStopsLocations($stops);
+
         $possibleAdjacentNodes = $this->moveAheadOne($player['trainposition'], $player, $stops);
         $routesToDestination = [];
 
@@ -145,6 +147,16 @@ class scTrainDestinationsSolver
             if (scUtility::hasPlayerWon($node, $player)) {
                 $this->game->globals->set(PRECALCULATED_ROUTES, json_encode([$altRoute]));
                 return $this->moveTrainToDestination($destinationNode, $player, $stops);
+            }
+
+            //Before checking which nodes are legit 2nd nodes, if this node contains a stop
+            //in the player's goals, remove it so the routing works to find the 2nd node! 
+            //This fixes the case where the player must move two and the first tile is a stop in the goal list.
+
+            $stopAtNode = scUtility::getStopAtNode($node, $stopLocations);
+            $origGoals = $player['goals'];
+            if ($stopAtNode != null) {
+                $player['goals'] = array_diff($player['goals'], array($stopAtNode));
             }
 
             $possibleNextNodes = $this->moveAheadOne($node, $player, $stops);
@@ -161,12 +173,12 @@ class scTrainDestinationsSolver
                     $altRoutePart2 = $this->scRouteFinder->findShortestRoute($node, $nextNode);
                 }
             }
-            
-            $this->game->dump('altPart', $altRoute);
-            $this->game->dump('altPart2', $altRoutePart2);
            
             if ($altRoutePart2 == null ) continue; //this is not a valid route.
             $routesToDestination[] = $altRoute->merge($altRoutePart2);
+
+            //restore original goals.
+            $player['goals'] = $origGoals;
         }
 
         //$this->game->dump('outr2', $routesToDestination);

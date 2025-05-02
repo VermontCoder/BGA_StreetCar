@@ -402,7 +402,6 @@ class Streetcar extends Table
     // called when player is about to take their next turn.
     function stNextPlayer()
     {
-
         //calculate score
         $players = self::getPlayers();
         foreach ($players as $player) {
@@ -424,12 +423,17 @@ class Streetcar extends Table
 
 
         if ($players[$player_id]['trainposition'] == NULL) {
-
-            $this->undoSavepoint();
             $this->gamestate->nextState('firstAction');
+            $this->undoSavepoint();
         } else {
             $this->gamestate->nextState('rollDice');
         }
+    }
+
+    function stSelectDie()
+    {
+        //save before selecting die so the person can undo previous action.
+        $this->undoSavepoint();
     }
 
 
@@ -817,14 +821,15 @@ class Streetcar extends Table
     public function determineNextStateFromDice($player_id)
     {
         $sql = "SELECT diceused FROM player WHERE player_id = " . $player_id . ";";
-        $diceUsed = (int)self::getUniqueValueFromDB($sql);
+        //$diceUsed = (int)self::getUniqueValueFromDB($sql);
         $curDie = (int)$this->globals->get(CUR_DIE);
 
         $this->globals->set(CUR_DIE, null);
         $this->globals->set(CUR_DIE_IDX, null);
 
-        //finish turn if player had to go back to station or have used all their dice.
-        if ($diceUsed == 3 || $curDie > 5) {
+        //finish turn if player had to go back to station 
+        // this used to also end the turn if the player used all dice, but now the player must explicitly end their turn to be able to perform an undo.
+        if ($curDie > 5) {
             $this->doneWithTurn();
         } else {
             $this->gamestate->nextState('rollDice');
@@ -834,7 +839,7 @@ class Streetcar extends Table
     public function undo()
     {
         $this->undoRestorePoint();
-        $this->gamestate->nextState('firstAction');
+        //$this->gamestate->nextState('firstAction');
     }
 
     //*********************************************** */

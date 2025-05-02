@@ -1,6 +1,7 @@
 
 truncate table board;
 truncate table player;
+truncate table stats;
 
 INSERT INTO `board` (`board_x`, `board_y`, `directions_free`, `stop`, `card`, `rotation`) VALUES
 (0, 0, 'X', NULL, 0, 0),

@@ -107,6 +107,7 @@ $machinestates = array(
 
         "type" => "activeplayer",
         "args" => "argPlayerTurn",
+        "action" => "stSelectDie",
         "possibleactions" => array('selectDie'),
         "transitions" => array( "moveTrain"=> 14, "zombiePass" => 11),
     ),

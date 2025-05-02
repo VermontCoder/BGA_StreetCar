@@ -295,8 +295,22 @@ function (dojo, declare) {
 
                     case 'rollDice':
                         //These buttons just move us into next state.
-                        this.addActionButton( 'roll_dice_button', _('Roll Dice'), 'onRollDice');
+                        const activePlayer = this.gamedatas.gamestate.args.players.filter(p =>p.id==this.getActivePlayerId())[0];
+                        const diceUsed = parseInt(activePlayer.diceused);
+
+                        //because we want to be able to undo last move, the player must explicitly end their turn now.
+                        if (diceUsed < 3)
+                        {
+                            this.addActionButton( 'roll_dice_button', _('Roll Dice'), 'onRollDice');
+                        }
+                        
                         this.addActionButton( 'done_with_turn_button', _('Done With Turn'), 'onDoneWithTurn');
+                        
+                        //show the undo button if the dice used is 1 or 2 or 3.
+                        if (diceUsed >=1)
+                        {
+                            this.addActionButton('button_undo', _('Undo'), () => this.onUndo(), undefined, undefined, 'red');
+                        }
                         
                         break;
                     case "selectTwoSpaceMoveRoute":
