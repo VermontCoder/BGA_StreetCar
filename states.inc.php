@@ -118,9 +118,19 @@ $machinestates = array(
         "type" => "activeplayer",
         "args" => "argMoveTrain",
         "possibleactions" => array('selectTrainDestination','selectDie','rollDice','doneWithTurn'),
-        "transitions" => array("rollDice" => 12, "selectDie"=> 13, "moveTrain"=> 14, "nextPlayer"=> 11, "zombiePass" => 11,"gameEnd" => 99)
+        "transitions" => array("rollDice" => 12, "selectDie"=> 13, "moveTrain"=> 14, "selectTwoSpaceMoveRoute" => 16, "nextPlayer"=> 11, "zombiePass" => 11,"gameEnd" => 99)
     ),
 
+    16 => array(
+        "name" => "selectTwoSpaceMoveRoute",
+        "description" => clienttranslate('${actplayer} selects the route for a two space move.'),
+        "descriptionmyturn" => clienttranslate('${you} must select the route for your train.'),
+
+        "type" => "activeplayer",
+        "args" => "argTwoSpaceMoveRoute",
+        "possibleactions" => array('selectedTwoSpaceMoveRoute'),
+        "transitions" => array("rollDice" => 12, "selectDie"=> 13, "moveTrain"=> 14, "nextPlayer"=> 11, "zombiePass" => 11,"gameEnd" => 99)
+    ),
     // Final state.
     // Please do not modify (and do not overload action/args methods).
     99 => array(

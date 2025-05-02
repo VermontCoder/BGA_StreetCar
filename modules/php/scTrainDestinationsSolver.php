@@ -41,32 +41,16 @@ class scTrainDestinationsSolver
 
         if ($destinationNode != $player['trainposition']) //i.e. train actually moved.
         {
-            //account for stops and record last stop.
-            $stopsLocations = scUtility::getStopsLocations($stops);
-
-            //Step 1 - find route to destination.
-
-            //If routes to the destination have been stored in globals, we use those instead of calculating the route.
-            //This happens during the move to next station choices, as findShortestRoute sometimes gives the wrong route.
-            $storedRoutes = json_decode($this->game->globals->get(ROUTES_TO_NEXT_STATION));
-
-            if ($storedRoutes == null) {
-                $moveRoute = $this->scRouteFinder->findShortestRoute($player['trainposition'], $destinationNode);
-            } else {
-                foreach ($storedRoutes as $idx => $route) {
-                    if ($route->endNodeID == $destinationNode) {
-                        $moveRoute = scRoute::JSON2Route($route);
-                    }
-                }
-            }
-
+            $moveRoute = $this->getMoveRoute($destinationNode, $player, $stops);
 
             //Step 2 - Note any stops or terminal nodes.
+             //account for stops and record last stop.
+            $stopsLocations = scUtility::getStopsLocations($stops);
             $stopOnRoute = $moveRoute->getStopOnRoute($stopsLocations);
 
             //step 2a - special processing for 2 space move. We must return the route that passes a stop, if there is one.
             //This is ugly, but no avoiding it :(
-            $this->twoSpaceMoveSpecialProcessing($moveRoute, $stopOnRoute, $player, $stops, $stopsLocations);
+            //$this->twoSpaceMoveSpecialProcessing($moveRoute, $stopOnRoute, $player, $stops, $stopsLocations);
 
 
             //Step 2b - If a stop is on the route, check to see if it fulfills a goal. If so, modify database accordingly.
@@ -119,9 +103,81 @@ class scTrainDestinationsSolver
         $this->game->DbQuery($sql);
 
         //step 5 - return routes and traindirection.
-        $this->game->dump('out3', ['moveRoute' => $moveRoute, 'routes' => $routes, 'direction' => $direction]);
+        //$this->game->dump('out3', ['moveRoute' => $moveRoute, 'routes' => $routes, 'direction' => $direction]);
 
         return ['moveRoute' => $moveRoute, 'routes' => $routes, 'direction' => $direction];
+    }
+
+    private function getMoveRoute($destinationNode, $player)
+    {
+        //Step 1 - find route to destination.
+
+        //If routes to the destination have been stored in globals, we use those instead of calculating the route.
+        //This happens during the move to next station choices, as findShortestRoute sometimes gives the wrong route.
+        $storedRoutes = json_decode($this->game->globals->get(PRECALCULATED_ROUTES));
+
+        if ($storedRoutes == null) {
+            $moveRoute = $this->scRouteFinder->findShortestRoute($player['trainposition'], $destinationNode);
+        } else {
+            foreach ($storedRoutes as $idx => $route) {
+                if ($route->endNodeID == $destinationNode) {
+                    $moveRoute = scRoute::JSON2Route($route);
+                }
+            }
+        }
+
+        return $moveRoute;
+    }
+
+    public function moveTrainToDestinationTwoSpace($destinationNode, $player, $stops)
+    {
+        $this->cGraph = new scConnectivityGraph($this->game);
+        $this->scRouteFinder = new scRouteFinder($this->cGraph);
+
+        $possibleAdjacentNodes = $this->moveAheadOne($player['trainposition'], $player, $stops);
+        $routesToDestination = [];
+
+       
+        foreach ($possibleAdjacentNodes as $node) {
+            $altRoute = $this->scRouteFinder->findShortestRoute($player['trainposition'], $node);
+
+            //check for winning in one move
+            if (scUtility::hasPlayerWon($node, $player)) {
+                $this->game->globals->set(PRECALCULATED_ROUTES, json_encode([$altRoute]));
+                return $this->moveTrainToDestination($destinationNode, $player, $stops);
+            }
+
+            $possibleNextNodes = $this->moveAheadOne($node, $player, $stops);
+
+            $altRoutePart2 = null;
+            foreach ($possibleNextNodes as $nextNode)
+            {
+                //is this a node on the same tile as the destination node?
+                $destXYD = scUtility::nodeID2xyd($destinationNode);
+                $nextXYD = scUtility::nodeID2xyd($nextNode);
+
+                if ($destXYD['x'] == $nextXYD['x'] && $destXYD['y'] == $nextXYD['y']) {
+                    //this is the next node.
+                    $altRoutePart2 = $this->scRouteFinder->findShortestRoute($node, $nextNode);
+                }
+            }
+            
+            $this->game->dump('altPart', $altRoute);
+            $this->game->dump('altPart2', $altRoutePart2);
+           
+            if ($altRoutePart2 == null ) continue; //this is not a valid route.
+            $routesToDestination[] = $altRoute->merge($altRoutePart2);
+        }
+
+        //$this->game->dump('outr2', $routesToDestination);
+        $this->game->globals->set(PRECALCULATED_ROUTES, json_encode($routesToDestination));
+        if (count($routesToDestination) == 1) {
+            return $this->moveTrainToDestination($destinationNode, $player, $stops);
+        }
+
+        //two routes. Return them to the player for selection.
+        $routesAndDirection['twoSpaceMoveRoutes'] = $routesToDestination;
+        return $routesAndDirection;
     }
 
     private function twoSpaceMoveSpecialProcessing(&$moveRoute, &$stopOnRoute, $player, $stops, $stopsLocations)
@@ -385,7 +441,7 @@ class scTrainDestinationsSolver
         $candidateNodes = []; //This is an array of the form $x_$y => [$d => length of route to end] - reasoning explained below.
 
         //store all the routesToStations as JSON in the database for retrieval for when it is time to move the train
-        $this->game->globals->set(ROUTES_TO_NEXT_STATION, json_encode($routesToStations));
+        $this->game->globals->set(PRECALCULATED_ROUTES, json_encode($routesToStations));
         foreach ($routesToStations as $route) {
             //endNodes of these routes are candidates for next destination
             $candidateRoutes = $routeFinder->findRoutesFromNode($route->endNodeID, $player, $stopsLocations, $this->game);

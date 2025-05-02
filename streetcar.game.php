@@ -33,7 +33,7 @@ const CUR_DIE = "curDie";
 const CUR_DIE_IDX = "curDieIdx";
 const CUR_TRAIN_DESTINATIONS_SELECTION = "curTrainDestinationsSelection"; //used to remember possible destinations as a result of a die roll
 const GAME_PROGRESSION = "gameProgression";
-const ROUTES_TO_NEXT_STATION = "routesToNextStation";
+const PRECALCULATED_ROUTES = "precalculatedRoutes";
 
 class Streetcar extends Table
 {
@@ -84,7 +84,7 @@ class Streetcar extends Table
         $this->globals->set(CUR_DIE_IDX, null);
         $this->globals->set(CUR_TRAIN_DESTINATIONS_SELECTION, null);
         $this->globals->set(GAME_PROGRESSION, 0);
-        $this->globals->set(ROUTES_TO_NEXT_STATION, null);
+        $this->globals->set(PRECALCULATED_ROUTES, null);
 
 
         $stack = array();
@@ -386,6 +386,13 @@ class Streetcar extends Table
         return $data;
     }
 
+    function argTwoSpaceMoveRoute()
+    {
+        $data = $this->getDataToClient();
+        $data['precalculatedRoutes'] = json_decode($this->globals->get(PRECALCULATED_ROUTES));
+        return $data;
+    }
+
     function argGameEnd()
     {
         $data = parent::argGameEnd();
@@ -633,8 +640,8 @@ class Streetcar extends Table
         $this->globals->set(CUR_DIE, (int)$die);
         $this->globals->set(CUR_DIE_IDX, (int) $dieIdx);
 
-        //clear previously stored routes in globals, if any (only on move to next station)
-        $this->globals->set(ROUTES_TO_NEXT_STATION, null);
+        //clear previously stored routes in globals, if any 
+        $this->globals->set(PRECALCULATED_ROUTES, null);
 
         $trainDestinationsSolver = new scTrainDestinationsSolver($this);
         $possibleTrainMoves = $trainDestinationsSolver->getTrainMoves($player, $die);
@@ -679,6 +686,26 @@ class Streetcar extends Table
         $this->gamestate->nextState('nextPlayer');
     }
 
+
+    function getRoutesAndDirection($destinationNode, $player, $stops)
+    {
+        $trainDestinationsSolver = new scTrainDestinationsSolver($this);
+        if ($this->globals->get(CUR_DIE) > 5) {
+            return $trainDestinationsSolver->moveTrainToDestinationPrevStop($destinationNode, $player, $stops);
+        } else if ($this->globals->get(CUR_DIE) < 3) {
+            $routesAndDirection =  $trainDestinationsSolver->moveTrainToDestinationTwoSpace($destinationNode, $player, $stops);
+            if (isset($routesAndDirection['twoSpaceMoveRoutes'])) {
+                //save the routes in the globals so we can use them later.
+                $this->globals->set(PRECALCULATED_ROUTES, json_encode($routesAndDirection['twoSpaceMoveRoutes']));
+                $this->gamestate->nextState('selectTwoSpaceMoveRoute');
+               return null;
+            }
+            return $routesAndDirection;
+        } else {
+            return $trainDestinationsSolver->moveTrainToDestination($destinationNode, $player, $stops);
+        }
+    }
+
     function selectTrainDestination($destinationNode)
     {
         $this->checkAction(('selectTrainDestination'));
@@ -687,14 +714,18 @@ class Streetcar extends Table
         $player = self::getPlayersWithIDKey()[$player_id];
         $stops = self::getStops();
 
-        $trainDestinationsSolver = new scTrainDestinationsSolver($this);
-
-        if ($this->globals->get(CUR_DIE) > 5) {
-            $routesAndDirection = $trainDestinationsSolver->moveTrainToDestinationPrevStop($destinationNode, $player, $stops);
-        } else {
-            $routesAndDirection = $trainDestinationsSolver->moveTrainToDestination($destinationNode, $player, $stops);
+        $routesAndDirection = $this->getRoutesAndDirection($destinationNode, $player, $stops);
+        if ($routesAndDirection == null) {
+            //two move special processing has occured.
+            return;
         }
+        $this->executeTrainMove($destinationNode, $routesAndDirection, $player);
+    }
 
+
+    function executeTrainMove($destinationNode, $routesAndDirection, $player)
+    {
+        $player_id = self::getActivePlayerID();
         //modify database to reflect the die selection
         $this->updateDice($player);
 
@@ -726,17 +757,8 @@ class Streetcar extends Table
                 "scores" => $newScores,
                 "player_name" => $this->getActivePlayerName()
             ));
-            //game is over
-            // $this->notifyAllPlayers(
-            //     "endOfGame",
-            //     clienttranslate('${player_name} wins the game!'),
-            //     array(
-            //         "player_name" => $this->getActivePlayerName(),
-            //         "player_id" => $player_id,
-            //         "score_delta" => 1,
-            //     )
-            // );
 
+            //game is over
             $this->globals->set(GAME_PROGRESSION, 100);
             $this->gamestate->nextState('gameEnd');
             return;
@@ -755,6 +777,25 @@ class Streetcar extends Table
         }
         //We're done with the selection and the die.
         $this->determineNextStateFromDice($player_id);
+    }
+
+
+    function selectTwoSpaceMoveRoute($routeIdx)
+    {
+        $this->checkAction('selectTwoSpaceMoveRoute');
+        $player_id = self::getActivePlayerID();
+        $player = self::getPlayersWithIDKey()[$player_id];
+        $stops = self::getStops();
+
+        $routes = json_decode($this->globals->get(PRECALCULATED_ROUTES));
+        $route = $routes[$routeIdx];
+        $this->globals->set(PRECALCULATED_ROUTES, json_encode([$route]));
+
+        $destinationNode = $route->endNodeID;
+
+        $trainDestinationsSolver = new scTrainDestinationsSolver($this);
+        $routesAndDirection = $trainDestinationsSolver->moveTrainToDestination($destinationNode, $player, $stops);
+        $this->executeTrainMove($destinationNode, $routesAndDirection, $player);
     }
 
     function updateDice($player)

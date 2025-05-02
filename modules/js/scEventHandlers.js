@@ -592,6 +592,11 @@ define([
             this.game.ajaxcall( "/streetcar/streetcar/selectDie.html",{'dieIdx':dieIdx,'die':die}, this.game, function( result ) {} );
         },
 
+        onSelectTwoSpaceMoveRoute(routeIdx)
+        {
+            this.game.ajaxcall( "/streetcar/streetcar/selectTwoSpaceMoveRoute.html",{'routeIdx':routeIdx}, this.game, function( result ) {} );
+        },
+
         /*********************************************************************************** */
         /*             TRAIN DESTINATION                                                        */
         /********************************************************************************** */

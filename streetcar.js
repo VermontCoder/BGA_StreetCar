@@ -200,6 +200,16 @@ function (dojo, declare) {
                     this.showDice(args.args.curDie,args.args.curDieIdx);
                     break;
                 
+                case "selectTwoSpaceMoveRoute":
+                    console.log('selectTwoSpaceMoveRoute');
+                    console.log('args',args);
+                    this.updateBoardState(args.args.players, args.args.stackCount);
+                    
+                    dojo.query(".selectable_tile").removeClass('selectable_tile');
+                    this.showTwoSpaceMoveRoutes(args.args.precalculatedRoutes);
+                    
+                    break;
+                
                 case "gameEnd":
                     console.log('gameEnd');
                     this.updateBoardState(args.args.players, args.args.stackCount);
@@ -286,6 +296,10 @@ function (dojo, declare) {
                         this.addActionButton( 'roll_dice_button', _('Roll Dice'), 'onRollDice');
                         this.addActionButton( 'done_with_turn_button', _('Done With Turn'), 'onDoneWithTurn');
                         
+                        break;
+                    case "selectTwoSpaceMoveRoute":
+                        this.addActionButton( 'two_space_move_button_1', _('1'), () => this.onSelectTwoSpaceMoveRoute(0), undefined, undefined, 'red');
+                        this.addActionButton( 'two_space_move_button_2', _('2'), () => this.onSelectTwoSpaceMoveRoute(1), undefined, undefined, 'red');
                         break;
                 }
             }
@@ -585,6 +599,30 @@ function (dojo, declare) {
             }
         },
 
+        showTwoSpaceMoveRoutes(twoSpaceMoveRoutes)
+        {
+            //extract location of 1st space of move from the routes.
+            const nodeIDForRoute0 = twoSpaceMoveRoutes[0].routeNodes[Object.keys(twoSpaceMoveRoutes[0].routeNodes)[0]];
+            const nodeIDForRoute1 = twoSpaceMoveRoutes[1].routeNodes[Object.keys(twoSpaceMoveRoutes[1].routeNodes)[0]];
+
+            const xyForRoute0 = this.scUtility.extractXYD(nodeIDForRoute0);
+            const xyForRoute1 = this.scUtility.extractXYD(nodeIDForRoute1);
+
+            const tileIDForRoute0 = 'square_'+xyForRoute0.x+'_'+xyForRoute0.y;
+            const tileIDForRoute1 = 'square_'+xyForRoute1.x+'_'+xyForRoute1.y;
+
+            //restore selected tile class for the destination tile
+            const nodeIDForDestination = twoSpaceMoveRoutes[0].endNodeID;
+            const xyForDestination = this.scUtility.extractXYD(nodeIDForDestination);
+            const tileIDForDestination = 'square_'+xyForDestination.x+'_'+xyForDestination.y;
+            
+            dojo.addClass(tileIDForDestination,'selectable_tile');
+            
+            $(tileIDForRoute0).insertAdjacentHTML('afterbegin', '<div class="number-circle">1</div>');
+            $(tileIDForRoute1).insertAdjacentHTML('afterbegin', '<div class="number-circle">2</div>');
+            //alert("Two space move routes: "+JSON.stringify(twoSpaceMoveRoutes));
+        },
+
         /**
          * Highlights the possible places the train could go for selection by player
          * @param {array<string>} nodeIDs - nodeIDs (really tiles) that should be highlighted.
@@ -856,5 +894,10 @@ function (dojo, declare) {
         {
             this.scEventHandlers.onSelectTrainDestination(evt, this.selectedNodes);
         },
+
+        onSelectTwoSpaceMoveRoute(routeSelection)
+        {
+            this.scEventHandlers.onSelectTwoSpaceMoveRoute(routeSelection);
+        }
    });             
 });

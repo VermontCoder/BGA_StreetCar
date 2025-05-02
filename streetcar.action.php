@@ -91,6 +91,13 @@ class action_streetcar extends APP_GameAction
     self::ajaxResponse();
   }
 
+  public function selectTwoSpaceMoveRoute()
+  {
+    $routeIdx = self::getArg("route", AT_posint, true);
+    $this->game->selectTwoSpaceMoveRoute($routeIdx);
+    self::ajaxResponse();
+  }
+
   public function undo()
   {
     $this->game->undo();
